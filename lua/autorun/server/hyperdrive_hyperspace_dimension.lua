@@ -80,32 +80,44 @@ function HYPERDRIVE.HyperspaceDimension.StartHyperspaceTravel(engine, destinatio
     print("  To: " .. tostring(destination))
     print("  Travel Time: " .. tostring(travelTime or 3))
 
-    -- Find all entities to move to hyperspace
+    -- Find all entities to move to hyperspace using enhanced detection
     local entitiesToMove = {}
     local searchRadius = 1000
 
-    -- Find attached vehicle
-    local attachedVehicle = engine:GetAttachedVehicle()
-    if IsValid(attachedVehicle) then
-        table.insert(entitiesToMove, attachedVehicle)
-        searchRadius = math.max(searchRadius, attachedVehicle:BoundingRadius() * 2)
-    end
+    -- Use Space Combat 2 enhanced entity detection if available
+    if HYPERDRIVE.SpaceCombat2 and HYPERDRIVE.SpaceCombat2.EnhancedEntityDetection then
+        entitiesToMove = HYPERDRIVE.SpaceCombat2.EnhancedEntityDetection(engine, searchRadius)
+        print("[Hyperdrive Dimension] Using SC2 enhanced entity detection - found " .. #entitiesToMove .. " entities")
+    -- Use Spacebuild 3 enhanced entity detection if SC2 not available
+    elseif HYPERDRIVE.Spacebuild and HYPERDRIVE.Spacebuild.Enhanced and HYPERDRIVE.Spacebuild.Enhanced.GetAttachedEntities then
+        entitiesToMove = HYPERDRIVE.Spacebuild.Enhanced.GetAttachedEntities(engine)
+        print("[Hyperdrive Dimension] Using SB3 enhanced entity detection - found " .. #entitiesToMove .. " entities")
+    else
+        -- Fallback to original method
+        -- Find attached vehicle
+        local attachedVehicle = engine:GetAttachedVehicle()
+        if IsValid(attachedVehicle) then
+            table.insert(entitiesToMove, attachedVehicle)
+            searchRadius = math.max(searchRadius, attachedVehicle:BoundingRadius() * 2)
+        end
 
-    -- Find all entities within ship bounds
-    local nearbyEnts = ents.FindInSphere(shipPos, searchRadius)
-    for _, ent in ipairs(nearbyEnts) do
-        if IsValid(ent) and ent ~= engine then
-            -- Include players, vehicles, props, and other ship components
-            if ent:IsPlayer() or ent:IsVehicle() or ent:GetClass() == "prop_physics" or
-               ent:GetClass():find("hyperdrive") or ent:GetClass():find("life_support") or
-               ent:GetClass():find("sb_") or ent:GetClass():find("spacebuild") then
-                table.insert(entitiesToMove, ent)
+        -- Find all entities within ship bounds
+        local nearbyEnts = ents.FindInSphere(shipPos, searchRadius)
+        for _, ent in ipairs(nearbyEnts) do
+            if IsValid(ent) and ent ~= engine then
+                -- Include players, vehicles, props, and other ship components
+                if ent:IsPlayer() or ent:IsVehicle() or ent:GetClass() == "prop_physics" or
+                   ent:GetClass():find("hyperdrive") or ent:GetClass():find("life_support") or
+                   ent:GetClass():find("sb_") or ent:GetClass():find("spacebuild") then
+                    table.insert(entitiesToMove, ent)
+                end
             end
         end
-    end
 
-    -- Always include the engine itself
-    table.insert(entitiesToMove, engine)
+        -- Always include the engine itself
+        table.insert(entitiesToMove, engine)
+        print("[Hyperdrive Dimension] Using standard entity detection - found " .. #entitiesToMove .. " entities")
+    end
 
     -- Create hyperspace area
     local walls, hyperspaceCenter = HYPERDRIVE.HyperspaceDimension.CreateHyperspaceArea(shipPos, HYPERSPACE_BOUNDS)
@@ -154,7 +166,16 @@ function HYPERDRIVE.HyperspaceDimension.StartHyperspaceTravel(engine, destinatio
                 -- Set player's view to hyperspace
                 ent:SetNoDraw(false)
                 ent:Freeze(false) -- Allow movement in hyperspace
-                ent:SetGravity(0.5) -- Reduced gravity in hyperspace
+
+                -- Use SC2 gravity override if available
+                if HYPERDRIVE.SpaceCombat2 and HYPERDRIVE.SpaceCombat2.OverrideGravity then
+                    HYPERDRIVE.SpaceCombat2.OverrideGravity(ent, true)
+                -- Use SB3 gravity override if SC2 not available
+                elseif HYPERDRIVE.Spacebuild and HYPERDRIVE.Spacebuild.Enhanced and HYPERDRIVE.Spacebuild.Enhanced.OverrideGravity then
+                    HYPERDRIVE.Spacebuild.Enhanced.OverrideGravity(ent, true)
+                else
+                    ent:SetGravity(0.5) -- Reduced gravity in hyperspace
+                end
 
                 -- Add to hyperspace entities list
                 hyperspaceEntities[ent] = travelId
@@ -201,7 +222,25 @@ function HYPERDRIVE.HyperspaceDimension.EndHyperspaceTravel(travelId)
     -- Calculate offset from original ship position to destination
     local positionOffset = destination - originalPos
 
-    -- Move all entities to destination
+    -- Use optimized movement if Space Combat 2 integration is available
+    if HYPERDRIVE.SpaceCombat2 and HYPERDRIVE.SpaceCombat2.MoveShip then
+        local success = HYPERDRIVE.SpaceCombat2.MoveShip(engine, destination)
+        if success then
+            print("[Hyperdrive Dimension] Used SC2 optimized movement for hyperspace exit")
+        else
+            print("[Hyperdrive Dimension] SC2 movement failed, falling back to standard method")
+        end
+    -- Use Spacebuild 3 enhanced movement if SC2 not available
+    elseif HYPERDRIVE.Spacebuild and HYPERDRIVE.Spacebuild.Enhanced and HYPERDRIVE.Spacebuild.Enhanced.MoveShip then
+        local success = HYPERDRIVE.Spacebuild.Enhanced.MoveShip(engine, destination)
+        if success then
+            print("[Hyperdrive Dimension] Used SB3 optimized movement for hyperspace exit")
+        else
+            print("[Hyperdrive Dimension] SB3 movement failed, falling back to standard method")
+        end
+    end
+
+    -- Move all entities to destination (fallback or additional entities)
     for _, ent in ipairs(travelData.entities) do
         if IsValid(ent) and ent.HyperspaceTravelId == travelId then
             local originalEntPos = ent.HyperspaceOriginalPos
@@ -211,8 +250,12 @@ function HYPERDRIVE.HyperspaceDimension.EndHyperspaceTravel(travelId)
                 local newPos = originalEntPos + positionOffset
                 local newAng = originalEntAng
 
-                -- Move to destination
-                ent:SetPos(newPos)
+                -- Use optimized movement if available
+                if HYPERDRIVE.SpaceCombat2 and HYPERDRIVE.SpaceCombat2.Config.OptimizedMovement and ent.SetPosOptimized then
+                    ent:SetPosOptimized(newPos)
+                else
+                    ent:SetPos(newPos)
+                end
                 ent:SetAngles(newAng)
 
                 -- Special handling for players
@@ -222,8 +265,15 @@ function HYPERDRIVE.HyperspaceDimension.EndHyperspaceTravel(travelId)
                     net.WriteVector(newPos)
                     net.Send(ent)
 
-                    -- Restore normal gravity
-                    ent:SetGravity(1)
+                    -- Restore normal gravity using SC2 method if available
+                    if HYPERDRIVE.SpaceCombat2 and HYPERDRIVE.SpaceCombat2.OverrideGravity then
+                        HYPERDRIVE.SpaceCombat2.OverrideGravity(ent, false)
+                    -- Use SB3 gravity restore if SC2 not available
+                    elseif HYPERDRIVE.Spacebuild and HYPERDRIVE.Spacebuild.Enhanced and HYPERDRIVE.Spacebuild.Enhanced.OverrideGravity then
+                        HYPERDRIVE.Spacebuild.Enhanced.OverrideGravity(ent, false)
+                    else
+                        ent:SetGravity(1)
+                    end
 
                     -- Remove from hyperspace entities list
                     hyperspaceEntities[ent] = nil

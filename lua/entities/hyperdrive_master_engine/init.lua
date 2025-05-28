@@ -354,21 +354,30 @@ function ENT:StartJumpMaster()
     if self:GetCharging() then return false, "Already charging" end
     if self:GetCooldown() > CurTime() then return false, "Cooldown active" end
 
-    -- Calculate distance and energy cost (simplified)
+    -- Calculate distance and energy cost with advanced optimization
     local destination = self:GetDestination()
     local distance = self:GetPos():Distance(destination)
     local energyCost = math.max(10, distance * 0.1)
 
-    -- Apply Master Engine efficiency bonus
-    if self.GetEfficiencyRating and type(self.GetEfficiencyRating) == "function" then
-        local success, efficiency = pcall(self.GetEfficiencyRating, self)
-        if success and efficiency and efficiency > 0 then
-            energyCost = energyCost / efficiency
+    -- Use ship detection for optimized energy calculation if available
+    if HYPERDRIVE.ShipDetection and HYPERDRIVE.ShipDetection.CalculateOptimizedEnergyCost then
+        local entities = entitiesToMove or {}
+        energyCost = HYPERDRIVE.ShipDetection.CalculateOptimizedEnergyCost(self, destination, entities)
+        if GetConVar("developer"):GetInt() > 0 then
+            print("[Hyperdrive Master] Using ship-optimized energy calculation")
+        end
+    else
+        -- Apply Master Engine efficiency bonus (fallback)
+        if self.GetEfficiencyRating and type(self.GetEfficiencyRating) == "function" then
+            local success, efficiency = pcall(self.GetEfficiencyRating, self)
+            if success and efficiency and efficiency > 0 then
+                energyCost = energyCost / efficiency
+            else
+                energyCost = energyCost / 1.2 -- Default 20% efficiency bonus
+            end
         else
             energyCost = energyCost / 1.2 -- Default 20% efficiency bonus
         end
-    else
-        energyCost = energyCost / 1.2 -- Default 20% efficiency bonus
     end
 
     if self:GetEnergy() < energyCost then
@@ -451,22 +460,49 @@ function ENT:ExecuteJumpMaster()
     end
 
     -- Transport entities (only if not using hyperspace system)
-    local entitiesToMove = {self}
+    local entitiesToMove = {}
 
-    local vehicle = self:GetAttachedVehicle()
-    if IsValid(vehicle) then
-        table.insert(entitiesToMove, vehicle)
-        for i = 0, vehicle:GetPassengerCount() - 1 do
-            local passenger = vehicle:GetPassenger(i)
-            if IsValid(passenger) then
-                table.insert(entitiesToMove, passenger)
-            end
+    -- Use advanced ship detection and classification if available
+    if HYPERDRIVE.ShipDetection and HYPERDRIVE.ShipDetection.DetectAndClassifyShip then
+        local detection = HYPERDRIVE.ShipDetection.DetectAndClassifyShip(self, transportRange)
+        entitiesToMove = detection.entities
+
+        -- Apply ship-specific optimizations
+        if detection.movementStrategy == "batch" then
+            self.UseBatchMovement = true
+        elseif detection.movementStrategy == "optimized" then
+            self.UseOptimizedMovement = true
+        end
+
+        if GetConVar("developer"):GetInt() > 0 then
+            print("[Hyperdrive Master] Using advanced ship detection - found " .. #entitiesToMove .. " entities")
+            print("[Hyperdrive Master] Ship type: " .. detection.shipType.name .. ", Strategy: " .. detection.movementStrategy)
+        end
+    -- Fallback to SC2 enhanced entity detection
+    elseif HYPERDRIVE.SpaceCombat2 and HYPERDRIVE.SpaceCombat2.EnhancedEntityDetection then
+        entitiesToMove = HYPERDRIVE.SpaceCombat2.EnhancedEntityDetection(self, transportRange)
+        if GetConVar("developer"):GetInt() > 0 then
+            print("[Hyperdrive Master] Using SC2 enhanced entity detection - found " .. #entitiesToMove .. " entities")
         end
     else
-        local nearbyEnts = ents.FindInSphere(self:GetPos(), transportRange)
-        for _, ent in ipairs(nearbyEnts) do
-            if ent ~= self and (ent:IsPlayer() or ent:IsVehicle()) then
-                table.insert(entitiesToMove, ent)
+        -- Fallback to original method
+        table.insert(entitiesToMove, self)
+
+        local vehicle = self:GetAttachedVehicle()
+        if IsValid(vehicle) then
+            table.insert(entitiesToMove, vehicle)
+            for i = 0, vehicle:GetPassengerCount() - 1 do
+                local passenger = vehicle:GetPassenger(i)
+                if IsValid(passenger) then
+                    table.insert(entitiesToMove, passenger)
+                end
+            end
+        else
+            local nearbyEnts = ents.FindInSphere(self:GetPos(), transportRange)
+            for _, ent in ipairs(nearbyEnts) do
+                if ent ~= self and (ent:IsPlayer() or ent:IsVehicle()) then
+                    table.insert(entitiesToMove, ent)
+                end
             end
         end
     end
@@ -500,20 +536,168 @@ function ENT:ExecuteJumpMaster()
                 print("[Hyperdrive Master] Completing direct hyperspace travel - transporting entities")
             end
 
-            -- Transport all entities after travel time
+            -- Create backup before movement
+            local backupId = nil
+            if HYPERDRIVE.ErrorRecovery and HYPERDRIVE.ErrorRecovery.CreateBackup then
+                backupId = HYPERDRIVE.ErrorRecovery.CreateBackup(self, entitiesToMove)
+            end
+
+            -- Use network-optimized batch movement if available and appropriate
+            if self.UseBatchMovement and HYPERDRIVE.Network and HYPERDRIVE.Network.BatchMoveEntities then
+                local players = player.GetAll()
+                local success, result = HYPERDRIVE.ErrorRecovery and HYPERDRIVE.ErrorRecovery.SafeExecute(
+                    function(context)
+                        return HYPERDRIVE.Network.BatchMoveEntities(context.entities, context.destination, context.enginePos, context.players)
+                    end,
+                    {entities = entitiesToMove, destination = destination, enginePos = self:GetPos(), players = players, engineId = self:EntIndex()},
+                    "NetworkBatchMovement"
+                ) or HYPERDRIVE.Network.BatchMoveEntities(entitiesToMove, destination, self:GetPos(), players)
+
+                if success then
+                    if GetConVar("developer"):GetInt() > 0 then
+                        print("[Hyperdrive Master] Used network-optimized batch movement")
+                    end
+                    -- Apply gravity overrides for players
+                    for _, ent in ipairs(entitiesToMove) do
+                        if IsValid(ent) and ent:IsPlayer() then
+                            if HYPERDRIVE.SpaceCombat2 and HYPERDRIVE.SpaceCombat2.OverrideGravity then
+                                HYPERDRIVE.SpaceCombat2.OverrideGravity(ent, true)
+                                timer.Simple(3, function()
+                                    if IsValid(ent) then
+                                        HYPERDRIVE.SpaceCombat2.OverrideGravity(ent, false)
+                                    end
+                                end)
+                            elseif HYPERDRIVE.Spacebuild and HYPERDRIVE.Spacebuild.Enhanced and HYPERDRIVE.Spacebuild.Enhanced.OverrideGravity then
+                                HYPERDRIVE.Spacebuild.Enhanced.OverrideGravity(ent, true)
+                                timer.Simple(3, function()
+                                    if IsValid(ent) then
+                                        HYPERDRIVE.Spacebuild.Enhanced.OverrideGravity(ent, false)
+                                    end
+                                end)
+                            end
+                        end
+                    end
+                    return -- Skip individual entity movement
+                else
+                    -- Log network movement failure and try fallback
+                    if HYPERDRIVE.ErrorRecovery then
+                        HYPERDRIVE.ErrorRecovery.LogError("Network batch movement failed: " .. tostring(result),
+                            HYPERDRIVE.ErrorRecovery.Severity.MEDIUM, {engineId = self:EntIndex(), entityCount = #entitiesToMove})
+                    end
+                end
+            end
+
+            -- Fallback to performance-optimized batch movement
+            if self.UseBatchMovement and HYPERDRIVE.Performance and HYPERDRIVE.Performance.BatchMoveEntities then
+                local success, result = HYPERDRIVE.ErrorRecovery and HYPERDRIVE.ErrorRecovery.SafeExecute(
+                    function(context)
+                        return HYPERDRIVE.Performance.BatchMoveEntities(context.entities, context.destination, context.enginePos)
+                    end,
+                    {entities = entitiesToMove, destination = destination, enginePos = self:GetPos(), engineId = self:EntIndex()},
+                    "PerformanceBatchMovement"
+                ) or HYPERDRIVE.Performance.BatchMoveEntities(entitiesToMove, destination, self:GetPos())
+
+                if success then
+                    if GetConVar("developer"):GetInt() > 0 then
+                        print("[Hyperdrive Master] Used performance-optimized batch movement")
+                    end
+                    -- Apply gravity overrides for players
+                    for _, ent in ipairs(entitiesToMove) do
+                        if IsValid(ent) and ent:IsPlayer() then
+                            if HYPERDRIVE.SpaceCombat2 and HYPERDRIVE.SpaceCombat2.OverrideGravity then
+                                HYPERDRIVE.SpaceCombat2.OverrideGravity(ent, true)
+                                timer.Simple(3, function()
+                                    if IsValid(ent) then
+                                        HYPERDRIVE.SpaceCombat2.OverrideGravity(ent, false)
+                                    end
+                                end)
+                            elseif HYPERDRIVE.Spacebuild and HYPERDRIVE.Spacebuild.Enhanced and HYPERDRIVE.Spacebuild.Enhanced.OverrideGravity then
+                                HYPERDRIVE.Spacebuild.Enhanced.OverrideGravity(ent, true)
+                                timer.Simple(3, function()
+                                    if IsValid(ent) then
+                                        HYPERDRIVE.Spacebuild.Enhanced.OverrideGravity(ent, false)
+                                    end
+                                end)
+                            end
+                        end
+                    end
+                    return -- Skip individual entity movement
+                else
+                    -- Log performance movement failure
+                    if HYPERDRIVE.ErrorRecovery then
+                        HYPERDRIVE.ErrorRecovery.LogError("Performance batch movement failed: " .. tostring(result),
+                            HYPERDRIVE.ErrorRecovery.Severity.MEDIUM, {engineId = self:EntIndex(), entityCount = #entitiesToMove})
+                    end
+                end
+            end
+
+            -- Use optimized movement if Space Combat 2 integration is available
+            if HYPERDRIVE.SpaceCombat2 and HYPERDRIVE.SpaceCombat2.MoveShip then
+                local success, result = HYPERDRIVE.ErrorRecovery and HYPERDRIVE.ErrorRecovery.SafeExecute(
+                    function(context)
+                        return HYPERDRIVE.SpaceCombat2.MoveShip(context.engine, context.destination)
+                    end,
+                    {engine = self, destination = destination, engineId = self:EntIndex()},
+                    "SC2Movement"
+                ) or HYPERDRIVE.SpaceCombat2.MoveShip(self, destination)
+
+                if success then
+                    if GetConVar("developer"):GetInt() > 0 then
+                        print("[Hyperdrive Master] Used SC2 optimized movement")
+                    end
+                    return -- Skip fallback movement
+                else
+                    if GetConVar("developer"):GetInt() > 0 then
+                        print("[Hyperdrive Master] SC2 movement failed: " .. tostring(result))
+                    end
+                    -- Log SC2 movement failure
+                    if HYPERDRIVE.ErrorRecovery then
+                        HYPERDRIVE.ErrorRecovery.LogError("SC2 movement failed: " .. tostring(result),
+                            HYPERDRIVE.ErrorRecovery.Severity.MEDIUM, {engineId = self:EntIndex()})
+                    end
+                end
+            end
+
+            -- Transport all entities after travel time (fallback or additional entities)
             for _, ent in ipairs(entitiesToMove) do
                 if IsValid(ent) then
                     local offset = ent:GetPos() - self:GetPos()
-                    ent:SetPos(destination + offset)
+                    local newPos = destination + offset
+
+                    -- Use optimized movement if available
+                    if self.UseOptimizedMovement and ent.SetPosOptimized then
+                        ent:SetPosOptimized(newPos)
+                    elseif HYPERDRIVE.SpaceCombat2 and HYPERDRIVE.SpaceCombat2.Config and HYPERDRIVE.SpaceCombat2.Config.OptimizedMovement and ent.SetPosOptimized then
+                        ent:SetPosOptimized(newPos)
+                    else
+                        ent:SetPos(newPos)
+                    end
 
                     if ent:IsPlayer() then
                         ent:SetVelocity(Vector(0, 0, 0))
+                        -- Apply SC2 gravity override if available
+                        if HYPERDRIVE.SpaceCombat2 and HYPERDRIVE.SpaceCombat2.OverrideGravity then
+                            HYPERDRIVE.SpaceCombat2.OverrideGravity(ent, true)
+                            timer.Simple(3, function()
+                                if IsValid(ent) then
+                                    HYPERDRIVE.SpaceCombat2.OverrideGravity(ent, false)
+                                end
+                            end)
+                        elseif HYPERDRIVE.Spacebuild and HYPERDRIVE.Spacebuild.Enhanced and HYPERDRIVE.Spacebuild.Enhanced.OverrideGravity then
+                            HYPERDRIVE.Spacebuild.Enhanced.OverrideGravity(ent, true)
+                            timer.Simple(3, function()
+                                if IsValid(ent) then
+                                    HYPERDRIVE.Spacebuild.Enhanced.OverrideGravity(ent, false)
+                                end
+                            end)
+                        end
                     elseif ent:GetPhysicsObject():IsValid() then
                         ent:GetPhysicsObject():SetVelocity(Vector(0, 0, 0))
+                        ent:GetPhysicsObject():SetAngularVelocity(Vector(0, 0, 0))
                     end
 
                     if GetConVar("developer"):GetInt() > 0 then
-                        print("  Transported " .. tostring(ent) .. " to " .. tostring(destination + offset))
+                        print("  Transported " .. tostring(ent) .. " to " .. tostring(newPos))
                     end
                 end
             end
