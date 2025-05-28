@@ -1,0 +1,11 @@
+"AddonInfo"
+{
+	"name"			"Hyperdrive System"
+	"version"		"1.0"
+	"up_date"		"2024"
+	"author_name"	"avariss"
+	"author_email"	""
+	"author_url"	""
+	"info"			"Advanced hyperdrive system for space travel in Garry's Mod. Includes hyperdrive engines, destination management, and spectacular jump effects."
+	"override"		"0"
+}
