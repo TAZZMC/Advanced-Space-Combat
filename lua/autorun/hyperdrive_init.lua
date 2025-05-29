@@ -32,16 +32,46 @@ if SERVER then
     AddCSLuaFile("autorun/client/hyperdrive_stargate_client.lua")
     AddCSLuaFile("autorun/client/hyperdrive_visual_config.lua")
 
-    -- Load integration systems (with error handling)
-    local serverFiles = {
-        "autorun/hyperdrive_wiremod.lua",
-        "autorun/hyperdrive_spacebuild.lua",
-        "autorun/hyperdrive_stargate.lua",
-        "autorun/hyperdrive_master.lua",
-        "autorun/server/hyperdrive_hyperspace_dimension.lua"
+    -- Load core systems first (order matters for dependencies)
+    local coreFiles = {
+        "autorun/hyperdrive_config_enhanced.lua",
+        "autorun/hyperdrive_core_v2.lua",
+        "autorun/hyperdrive_network_strings.lua",
+        "autorun/hyperdrive_security.lua",
+        "autorun/hyperdrive_ship_detection.lua",
+        "autorun/hyperdrive_optimization_engine.lua",
+        "autorun/hyperdrive_error_recovery.lua",
+        "autorun/hyperdrive_debug.lua"
     }
 
-    for _, fileName in ipairs(serverFiles) do
+    for _, fileName in ipairs(coreFiles) do
+        if file.Exists(fileName, "LUA") then
+            include(fileName)
+        else
+            print("[Hyperdrive] Warning: " .. fileName .. " not found, skipping...")
+        end
+    end
+
+    -- Load integration systems (with error handling)
+    local integrationFiles = {
+        "autorun/hyperdrive_wiremod.lua",
+        "autorun/hyperdrive_spacebuild.lua",
+        "autorun/hyperdrive_spacecombat2.lua",
+        "autorun/hyperdrive_cap_integration.lua",
+        "autorun/hyperdrive_stargate.lua",
+        "autorun/hyperdrive_hyperspace.lua",
+        "autorun/hyperdrive_quantum.lua",
+        "autorun/hyperdrive_navigation_ai.lua",
+        "autorun/hyperdrive_ui_enhanced.lua",
+        "autorun/hyperdrive_dashboard.lua",
+        "autorun/hyperdrive_admin_panel.lua",
+        "autorun/hyperdrive_network_optimization.lua",
+        "autorun/hyperdrive_master.lua",
+        "autorun/server/hyperdrive_hyperspace_dimension.lua",
+        "autorun/server/hyperdrive_destinations.lua"
+    }
+
+    for _, fileName in ipairs(integrationFiles) do
         if file.Exists(fileName, "LUA") then
             include(fileName)
         else
