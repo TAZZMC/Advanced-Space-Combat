@@ -22,7 +22,6 @@ if SERVER then
 
     -- Add client-side files to download
     AddCSLuaFile("autorun/client/hyperdrive_hud.lua")
-    AddCSLuaFile("autorun/client/hyperdrive_effects.lua")
     AddCSLuaFile("autorun/client/hyperdrive_effects_v2.lua")
     AddCSLuaFile("autorun/client/hyperdrive_sounds.lua")
     AddCSLuaFile("autorun/client/hyperdrive_materials.lua")
@@ -30,6 +29,8 @@ if SERVER then
     AddCSLuaFile("autorun/client/hyperdrive_admin_panel.lua")
     AddCSLuaFile("autorun/client/hyperdrive_hyperspace_effects.lua")
     AddCSLuaFile("autorun/client/hyperdrive_hyperspace_window.lua")
+    AddCSLuaFile("autorun/client/hyperdrive_stargate_client.lua")
+    AddCSLuaFile("autorun/client/hyperdrive_visual_config.lua")
 
     -- Load integration systems (with error handling)
     local serverFiles = {
@@ -94,7 +95,9 @@ elseif CLIENT then
         "autorun/client/hyperdrive_simple_interface.lua",
         "autorun/client/hyperdrive_admin_panel.lua",
         "autorun/client/hyperdrive_hyperspace_effects.lua",
-        "autorun/client/hyperdrive_hyperspace_window.lua"
+        "autorun/client/hyperdrive_hyperspace_window.lua",
+        "autorun/client/hyperdrive_stargate_client.lua",
+        "autorun/client/hyperdrive_visual_config.lua"
     }
 
     for _, fileName in ipairs(clientFiles) do
