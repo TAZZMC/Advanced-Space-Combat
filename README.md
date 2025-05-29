@@ -1,208 +1,204 @@
-# Hyperdrive System - Advanced Space Travel for Garry's Mod
+# 🖥️ Computer-Controlled Master Engine Guide
 
-[![Version](https://img.shields.io/badge/version-1.0-blue.svg)](https://github.com/your-repo/hyperdrive-addon)
-[![Garry's Mod](https://img.shields.io/badge/Garry's%20Mod-Compatible-green.svg)](https://store.steampowered.com/app/4000/Garrys_Mod/)
-[![License](https://img.shields.io/badge/license-MIT-orange.svg)](LICENSE)
+## 🎯 **Overview**
 
-An advanced hyperdrive system for Garry's Mod that provides immersive space travel with spectacular visual effects, comprehensive integration support, and intelligent automation features.
+The Hyperdrive Computer can now fully control Master Engines, including the enhanced 4-stage Stargate travel system! This provides centralized control, automation capabilities, and advanced monitoring of your hyperdrive systems.
 
-## 🚀 Features
+## 🚀 **Quick Setup Guide**
 
-### Core Systems
-- **Multiple Engine Types**: Standard, Spacebuild, Stargate, and Master engines
-- **Intelligent Ship Detection**: Automatic entity detection and classification
-- **Advanced Navigation**: AI-powered navigation with waypoint management
-- **Fleet Coordination**: Multi-engine fleet management and synchronized jumps
-- **Beacon Network**: Navigation beacons for enhanced travel efficiency
+### **Step 1: Spawn the Components**
+1. **Spawn a Hyperdrive Computer** from the entities menu
+2. **Spawn a Master Engine** nearby (within 2000 units)
+3. **Place them on your ship** or in your base
 
-### Visual Effects
-- **Spectacular Jump Effects**: Dynamic particle systems and lighting
-- **4-Stage Stargate Travel**: Authentic Stargate-style hyperspace travel
-- **Quantum Mechanics**: Realistic physics simulation with relativistic effects
-- **Dynamic Lighting**: HDR lighting with volumetric effects
-- **Screen Effects**: Motion blur, chromatic aberration, and distortion
+### **Step 2: Link Computer to Master Engine**
+**Method A: Automatic Linking**
+- The computer automatically finds and links to nearby master engines
+- Wait a few seconds after spawning both entities
 
-### Integration Support
-- **SpaceCombat2**: Full integration with gyropod movement and ship cores
-- **Spacebuild 3**: Resource management and life support integration
-- **Wiremod**: Comprehensive wire input/output support
-- **CAP (Carter Addon Pack)**: Stargate systems integration
-- **Stargate Addons**: Native Stargate technology support
+**Method B: Manual Linking**
+- Look at the computer and type: **`hyperdrive_computer_link_master`**
+- This forces an immediate scan for master engines
 
-### Advanced Features
-- **Security System**: Access control and anti-griefing measures
-- **Performance Optimization**: Intelligent LOD and effect culling
-- **Admin Panel**: Comprehensive server management tools
-- **Error Recovery**: Automatic error detection and recovery
-- **Network Optimization**: Efficient client-server communication
+**Method C: Wiremod Linking**
+- Wire the master engine to the computer's **"ControlMasterEngine"** input
+- This gives you precise control over which engine to use
 
-## 📦 Installation
+### **Step 3: Control the Master Engine**
+- Use console commands, wiremod, or the computer interface
+- Set destinations and initiate 4-stage travel remotely
 
-1. **Download** the addon from the Steam Workshop or GitHub releases
-2. **Extract** to your `garrysmod/addons/` directory
-3. **Restart** your Garry's Mod server/client
-4. **Configure** settings via the admin panel (optional)
+## 🎮 **Console Commands**
 
-### Dependencies
-- **Garry's Mod** (latest version recommended)
-- **Optional**: Wiremod, SpaceCombat2, Spacebuild 3, CAP
-
-## 🎮 Quick Start
-
-### Basic Usage
-1. **Spawn** a Hyperdrive Engine from the Hyperdrive category
-2. **Spawn** a Hyperdrive Computer for easy control
-3. **Set destination** using the computer interface
-4. **Charge** the engine and **initiate jump**
-
-### Advanced Setup
-1. **Create beacon network** for efficient navigation
-2. **Link multiple engines** for fleet operations
-3. **Configure integrations** via admin panel
-4. **Set up Wiremod** connections for automation
-
-## 🛠️ Entity Types
-
-### Engines
-- **Hyperdrive Engine**: Standard FTL propulsion system
-- **Hyperdrive SB Engine**: Spacebuild 3 integrated engine
-- **Hyperdrive SG Engine**: Stargate technology engine
-- **Hyperdrive Master Engine**: Advanced multi-system engine
-
-### Control Systems
-- **Hyperdrive Computer**: User-friendly control interface
-- **Hyperdrive Wire Controller**: Wiremod automation controller
-- **Hyperdrive Beacon**: Navigation waypoint system
-
-## ⚙️ Configuration
-
-### Admin Panel
-Access the admin panel via the spawn menu or console command `hyperdrive_admin`.
-
-Key configuration categories:
-- **Performance Settings**: Effect quality, update rates, optimization
-- **Integration Settings**: Enable/disable specific integrations
-- **Security Settings**: Access control and anti-griefing
-- **Visual Settings**: Effect intensity and quality options
-
-### Console Commands
+### **Essential Commands**
 ```
-hyperdrive_admin          - Open admin panel
-hyperdrive_debug 1        - Enable debug mode
-hyperdrive_reload         - Reload configuration
-hyperdrive_status         - Show system status
+hyperdrive_computer_link_master     - Link computer to nearby master engine
+hyperdrive_computer_4stage X Y Z    - Start 4-stage travel to coordinates
+hyperdrive_computer_status          - Check master engine control status
+hyperdrive_computer_abort           - Emergency abort current jump
 ```
 
-## 🔧 Integration Details
+### **Usage Examples**
+```
+hyperdrive_computer_4stage 1000 500 200    - Jump to coordinates (1000, 500, 200)
+hyperdrive_computer_4stage                 - Jump to engine's current destination
+```
 
-### SpaceCombat2 Integration
-- Uses ship cores for entity detection
-- Integrates with gyropod movement system
-- Overrides gravity during hyperspace travel
-- Optimized SetPos/SetAngles methods
+## 🔌 **Wiremod Integration**
 
-### Spacebuild 3 Integration
-- Resource consumption (power, oxygen, coolant)
-- Life support system integration
-- Environmental hazard protection
-- Advanced ship classification
+### **Key Inputs**
+- **`ControlMasterEngine [ENTITY]`** - Wire a specific master engine to control
+- **`SetMasterDestination [VECTOR]`** - Set destination coordinates
+- **`Start4StageJump`** - Initiate 4-stage Stargate travel
+- **`StartMasterJump`** - Start jump (auto-selects 4-stage if available)
+- **`AbortMasterJump`** - Emergency abort
+- **`CheckMasterStatus`** - Update status information
 
-### Wiremod Integration
-- Comprehensive input/output support
-- Fleet coordination capabilities
-- Automated navigation systems
-- Real-time status monitoring
+### **Key Outputs**
+- **`ControlledMasterEngine [ENTITY]`** - Currently controlled engine
+- **`MasterEngineStatus [STRING]`** - Engine status ("READY", "CHARGING", etc.)
+- **`MasterEngineEnergy`** - Current energy level
+- **`MasterEngineReady`** - 1 if ready to jump, 0 if not
+- **`FourStageAvailable`** - 1 if 4-stage system available
+- **`FourStageActive`** - 1 if 4-stage jump in progress
+- **`CurrentStage`** - Current stage (1-4) during 4-stage travel
+- **`StageProgress`** - Progress through current stage (0-1)
+- **`MasterEfficiencyRating`** - Engine efficiency multiplier
+- **`MasterIntegrations [STRING]`** - Active integrations (Wiremod,Spacebuild,Stargate)
 
-### CAP Integration
-- Stargate network compatibility
-- Shield system respect
-- Energy sharing with Stargates
-- Address-based navigation
+## 🌟 **4-Stage Travel Control**
 
-## 🎨 Visual Effects
+### **Initiating 4-Stage Travel**
+1. **Set Destination**: Use wiremod, commands, or interface
+2. **Start Jump**: Use `Start4StageJump` input or `hyperdrive_computer_4stage` command
+3. **Monitor Progress**: Watch the stage outputs and HUD
 
-### Standard Effects
-- Energy charging particles
-- Jump portal creation
-- Hyperspace tunnel visualization
-- Exit flash and stabilization
+### **Stage Monitoring**
+The computer provides real-time monitoring of the 4-stage process:
+- **Stage 1**: Initiation/Charging (4 seconds)
+- **Stage 2**: Window Opening (3 seconds)
+- **Stage 3**: Hyperspace Travel (variable based on distance)
+- **Stage 4**: Exit/Stabilization (5 seconds)
 
-### Stargate 4-Stage Travel
-1. **Initiation**: Energy surges and coordinate calculation
-2. **Window Opening**: Blue/purple swirling energy tunnel
-3. **Hyperspace Travel**: Stretched starlines and dimensional visuals
-4. **Exit**: Light flash and system stabilization
+### **Progress Tracking**
+- **`CurrentStage`** output shows which stage (1-4)
+- **`StageProgress`** output shows completion (0.0 to 1.0)
+- **`FourStageActive`** output indicates if jump is in progress
 
-## 🔒 Security Features
+## 🔧 **Advanced Features**
 
-- **Access Control**: Owner-based permissions
-- **Anti-Griefing**: Destination validation and protection
-- **Audit Logging**: Comprehensive action tracking
-- **Emergency Systems**: Automatic shutdown and recovery
+### **Automatic Engine Management**
+- **Auto-Discovery**: Computer automatically finds nearby master engines
+- **Health Monitoring**: Continuously checks engine status
+- **Connection Validation**: Ensures engine is still valid and nearby
+- **Automatic Reconnection**: Re-links if connection is lost
 
-## 📊 Performance
+### **Enhanced Status Reporting**
+The computer provides detailed status information:
+- Engine operational status and error reasons
+- Energy levels and efficiency ratings
+- Integration status (Wiremod, Spacebuild, Stargate)
+- 4-stage system availability and progress
+- Cooldown timers and charging status
 
-### Optimization Features
-- **LOD System**: Distance-based effect quality
-- **Effect Culling**: Intelligent effect management
-- **Network Optimization**: Efficient data transmission
-- **Dynamic Quality**: Automatic performance adjustment
+### **Safety Features**
+- **Range Validation**: Ensures engine is within control range (3000 units)
+- **Status Checking**: Verifies engine can operate before starting jumps
+- **Emergency Abort**: Immediate jump cancellation capability
+- **Connection Monitoring**: Automatic disconnection if engine becomes invalid
 
-### Recommended Settings
-- **Max Active Engines**: 50 (default)
-- **Effect Quality**: 1.0 (normal)
-- **Update Rate**: 0.5 seconds
-- **Particle Count**: 1.0 multiplier
+## 🎯 **Usage Scenarios**
 
-## 🐛 Troubleshooting
+### **Basic Ship Control**
+1. Place computer and master engine on your ship
+2. Use `hyperdrive_computer_4stage X Y Z` to travel
+3. Enjoy the full 4-stage Stargate experience
 
-### Common Issues
+### **Automated Systems**
+1. Wire up the computer inputs/outputs
+2. Create automated jump sequences
+3. Monitor progress with stage outputs
+4. Build complex navigation systems
 
-**Engine not charging:**
-- Check power supply (Spacebuild)
-- Verify destination is valid
-- Ensure no obstructions
+### **Fleet Command**
+1. Use multiple computers for different ships
+2. Coordinate jumps with wiremod logic
+3. Monitor entire fleet status
+4. Execute synchronized 4-stage travel
 
-**Integration not working:**
-- Verify required addons are installed
-- Check admin panel integration status
-- Restart server after addon installation
+### **Base Operations**
+1. Set up computer as central control station
+2. Control multiple master engines
+3. Create jump scheduling systems
+4. Monitor all hyperdrive operations
 
-**Performance issues:**
-- Reduce effect quality in admin panel
-- Lower max active engines
-- Enable performance optimizations
+## 🔍 **Troubleshooting**
 
-### Debug Mode
-Enable debug mode with `hyperdrive_debug 1` for detailed logging.
+### **"No master engine under control"**
+**Solutions:**
+- Use `hyperdrive_computer_link_master` to link manually
+- Check that master engine is within 2000 units
+- Verify master engine is spawned and functional
+- Wire the engine directly to `ControlMasterEngine` input
 
-## 🤝 Contributing
+### **"4-stage travel system not available"**
+**Solutions:**
+- Ensure Stargate integration is loaded
+- Check that 4-stage system is enabled in config
+- Verify master engine has proper integrations
 
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+### **"Engine cannot operate"**
+**Check:**
+- Engine has sufficient energy
+- Engine is not on cooldown
+- Destination is set and valid
+- Engine is not already charging
 
-### Development Setup
-1. Clone the repository
-2. Set up development environment
-3. Run tests with `hyperdrive_test`
-4. Submit pull requests
+### **Connection Lost**
+**Causes:**
+- Engine moved too far away (>3000 units)
+- Engine was removed or destroyed
+- Engine class changed (shouldn't happen)
 
-## 📄 License
+**Solutions:**
+- Move computer closer to engine
+- Respawn the engine if destroyed
+- Use `hyperdrive_computer_link_master` to reconnect
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## 🎉 **Benefits of Computer Control**
 
-## 🙏 Acknowledgments
+### **Centralized Management**
+- ✅ Control multiple engines from one location
+- ✅ Monitor all systems from single interface
+- ✅ Coordinate complex jump sequences
+- ✅ Automate routine operations
 
-- **SpaceCombat2 Team** - For excellent space combat framework
-- **Spacebuild Community** - For comprehensive space building tools
-- **CAP Developers** - For amazing Stargate systems
-- **Wiremod Team** - For powerful automation capabilities
+### **Enhanced Monitoring**
+- ✅ Real-time status updates
+- ✅ 4-stage progress tracking
+- ✅ Integration status reporting
+- ✅ Performance metrics
 
-## 📞 Support
+### **Automation Capabilities**
+- ✅ Wiremod integration for complex logic
+- ✅ Automated jump sequences
+- ✅ Conditional jump execution
+- ✅ Fleet coordination systems
 
-- **GitHub Issues**: [Report bugs and request features](https://github.com/your-repo/hyperdrive-addon/issues)
-- **Steam Workshop**: [Rate and comment](https://steamcommunity.com/sharedfiles/filedetails/?id=your-workshop-id)
-- **Discord**: [Join our community](https://discord.gg/your-discord)
+### **Safety & Reliability**
+- ✅ Automatic health monitoring
+- ✅ Emergency abort capabilities
+- ✅ Connection validation
+- ✅ Error reporting and recovery
 
----
+## 🌟 **Summary**
 
-**Made with ❤️ by the Hyperdrive Team**
+The Computer-Controlled Master Engine system provides:
+- **Full remote control** of master engines
+- **Complete 4-stage travel integration** with progress monitoring
+- **Advanced wiremod capabilities** for automation
+- **Comprehensive status reporting** and health monitoring
+- **Safety features** and error handling
+- **Easy-to-use console commands** for quick operation
+
+Whether you're building a simple ship or a complex automated system, the computer gives you complete control over your hyperdrive operations while maintaining the full authentic Stargate 4-stage travel experience! 🚀
