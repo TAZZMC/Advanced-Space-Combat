@@ -36,11 +36,7 @@ HYPERDRIVE.Network.State = {
     deltaStates = {},
 }
 
--- Network strings for optimized communication
-util.AddNetworkString("hyperdrive_batch_movement")
-util.AddNetworkString("hyperdrive_delta_update")
-util.AddNetworkString("hyperdrive_priority_sync")
-util.AddNetworkString("hyperdrive_compression_data")
+-- Network strings are loaded from hyperdrive_network_strings.lua
 
 -- Function to get network configuration
 local function GetNetConfig(key, default)
@@ -55,31 +51,31 @@ function HYPERDRIVE.Network.CompressData(data)
     if not GetNetConfig("DeltaCompression", true) then
         return data, #data
     end
-    
+
     -- Simple compression simulation (in real implementation, use util.Compress)
     local compressed = util.Compress(data) or data
     local originalSize = #data
     local compressedSize = #compressed
-    
+
     -- Update compression statistics
     local stats = HYPERDRIVE.Network.State.compressionStats
     stats.totalBytes = stats.totalBytes + originalSize
     stats.compressedBytes = stats.compressedBytes + compressedSize
     stats.compressionRatio = stats.compressedBytes / stats.totalBytes
-    
+
     return compressed, compressedSize
 end
 
 -- Calculate entity movement priority
 function HYPERDRIVE.Network.CalculatePriority(entity, player)
     if not IsValid(entity) or not IsValid(player) then return 0 end
-    
+
     local priority = 100 -- Base priority
     local distance = entity:GetPos():Distance(player:GetPos())
-    
+
     -- Distance-based priority (closer = higher priority)
     priority = priority - (distance / 100)
-    
+
     -- Entity type priority
     if entity:IsPlayer() then
         priority = priority + 50 -- Players are high priority
@@ -88,25 +84,25 @@ function HYPERDRIVE.Network.CalculatePriority(entity, player)
     elseif entity:GetClass():find("hyperdrive") then
         priority = priority + 40 -- Hyperdrive engines are high priority
     end
-    
+
     -- Visibility priority
     local trace = util.TraceLine({
         start = player:EyePos(),
         endpos = entity:GetPos(),
         filter = {player, entity}
     })
-    
+
     if not trace.Hit then
         priority = priority + 20 -- Visible entities get priority boost
     end
-    
+
     return math.max(0, priority)
 end
 
 -- Create delta state for entity
 function HYPERDRIVE.Network.CreateDeltaState(entity)
     if not IsValid(entity) then return nil end
-    
+
     return {
         position = entity:GetPos(),
         angles = entity:GetAngles(),
@@ -118,29 +114,29 @@ end
 -- Calculate delta between states
 function HYPERDRIVE.Network.CalculateDelta(oldState, newState)
     if not oldState or not newState then return newState end
-    
+
     local delta = {}
     local threshold = 1.0 -- Minimum change threshold
-    
+
     -- Position delta
     if oldState.position:Distance(newState.position) > threshold then
         delta.position = newState.position
     end
-    
+
     -- Angle delta
     local angleDiff = math.abs(oldState.angles.p - newState.angles.p) +
                      math.abs(oldState.angles.y - newState.angles.y) +
                      math.abs(oldState.angles.r - newState.angles.r)
-    
+
     if angleDiff > 1.0 then
         delta.angles = newState.angles
     end
-    
+
     -- Velocity delta
     if oldState.velocity:Distance(newState.velocity) > threshold then
         delta.velocity = newState.velocity
     end
-    
+
     delta.timestamp = newState.timestamp
     return delta
 end
@@ -150,11 +146,11 @@ function HYPERDRIVE.Network.BatchMoveEntities(entities, destination, enginePos, 
     if not GetNetConfig("EnableOptimization", true) then
         return false
     end
-    
+
     players = players or player.GetAll()
     local batchSize = GetNetConfig("BatchSize", 32)
     local batchDelay = GetNetConfig("BatchDelay", 0.005)
-    
+
     -- Adaptive batch sizing based on entity count and network load
     if GetNetConfig("AdaptiveBatching", true) then
         local networkLoad = HYPERDRIVE.Network.State.bandwidthUsage / GetNetConfig("MaxBandwidth", 1000000)
@@ -164,69 +160,69 @@ function HYPERDRIVE.Network.BatchMoveEntities(entities, destination, enginePos, 
             batchSize = math.min(64, batchSize * 1.5) -- Increase batch size under low load
         end
     end
-    
+
     -- Create priority-sorted entity list for each player
     local playerBatches = {}
-    
+
     for _, ply in ipairs(players) do
         if IsValid(ply) then
             local prioritizedEntities = {}
-            
+
             for _, ent in ipairs(entities) do
                 if IsValid(ent) then
                     local priority = HYPERDRIVE.Network.CalculatePriority(ent, ply)
                     table.insert(prioritizedEntities, {entity = ent, priority = priority})
                 end
             end
-            
+
             -- Sort by priority (highest first)
             table.sort(prioritizedEntities, function(a, b) return a.priority > b.priority end)
-            
+
             playerBatches[ply] = prioritizedEntities
         end
     end
-    
+
     -- Process batches
     local totalBatches = math.ceil(#entities / batchSize)
-    
+
     for batchIndex = 1, totalBatches do
         timer.Simple(batchDelay * (batchIndex - 1), function()
             local startIdx = (batchIndex - 1) * batchSize + 1
             local endIdx = math.min(batchIndex * batchSize, #entities)
-            
+
             -- Prepare batch data for each player
             for ply, prioritizedEntities in pairs(playerBatches) do
                 if IsValid(ply) then
                     local batchData = {}
-                    
+
                     for i = startIdx, math.min(endIdx, #prioritizedEntities) do
                         local entData = prioritizedEntities[i]
                         local ent = entData.entity
-                        
+
                         if IsValid(ent) then
                             local offset = ent:GetPos() - enginePos
                             local newPos = destination + offset
-                            
+
                             -- Create delta state
                             local oldState = HYPERDRIVE.Network.State.deltaStates[ent:EntIndex()]
                             local newState = HYPERDRIVE.Network.CreateDeltaState(ent)
                             newState.position = newPos
-                            
+
                             local delta = HYPERDRIVE.Network.CalculateDelta(oldState, newState)
-                            
+
                             if delta and (delta.position or delta.angles or delta.velocity) then
                                 table.insert(batchData, {
                                     entIndex = ent:EntIndex(),
                                     delta = delta,
                                     priority = entData.priority
                                 })
-                                
+
                                 -- Store new state
                                 HYPERDRIVE.Network.State.deltaStates[ent:EntIndex()] = newState
                             end
                         end
                     end
-                    
+
                     -- Send batch if not empty
                     if #batchData > 0 then
                         HYPERDRIVE.Network.SendBatchUpdate(ply, batchData)
@@ -235,25 +231,25 @@ function HYPERDRIVE.Network.BatchMoveEntities(entities, destination, enginePos, 
             end
         end)
     end
-    
+
     return true
 end
 
 -- Send optimized batch update to client
 function HYPERDRIVE.Network.SendBatchUpdate(player, batchData)
     if not IsValid(player) or #batchData == 0 then return end
-    
+
     -- Compress batch data
     local serializedData = util.TableToJSON(batchData)
     local compressedData, compressedSize = HYPERDRIVE.Network.CompressData(serializedData)
-    
+
     -- Check bandwidth limits
     local currentTime = CurTime()
     if currentTime - HYPERDRIVE.Network.State.lastBandwidthReset > 1.0 then
         HYPERDRIVE.Network.State.bandwidthUsage = 0
         HYPERDRIVE.Network.State.lastBandwidthReset = currentTime
     end
-    
+
     local maxBandwidth = GetNetConfig("MaxBandwidth", 1000000)
     if HYPERDRIVE.Network.State.bandwidthUsage + compressedSize > maxBandwidth then
         -- Queue for later transmission
@@ -265,13 +261,13 @@ function HYPERDRIVE.Network.SendBatchUpdate(player, batchData)
         })
         return
     end
-    
+
     -- Send batch update
     net.Start("hyperdrive_batch_movement")
     net.WriteUInt(compressedSize, 32)
     net.WriteData(compressedData, compressedSize)
     net.Send(player)
-    
+
     -- Update bandwidth usage
     HYPERDRIVE.Network.State.bandwidthUsage = HYPERDRIVE.Network.State.bandwidthUsage + compressedSize
 end
@@ -281,23 +277,23 @@ function HYPERDRIVE.Network.ProcessPriorityQueue()
     local queue = HYPERDRIVE.Network.State.priorityQueue
     local maxBandwidth = GetNetConfig("MaxBandwidth", 1000000)
     local currentTime = CurTime()
-    
+
     -- Reset bandwidth counter every second
     if currentTime - HYPERDRIVE.Network.State.lastBandwidthReset > 1.0 then
         HYPERDRIVE.Network.State.bandwidthUsage = 0
         HYPERDRIVE.Network.State.lastBandwidthReset = currentTime
     end
-    
+
     -- Process queue items
     for i = #queue, 1, -1 do
         local item = queue[i]
-        
+
         -- Remove stale items (older than 5 seconds)
         if currentTime - item.timestamp > 5.0 then
             table.remove(queue, i)
             continue
         end
-        
+
         -- Check if we can send this item
         if HYPERDRIVE.Network.State.bandwidthUsage + item.size <= maxBandwidth then
             if IsValid(item.player) then
@@ -305,10 +301,10 @@ function HYPERDRIVE.Network.ProcessPriorityQueue()
                 net.WriteUInt(item.size, 32)
                 net.WriteData(item.data, item.size)
                 net.Send(item.player)
-                
+
                 HYPERDRIVE.Network.State.bandwidthUsage = HYPERDRIVE.Network.State.bandwidthUsage + item.size
             end
-            
+
             table.remove(queue, i)
         end
     end
@@ -317,7 +313,7 @@ end
 -- Network statistics
 function HYPERDRIVE.Network.GetStatistics()
     local stats = HYPERDRIVE.Network.State.compressionStats
-    
+
     return {
         compressionRatio = stats.compressionRatio,
         totalBytes = stats.totalBytes,
@@ -332,7 +328,7 @@ end
 function HYPERDRIVE.Network.CleanupDeltaStates()
     local currentTime = CurTime()
     local maxAge = 30 -- 30 seconds
-    
+
     for entIndex, state in pairs(HYPERDRIVE.Network.State.deltaStates) do
         if currentTime - state.timestamp > maxAge then
             HYPERDRIVE.Network.State.deltaStates[entIndex] = nil
@@ -352,9 +348,9 @@ end)
 -- Console commands for network management
 concommand.Add("hyperdrive_network_stats", function(ply, cmd, args)
     if not IsValid(ply) then return end
-    
+
     local stats = HYPERDRIVE.Network.GetStatistics()
-    
+
     ply:ChatPrint("[Hyperdrive Network] Statistics:")
     ply:ChatPrint("  • Compression Ratio: " .. string.format("%.2f%%", stats.compressionRatio * 100))
     ply:ChatPrint("  • Total Bytes: " .. string.format("%.2fKB", stats.totalBytes / 1024))
@@ -371,7 +367,7 @@ concommand.Add("hyperdrive_network_reset", function(ply, cmd, args)
         end
         return
     end
-    
+
     -- Reset network state
     HYPERDRIVE.Network.State = {
         activeBatches = {},
@@ -385,7 +381,7 @@ concommand.Add("hyperdrive_network_reset", function(ply, cmd, args)
         priorityQueue = {},
         deltaStates = {},
     }
-    
+
     if IsValid(ply) then
         ply:ChatPrint("[Hyperdrive] Network state reset")
     else

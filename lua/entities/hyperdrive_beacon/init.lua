@@ -204,11 +204,7 @@ function HYPERDRIVE.GetBeaconByID(id)
     return nil
 end
 
--- Network strings
-util.AddNetworkString("hyperdrive_beacon_config")
-util.AddNetworkString("hyperdrive_beacon_update")
-util.AddNetworkString("hyperdrive_beacon_pulse")
-util.AddNetworkString("hyperdrive_beacon_list")
+-- Network strings are loaded from hyperdrive_network_strings.lua
 
 -- Network handlers
 net.Receive("hyperdrive_beacon_update", function(len, ply)

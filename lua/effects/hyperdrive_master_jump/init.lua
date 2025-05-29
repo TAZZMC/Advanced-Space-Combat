@@ -2,15 +2,30 @@
 
 function EFFECT:Init(data)
     local pos = data:GetOrigin()
-    local magnitude = data:GetMagnitude() -- 1 for origin, 2 for destination
+    local magnitude = data:GetMagnitude() -- 1 for origin, 2 for destination, 3 for Stargate initiation, 4 for window opening, 5 for exit
     local scale = data:GetScale() -- Efficiency multiplier
-    
+
     self.Position = pos
     self.IsOrigin = magnitude == 1
+    self.IsDestination = magnitude == 2
+    self.IsStargateInitiation = magnitude == 3
+    self.IsStargateWindow = magnitude == 4
+    self.IsStargateExit = magnitude == 5
     self.EfficiencyScale = scale or 1
-    self.LifeTime = 4 * self.EfficiencyScale -- Longer effect for higher efficiency
+
+    -- Adjust lifetime based on effect type
+    if self.IsStargateInitiation then
+        self.LifeTime = 3 * self.EfficiencyScale -- Initiation phase
+    elseif self.IsStargateWindow then
+        self.LifeTime = 2 * self.EfficiencyScale -- Window opening phase
+    elseif self.IsStargateExit then
+        self.LifeTime = 1.5 * self.EfficiencyScale -- Exit phase
+    else
+        self.LifeTime = 4 * self.EfficiencyScale -- Standard effect
+    end
+
     self.DieTime = CurTime() + self.LifeTime
-    
+
     -- Create massive dynamic light for master effect
     local dlight = DynamicLight(self:EntIndex())
     if dlight then
@@ -23,10 +38,10 @@ function EFFECT:Init(data)
         dlight.size = 1200 * self.EfficiencyScale
         dlight.dietime = CurTime() + 2
     end
-    
+
     -- Create master particle effects
     self:CreateMasterParticles()
-    
+
     -- Enhanced screen shake
     for _, ply in ipairs(player.GetAll()) do
         if ply:GetPos():Distance(pos) < 2000 then
@@ -34,9 +49,37 @@ function EFFECT:Init(data)
             util.ScreenShake(pos, intensity * 20 * self.EfficiencyScale, 10, 4, 2000)
         end
     end
-    
-    -- Master sound effects
-    if self.IsOrigin then
+
+    -- Master sound effects based on stage
+    if self.IsStargateInitiation then
+        -- Stage 1: Initiation/Charging sounds
+        sound.Play("ambient/energy/whiteflash.wav", pos, 75, 60)
+        timer.Simple(0.5, function()
+            sound.Play("ambient/energy/spark6.wav", pos, 70, 40)
+        end)
+        timer.Simple(1.5, function()
+            sound.Play("ambient/energy/zap7.wav", pos, 65, 35)
+        end)
+    elseif self.IsStargateWindow then
+        -- Stage 2: Window opening sounds
+        sound.Play("ambient/energy/zap9.wav", pos, 85, 120)
+        timer.Simple(0.5, function()
+            sound.Play("ambient/explosions/explode_4.wav", pos, 75, 150)
+        end)
+        timer.Simple(1.0, function()
+            sound.Play("ambient/energy/spark6.wav", pos, 70, 90)
+        end)
+    elseif self.IsStargateExit then
+        -- Stage 4: Exit sounds
+        sound.Play("ambient/energy/whiteflash.wav", pos, 90, 140)
+        timer.Simple(0.3, function()
+            sound.Play("ambient/energy/spark6.wav", pos, 80, 100)
+        end)
+        timer.Simple(1.0, function()
+            sound.Play("ambient/energy/zap7.wav", pos, 70, 110)
+        end)
+    elseif self.IsOrigin then
+        -- Standard origin sounds
         sound.Play("ambient/energy/whiteflash.wav", pos, 100, 60)
         timer.Simple(0.2, function()
             sound.Play("ambient/energy/spark6.wav", pos, 100, 40)
@@ -48,6 +91,7 @@ function EFFECT:Init(data)
             sound.Play("ambient/explosions/explode_4.wav", pos, 90, 200)
         end)
     else
+        -- Standard destination sounds
         sound.Play("ambient/energy/zap9.wav", pos, 100, 150)
         sound.Play("ambient/explosions/explode_4.wav", pos, 95, 190)
         timer.Simple(0.1, function()
@@ -62,7 +106,7 @@ end
 function EFFECT:CreateMasterParticles()
     local emitter = ParticleEmitter(self.Position)
     if not emitter then return end
-    
+
     -- Massive energy burst particles
     for i = 1, 120 * self.EfficiencyScale do
         local particle = emitter:Add("effects/spark", self.Position)
@@ -81,19 +125,19 @@ function EFFECT:CreateMasterParticles()
             particle:SetAirResistance(40)
         end
     end
-    
+
     -- Master energy vortex (combining Stargate-style with enhanced effects)
     for i = 1, 80 * self.EfficiencyScale do
         local angle = (i / 80) * 360 * 4 -- Multiple spirals
         local radius = math.Rand(30, 150) * self.EfficiencyScale
         local height = math.Rand(-80, 80) * self.EfficiencyScale
-        
+
         local dir = Vector(
             math.cos(math.rad(angle)) * radius,
             math.sin(math.rad(angle)) * radius,
             height
         ):GetNormalized()
-        
+
         local particle = emitter:Add("effects/energyball", self.Position + dir * 40)
         if particle then
             particle:SetVelocity(dir * 400 * self.EfficiencyScale)
@@ -108,7 +152,7 @@ function EFFECT:CreateMasterParticles()
             particle:SetAirResistance(25)
         end
     end
-    
+
     -- Wiremod-style electric arcs
     for i = 1, 60 * self.EfficiencyScale do
         local particle = emitter:Add("effects/spark", self.Position + VectorRand() * 80)
@@ -124,7 +168,7 @@ function EFFECT:CreateMasterParticles()
             particle:SetGravity(Vector(0, 0, 0))
         end
     end
-    
+
     -- Spacebuild-style resource particles
     for i = 1, 40 * self.EfficiencyScale do
         local particle = emitter:Add("effects/energyball", self.Position + VectorRand() * 60)
@@ -136,7 +180,7 @@ function EFFECT:CreateMasterParticles()
             particle:SetEndAlpha(0)
             particle:SetStartSize(6)
             particle:SetEndSize(18)
-            
+
             -- Cycle through resource colors
             if i % 3 == 0 then
                 particle:SetColor(255, 255, 0) -- Power (yellow)
@@ -145,12 +189,12 @@ function EFFECT:CreateMasterParticles()
             else
                 particle:SetColor(100, 150, 255) -- Coolant (blue)
             end
-            
+
             particle:SetGravity(Vector(0, 0, -50))
             particle:SetAirResistance(30)
         end
     end
-    
+
     -- Ancient/Stargate golden particles (efficiency bonus)
     if self.EfficiencyScale > 1.2 then
         for i = 1, 50 do
@@ -169,7 +213,7 @@ function EFFECT:CreateMasterParticles()
             end
         end
     end
-    
+
     -- Master energy column
     for i = 1, 50 * self.EfficiencyScale do
         local particle = emitter:Add("effects/energyball", self.Position + VectorRand() * 30)
@@ -190,7 +234,7 @@ function EFFECT:CreateMasterParticles()
             particle:SetAirResistance(20)
         end
     end
-    
+
     emitter:Finish()
 end
 
@@ -202,27 +246,27 @@ function EFFECT:Render()
     local timeLeft = self.DieTime - CurTime()
     local progress = 1 - (timeLeft / self.LifeTime)
     local alpha = timeLeft / self.LifeTime
-    
+
     if alpha <= 0 then return end
-    
+
     -- Draw master energy portal effect
     local size = (200 * (1 - progress) + 120) * self.EfficiencyScale
     local color = Color(180, 210, 255, 255 * alpha)
-    
+
     render.SetMaterial(Material("effects/energyball"))
     render.DrawSprite(self.Position, size, size, color)
-    
+
     -- Draw enhanced event horizon
     local horizonSize = size * 1.8
     local horizonColor = Color(150, 180, 255, 180 * alpha)
     render.SetMaterial(Material("hyperdrive/jump_portal"))
     render.DrawSprite(self.Position, horizonSize, horizonSize, horizonColor)
-    
+
     -- Draw multiple glow layers
     render.SetMaterial(Material("sprites/light_glow02_add"))
     render.DrawSprite(self.Position, size * 3, size * 3, Color(100, 140, 255, 60 * alpha))
     render.DrawSprite(self.Position, size * 2, size * 2, Color(150, 180, 255, 100 * alpha))
-    
+
     -- Draw master distortion rings
     for i = 1, 8 do
         local ringSize = size * (1 + i * 0.3) * (1 - alpha * 0.2)
@@ -230,7 +274,7 @@ function EFFECT:Render()
         local ringColor = Color(120, 160, 255, 30 * ringAlpha)
         render.DrawSprite(self.Position + Vector(0, 0, i * 30), ringSize, ringSize, ringColor)
     end
-    
+
     -- Efficiency-based enhancement effects
     if self.EfficiencyScale > 1.2 then
         -- Ancient technology golden spirals
@@ -246,14 +290,14 @@ function EFFECT:Render()
             local spiralColor = Color(255, 215, 0, 220 * alpha)
             render.DrawSprite(spiralPos, 30, 30, spiralColor)
         end
-        
+
         -- Central master symbol effect
         local symbolSize = size * 0.7
         local symbolColor = Color(255, 255, 255, 200 * alpha)
         render.SetMaterial(Material("hyperdrive/engine_glow"))
         render.DrawSprite(self.Position, symbolSize, symbolSize, symbolColor)
     end
-    
+
     -- Wiremod electric effects
     local time = CurTime()
     for i = 1, 4 do
@@ -267,7 +311,7 @@ function EFFECT:Render()
         local arcColor = Color(0, 150, 255, 180 * alpha)
         render.DrawSprite(arcPos, 20, 20, arcColor)
     end
-    
+
     -- Spacebuild resource indicators
     if self.EfficiencyScale > 1.0 then
         local resourcePositions = {
@@ -280,7 +324,7 @@ function EFFECT:Render()
             Color(0, 255, 255, 150 * alpha), -- Oxygen (cyan)
             Color(100, 150, 255, 150 * alpha), -- Coolant (blue)
         }
-        
+
         for i, pos in ipairs(resourcePositions) do
             render.DrawSprite(self.Position + pos, 40, 40, resourceColors[i])
         end

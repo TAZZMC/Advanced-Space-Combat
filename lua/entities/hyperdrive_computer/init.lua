@@ -45,6 +45,15 @@ function ENT:Initialize()
     self.PlanetLinkRadius = 100000 -- 100km auto-link radius
     self.QuickJumpTargets = {} -- Fast access planet targets
 
+    -- Master Engine Control System
+    self.ControlledMasterEngine = NULL
+    self.MasterEngineDestination = Vector(0, 0, 0)
+    self.LastMasterEngineCheck = 0
+    self.MasterEngineCheckInterval = 1 -- Check every second
+    self.FourStageJumpInProgress = false
+    self.CurrentJumpStage = 0
+    self.StageStartTime = 0
+
     -- Initialize Wiremod support
     if WireLib then
         self.Inputs = WireLib.CreateInputs(self, {
@@ -66,7 +75,13 @@ function ENT:Initialize()
             "AutoLinkPlanets",
             "ToggleAutoLink",
             "QuickJumpToPlanet [STRING]",
-            "SetPlanetLinkRadius"
+            "SetPlanetLinkRadius",
+            "Start4StageJump",
+            "ControlMasterEngine [ENTITY]",
+            "SetMasterDestination [VECTOR]",
+            "StartMasterJump",
+            "AbortMasterJump",
+            "CheckMasterStatus"
         })
 
         self.Outputs = WireLib.CreateOutputs(self, {
@@ -92,7 +107,20 @@ function ENT:Initialize()
             "AutoLinkEnabled",
             "QuickJumpReady",
             "NearestPlanet [STRING]",
-            "PlanetLinkRadius"
+            "PlanetLinkRadius",
+            "ControlledMasterEngine [ENTITY]",
+            "MasterEngineStatus [STRING]",
+            "MasterEngineEnergy",
+            "MasterEngineReady",
+            "MasterEngineCharging",
+            "MasterEngineCooldown",
+            "MasterEngineDestination [VECTOR]",
+            "FourStageAvailable",
+            "FourStageActive",
+            "CurrentStage",
+            "StageProgress",
+            "MasterEfficiencyRating",
+            "MasterIntegrations [STRING]"
         })
     end
 
@@ -318,6 +346,26 @@ function ENT:Think()
         end
     end
 
+    -- Auto-link master engines if none controlled
+    if not IsValid(self.ControlledMasterEngine) and hasOnlineEngine then
+        if not self.LastMasterEngineCheck or CurTime() - self.LastMasterEngineCheck > self.MasterEngineCheckInterval then
+            self:AutoLinkMasterEngines()
+            self.LastMasterEngineCheck = CurTime()
+        end
+    end
+
+    -- Check if controlled master engine is still valid
+    if IsValid(self.ControlledMasterEngine) then
+        -- Validate the engine is still a master engine and nearby
+        if self.ControlledMasterEngine:GetClass() ~= "hyperdrive_master_engine" or
+           self.ControlledMasterEngine:GetPos():Distance(self:GetPos()) > 3000 then
+            print("[Hyperdrive Computer] Lost connection to master engine")
+            self.ControlledMasterEngine = NULL
+            self.FourStageJumpInProgress = false
+            self.CurrentJumpStage = 0
+        end
+    end
+
     self:UpdateWireOutputs()
     self:NextThink(CurTime() + 1)
     return true
@@ -407,6 +455,34 @@ function ENT:TriggerInput(iname, value)
 
     elseif iname == "SetPlanetLinkRadius" and isnumber(value) then
         self:SetPlanetLinkRadius(value)
+
+    -- Master Engine Control Inputs
+    elseif iname == "Start4StageJump" and value > 0 then
+        self:Start4StageJump()
+
+    elseif iname == "ControlMasterEngine" and IsValid(value) then
+        if value:GetClass() == "hyperdrive_master_engine" then
+            self.ControlledMasterEngine = value
+            print("[Hyperdrive Computer] Now controlling Master Engine: " .. tostring(value))
+        end
+
+    elseif iname == "SetMasterDestination" and isvector(value) then
+        self.MasterEngineDestination = value
+        if IsValid(self.ControlledMasterEngine) then
+            local success, message = self.ControlledMasterEngine:SetDestinationPos(value)
+            if not success then
+                print("[Hyperdrive Computer] Failed to set master engine destination: " .. (message or "Unknown error"))
+            end
+        end
+
+    elseif iname == "StartMasterJump" and value > 0 then
+        self:StartMasterEngineJump()
+
+    elseif iname == "AbortMasterJump" and value > 0 then
+        self:AbortMasterEngineJump()
+
+    elseif iname == "CheckMasterStatus" and value > 0 then
+        self:CheckMasterEngineStatus()
     end
 
     self:UpdateWireOutputs()
@@ -462,6 +538,59 @@ function ENT:UpdateWireOutputs()
     local nearest = self:GetNearestPlanet()
     local nearestName = nearest and nearest.name or "None"
     WireLib.TriggerOutput(self, "NearestPlanet", nearestName)
+
+    -- Master Engine Control Outputs
+    WireLib.TriggerOutput(self, "ControlledMasterEngine", self.ControlledMasterEngine)
+
+    if IsValid(self.ControlledMasterEngine) then
+        local engine = self.ControlledMasterEngine
+        local canOperate, reason = engine:CanOperateMaster()
+
+        WireLib.TriggerOutput(self, "MasterEngineStatus", canOperate and "READY" or reason)
+        WireLib.TriggerOutput(self, "MasterEngineEnergy", engine:GetEnergy())
+        WireLib.TriggerOutput(self, "MasterEngineReady", canOperate and 1 or 0)
+        WireLib.TriggerOutput(self, "MasterEngineCharging", engine:GetCharging() and 1 or 0)
+        WireLib.TriggerOutput(self, "MasterEngineCooldown", engine:GetCooldownRemaining())
+        WireLib.TriggerOutput(self, "MasterEngineDestination", engine:GetDestination())
+        WireLib.TriggerOutput(self, "MasterEfficiencyRating", engine:GetEfficiencyRating())
+
+        -- 4-Stage Travel System Status
+        local fourStageAvailable = HYPERDRIVE.Stargate and HYPERDRIVE.Stargate.Config.StageSystem.EnableFourStageTravel
+        WireLib.TriggerOutput(self, "FourStageAvailable", fourStageAvailable and 1 or 0)
+        WireLib.TriggerOutput(self, "FourStageActive", self.FourStageJumpInProgress and 1 or 0)
+        WireLib.TriggerOutput(self, "CurrentStage", self.CurrentJumpStage)
+
+        -- Calculate stage progress
+        local stageProgress = 0
+        if self.FourStageJumpInProgress and self.StageStartTime > 0 then
+            local elapsed = CurTime() - self.StageStartTime
+            local stageDuration = self:GetCurrentStageDuration()
+            stageProgress = math.Clamp(elapsed / stageDuration, 0, 1)
+        end
+        WireLib.TriggerOutput(self, "StageProgress", stageProgress)
+
+        -- Integration status
+        local integrations = {}
+        if engine.IntegrationData then
+            if engine.IntegrationData.wiremod.active then table.insert(integrations, "Wiremod") end
+            if engine.IntegrationData.spacebuild.active then table.insert(integrations, "Spacebuild") end
+            if engine.IntegrationData.stargate.active then table.insert(integrations, "Stargate") end
+        end
+        WireLib.TriggerOutput(self, "MasterIntegrations", table.concat(integrations, ","))
+    else
+        WireLib.TriggerOutput(self, "MasterEngineStatus", "NO_ENGINE")
+        WireLib.TriggerOutput(self, "MasterEngineEnergy", 0)
+        WireLib.TriggerOutput(self, "MasterEngineReady", 0)
+        WireLib.TriggerOutput(self, "MasterEngineCharging", 0)
+        WireLib.TriggerOutput(self, "MasterEngineCooldown", 0)
+        WireLib.TriggerOutput(self, "MasterEngineDestination", Vector(0, 0, 0))
+        WireLib.TriggerOutput(self, "FourStageAvailable", 0)
+        WireLib.TriggerOutput(self, "FourStageActive", 0)
+        WireLib.TriggerOutput(self, "CurrentStage", 0)
+        WireLib.TriggerOutput(self, "StageProgress", 0)
+        WireLib.TriggerOutput(self, "MasterEfficiencyRating", 0)
+        WireLib.TriggerOutput(self, "MasterIntegrations", "")
+    end
 end
 
 -- Enhanced Computer Functions
@@ -1240,22 +1369,7 @@ function ENT:AddPlanetWaypointWithLink(planetData)
     end
 end
 
--- Network message handlers
-util.AddNetworkString("hyperdrive_computer")
-util.AddNetworkString("hyperdrive_computer_mode")
-util.AddNetworkString("hyperdrive_fleet_jump")
-util.AddNetworkString("hyperdrive_manual_jump")
-util.AddNetworkString("hyperdrive_save_waypoint")
-util.AddNetworkString("hyperdrive_load_waypoint")
-util.AddNetworkString("hyperdrive_delete_waypoint")
-util.AddNetworkString("hyperdrive_emergency_abort")
-util.AddNetworkString("hyperdrive_scan_planets")
-util.AddNetworkString("hyperdrive_toggle_planet_detection")
-util.AddNetworkString("hyperdrive_clear_planets")
-util.AddNetworkString("hyperdrive_auto_link_planets")
-util.AddNetworkString("hyperdrive_toggle_auto_link")
-util.AddNetworkString("hyperdrive_quick_jump_planet")
-util.AddNetworkString("hyperdrive_hyperspace_window")
+-- Network strings are loaded from hyperdrive_network_strings.lua
 
 net.Receive("hyperdrive_computer_mode", function(len, ply)
     local computer = net.ReadEntity()
@@ -1412,3 +1526,333 @@ net.Receive("hyperdrive_quick_jump_planet", function(len, ply)
     local success, message = computer:QuickJumpToPlanet(planetName)
     ply:ChatPrint("[Hyperdrive Computer] " .. message)
 end)
+
+-- ========================================
+-- MASTER ENGINE CONTROL FUNCTIONS
+-- ========================================
+
+-- Auto-link to nearby master engines
+function ENT:AutoLinkMasterEngines()
+    local engines = ents.FindInSphere(self:GetPos(), 2000)
+    local masterEngines = {}
+
+    for _, ent in ipairs(engines) do
+        if ent:GetClass() == "hyperdrive_master_engine" then
+            table.insert(masterEngines, ent)
+        end
+    end
+
+    if #masterEngines > 0 then
+        self.ControlledMasterEngine = masterEngines[1]
+        print("[Hyperdrive Computer] Auto-linked to Master Engine: " .. tostring(self.ControlledMasterEngine))
+        return true, "Linked to " .. #masterEngines .. " master engines"
+    else
+        return false, "No master engines found within 2000 units"
+    end
+end
+
+-- Start 4-stage jump using controlled master engine
+function ENT:Start4StageJump()
+    if not IsValid(self.ControlledMasterEngine) then
+        return false, "No master engine under control"
+    end
+
+    local engine = self.ControlledMasterEngine
+    local destination = self.MasterEngineDestination
+
+    if destination == Vector(0, 0, 0) then
+        destination = engine:GetDestination()
+    end
+
+    if destination == Vector(0, 0, 0) then
+        return false, "No destination set"
+    end
+
+    -- Check if 4-stage system is available
+    if not HYPERDRIVE.Stargate or not HYPERDRIVE.Stargate.StartFourStageTravel then
+        return false, "4-stage travel system not available"
+    end
+
+    -- Check if engine can operate
+    local canOperate, reason = engine:CanOperateMaster()
+    if not canOperate then
+        return false, "Engine cannot operate: " .. reason
+    end
+
+    -- Set destination if needed
+    if engine:GetDestination() ~= destination then
+        local success, message = engine:SetDestinationPos(destination)
+        if not success then
+            return false, "Failed to set destination: " .. message
+        end
+    end
+
+    -- Get entities to transport
+    local entitiesToMove = engine:GetEntitiesToTransport()
+
+    -- Start 4-stage travel
+    local success, message = HYPERDRIVE.Stargate.StartFourStageTravel(engine, destination, entitiesToMove)
+
+    if success then
+        self.FourStageJumpInProgress = true
+        self.CurrentJumpStage = 1
+        self.StageStartTime = CurTime()
+
+        -- Monitor the jump progress
+        self:MonitorFourStageProgress()
+
+        return true, "4-stage Stargate travel initiated via computer control"
+    else
+        return false, "4-stage travel failed: " .. (message or "Unknown error")
+    end
+end
+
+-- Start master engine jump (standard or 4-stage)
+function ENT:StartMasterEngineJump()
+    if not IsValid(self.ControlledMasterEngine) then
+        return false, "No master engine under control"
+    end
+
+    local engine = self.ControlledMasterEngine
+
+    -- Set destination if we have one
+    if self.MasterEngineDestination ~= Vector(0, 0, 0) then
+        local success, message = engine:SetDestinationPos(self.MasterEngineDestination)
+        if not success then
+            return false, "Failed to set destination: " .. message
+        end
+    end
+
+    -- Start the jump (will automatically use 4-stage if available)
+    local success, message = engine:StartJumpMaster()
+
+    if success then
+        -- Check if it's using 4-stage travel
+        if HYPERDRIVE.Stargate and HYPERDRIVE.Stargate.Config.StageSystem.EnableFourStageTravel then
+            self.FourStageJumpInProgress = true
+            self.CurrentJumpStage = 1
+            self.StageStartTime = CurTime()
+            self:MonitorFourStageProgress()
+        end
+
+        return true, message
+    else
+        return false, message
+    end
+end
+
+-- Abort master engine jump
+function ENT:AbortMasterEngineJump()
+    if not IsValid(self.ControlledMasterEngine) then
+        return false, "No master engine under control"
+    end
+
+    local engine = self.ControlledMasterEngine
+    engine:AbortJump("Computer abort command")
+
+    self.FourStageJumpInProgress = false
+    self.CurrentJumpStage = 0
+    self.StageStartTime = 0
+
+    return true, "Master engine jump aborted"
+end
+
+-- Check master engine status
+function ENT:CheckMasterEngineStatus()
+    if not IsValid(self.ControlledMasterEngine) then
+        return false, "No master engine under control"
+    end
+
+    local engine = self.ControlledMasterEngine
+    local canOperate, reason = engine:CanOperateMaster()
+
+    local status = {
+        canOperate = canOperate,
+        reason = reason,
+        energy = engine:GetEnergy(),
+        charging = engine:GetCharging(),
+        cooldown = engine:GetCooldownRemaining(),
+        destination = engine:GetDestination(),
+        efficiency = engine:GetEfficiencyRating(),
+        fourStageAvailable = HYPERDRIVE.Stargate and HYPERDRIVE.Stargate.Config.StageSystem.EnableFourStageTravel or false
+    }
+
+    return true, status
+end
+
+-- Monitor 4-stage progress
+function ENT:MonitorFourStageProgress()
+    if not self.FourStageJumpInProgress then return end
+
+    timer.Create("computer_4stage_monitor_" .. self:EntIndex(), 0.5, 0, function()
+        if not IsValid(self) or not self.FourStageJumpInProgress then
+            timer.Remove("computer_4stage_monitor_" .. self:EntIndex())
+            return
+        end
+
+        -- Check if jump is still active
+        if IsValid(self.ControlledMasterEngine) then
+            local engine = self.ControlledMasterEngine
+
+            -- Check if engine is still jumping
+            if not engine:GetCharging() and engine:GetCooldownRemaining() == 0 then
+                -- Jump completed
+                self.FourStageJumpInProgress = false
+                self.CurrentJumpStage = 0
+                self.StageStartTime = 0
+                timer.Remove("computer_4stage_monitor_" .. self:EntIndex())
+                return
+            end
+        else
+            -- Engine no longer valid
+            self.FourStageJumpInProgress = false
+            self.CurrentJumpStage = 0
+            self.StageStartTime = 0
+            timer.Remove("computer_4stage_monitor_" .. self:EntIndex())
+            return
+        end
+
+        -- Update stage progress (this is approximate)
+        local elapsed = CurTime() - self.StageStartTime
+        local stageDuration = self:GetCurrentStageDuration()
+
+        if elapsed >= stageDuration then
+            self.CurrentJumpStage = math.min(self.CurrentJumpStage + 1, 4)
+            self.StageStartTime = CurTime()
+        end
+    end)
+end
+
+-- Get current stage duration
+function ENT:GetCurrentStageDuration()
+    if not HYPERDRIVE.Stargate or not HYPERDRIVE.Stargate.Config then
+        return 3 -- Default duration
+    end
+
+    local config = HYPERDRIVE.Stargate.Config.StageSystem
+
+    if self.CurrentJumpStage == 1 then
+        return config.InitiationDuration or 4
+    elseif self.CurrentJumpStage == 2 then
+        return config.WindowOpenDuration or 3
+    elseif self.CurrentJumpStage == 3 then
+        -- Travel time is variable, estimate based on distance
+        if IsValid(self.ControlledMasterEngine) then
+            local engine = self.ControlledMasterEngine
+            local destination = engine:GetDestination()
+            local distance = engine:GetPos():Distance(destination)
+            return math.Clamp(distance / 2000, 3, 30)
+        end
+        return 10 -- Default travel time
+    elseif self.CurrentJumpStage == 4 then
+        return (config.ExitDuration or 2) + (config.StabilizationTime or 3)
+    end
+
+    return 3 -- Default
+end
+
+-- Console commands for computer-controlled master engine
+concommand.Add("hyperdrive_computer_link_master", function(ply, cmd, args)
+    if not IsValid(ply) then return end
+
+    local trace = ply:GetEyeTrace()
+    if not IsValid(trace.Entity) or trace.Entity:GetClass() ~= "hyperdrive_computer" then
+        ply:ChatPrint("[Hyperdrive Computer] Look at a hyperdrive computer")
+        return
+    end
+
+    local computer = trace.Entity
+    local success, message = computer:AutoLinkMasterEngines()
+
+    if success then
+        ply:ChatPrint("[Hyperdrive Computer] " .. message)
+        ply:ChatPrint("[Hyperdrive Computer] Master engine linked for computer control")
+    else
+        ply:ChatPrint("[Hyperdrive Computer] " .. message)
+    end
+end)
+
+concommand.Add("hyperdrive_computer_4stage", function(ply, cmd, args)
+    if not IsValid(ply) then return end
+
+    local trace = ply:GetEyeTrace()
+    if not IsValid(trace.Entity) or trace.Entity:GetClass() ~= "hyperdrive_computer" then
+        ply:ChatPrint("[Hyperdrive Computer] Look at a hyperdrive computer")
+        return
+    end
+
+    local computer = trace.Entity
+
+    -- Set destination if provided
+    if #args >= 3 then
+        local x, y, z = tonumber(args[1]), tonumber(args[2]), tonumber(args[3])
+        if x and y and z then
+            computer.MasterEngineDestination = Vector(x, y, z)
+            ply:ChatPrint("[Hyperdrive Computer] Destination set to: " .. tostring(computer.MasterEngineDestination))
+        end
+    end
+
+    local success, message = computer:Start4StageJump()
+
+    if success then
+        ply:ChatPrint("[Hyperdrive Computer] " .. message)
+        ply:ChatPrint("[Hyperdrive Computer] Watch the HUD for 4-stage progress!")
+    else
+        ply:ChatPrint("[Hyperdrive Computer] " .. message)
+    end
+end)
+
+concommand.Add("hyperdrive_computer_status", function(ply, cmd, args)
+    if not IsValid(ply) then return end
+
+    local trace = ply:GetEyeTrace()
+    if not IsValid(trace.Entity) or trace.Entity:GetClass() ~= "hyperdrive_computer" then
+        ply:ChatPrint("[Hyperdrive Computer] Look at a hyperdrive computer")
+        return
+    end
+
+    local computer = trace.Entity
+
+    ply:ChatPrint("[Hyperdrive Computer] Master Engine Control Status:")
+
+    if IsValid(computer.ControlledMasterEngine) then
+        local engine = computer.ControlledMasterEngine
+        local success, status = computer:CheckMasterEngineStatus()
+
+        if success then
+            ply:ChatPrint("  • Controlled Engine: " .. tostring(engine))
+            ply:ChatPrint("  • Status: " .. (status.canOperate and "READY" or status.reason))
+            ply:ChatPrint("  • Energy: " .. math.floor(status.energy))
+            ply:ChatPrint("  • Efficiency: " .. string.format("%.1fx", status.efficiency))
+            ply:ChatPrint("  • Charging: " .. (status.charging and "YES" or "NO"))
+            ply:ChatPrint("  • Cooldown: " .. string.format("%.1fs", status.cooldown))
+            ply:ChatPrint("  • Destination: " .. tostring(status.destination))
+            ply:ChatPrint("  • 4-Stage Available: " .. (status.fourStageAvailable and "YES" or "NO"))
+
+            if computer.FourStageJumpInProgress then
+                ply:ChatPrint("  • 4-Stage Active: YES (Stage " .. computer.CurrentJumpStage .. "/4)")
+            else
+                ply:ChatPrint("  • 4-Stage Active: NO")
+            end
+        end
+    else
+        ply:ChatPrint("  • No master engine under control")
+        ply:ChatPrint("  • Use 'hyperdrive_computer_link_master' to link to nearby master engine")
+    end
+end)
+
+concommand.Add("hyperdrive_computer_abort", function(ply, cmd, args)
+    if not IsValid(ply) then return end
+
+    local trace = ply:GetEyeTrace()
+    if not IsValid(trace.Entity) or trace.Entity:GetClass() ~= "hyperdrive_computer" then
+        ply:ChatPrint("[Hyperdrive Computer] Look at a hyperdrive computer")
+        return
+    end
+
+    local computer = trace.Entity
+    local success, message = computer:AbortMasterEngineJump()
+    ply:ChatPrint("[Hyperdrive Computer] " .. message)
+end)
+
+print("[Hyperdrive Computer] Master Engine control functions and commands loaded")

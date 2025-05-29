@@ -423,6 +423,11 @@ function ENT:ExecuteJumpMaster()
         energyCost = energyCost / 1.2 -- Default 20% efficiency bonus
     end
 
+    -- Apply Stargate energy cost calculation if available
+    if self.IntegrationData.stargate.active and HYPERDRIVE.Stargate and HYPERDRIVE.Stargate.CalculateEnergyCost then
+        energyCost = HYPERDRIVE.Stargate.CalculateEnergyCost(self, self:GetPos(), destination, distance)
+    end
+
     -- Consume energy
     self:SetEnergy(self:GetEnergy() - energyCost)
 
@@ -432,6 +437,7 @@ function ENT:ExecuteJumpMaster()
         print("  To: " .. tostring(destination))
         print("  Distance: " .. tostring(distance))
         print("  Energy consumed: " .. tostring(energyCost))
+        print("  Stargate integration: " .. tostring(self.IntegrationData.stargate.active))
     end
 
     -- Check if we're already in a hyperspace transit (managed by computer or dimension system)
@@ -451,61 +457,40 @@ function ENT:ExecuteJumpMaster()
         return
     end
 
-    -- Enhanced transport range based on integrations
-    local transportRange = 200
-    if self.IntegrationData.stargate.active and self:GetTechLevel() == "ancient" then
-        transportRange = 400
-    elseif self.IntegrationData.spacebuild.active then
-        transportRange = 300
-    end
+    -- Check for Stargate 4-stage travel system (no technology requirement)
+    if HYPERDRIVE.Stargate and HYPERDRIVE.Stargate.StartFourStageTravel then
+        -- Get entities to transport
+        local entitiesToMove = self:GetEntitiesToTransport()
 
-    -- Transport entities (only if not using hyperspace system)
-    local entitiesToMove = {}
-
-    -- Use advanced ship detection and classification if available
-    if HYPERDRIVE.ShipDetection and HYPERDRIVE.ShipDetection.DetectAndClassifyShip then
-        local detection = HYPERDRIVE.ShipDetection.DetectAndClassifyShip(self, transportRange)
-        entitiesToMove = detection.entities
-
-        -- Apply ship-specific optimizations
-        if detection.movementStrategy == "batch" then
-            self.UseBatchMovement = true
-        elseif detection.movementStrategy == "optimized" then
-            self.UseOptimizedMovement = true
-        end
-
-        if GetConVar("developer"):GetInt() > 0 then
-            print("[Hyperdrive Master] Using advanced ship detection - found " .. #entitiesToMove .. " entities")
-            print("[Hyperdrive Master] Ship type: " .. detection.shipType.name .. ", Strategy: " .. detection.movementStrategy)
-        end
-    -- Fallback to SC2 enhanced entity detection
-    elseif HYPERDRIVE.SpaceCombat2 and HYPERDRIVE.SpaceCombat2.EnhancedEntityDetection then
-        entitiesToMove = HYPERDRIVE.SpaceCombat2.EnhancedEntityDetection(self, transportRange)
-        if GetConVar("developer"):GetInt() > 0 then
-            print("[Hyperdrive Master] Using SC2 enhanced entity detection - found " .. #entitiesToMove .. " entities")
-        end
-    else
-        -- Fallback to original method
-        table.insert(entitiesToMove, self)
-
-        local vehicle = self:GetAttachedVehicle()
-        if IsValid(vehicle) then
-            table.insert(entitiesToMove, vehicle)
-            for i = 0, vehicle:GetPassengerCount() - 1 do
-                local passenger = vehicle:GetPassenger(i)
-                if IsValid(passenger) then
-                    table.insert(entitiesToMove, passenger)
+        -- Try 4-stage Stargate travel (works with any master engine)
+        local success, message = HYPERDRIVE.Stargate.StartFourStageTravel(self, destination, entitiesToMove)
+        if success then
+            if GetConVar("developer"):GetInt() > 0 then
+                print("[Hyperdrive Master] Using 4-stage Stargate travel system")
+                if self.IntegrationData.stargate.active then
+                    print("[Hyperdrive Master] Enhanced with Stargate technology bonuses")
+                else
+                    print("[Hyperdrive Master] Using standard 4-stage travel")
                 end
             end
+
+            -- Set cooldown with efficiency bonus
+            local cooldownTime = (HYPERDRIVE.Config and HYPERDRIVE.Config.CooldownTime) or 10
+            cooldownTime = cooldownTime / self:GetEfficiencyRating()
+            self:SetCooldown(CurTime() + cooldownTime)
+            self:SetCharging(false)
+            self:SetJumpReady(false)
+            return
         else
-            local nearbyEnts = ents.FindInSphere(self:GetPos(), transportRange)
-            for _, ent in ipairs(nearbyEnts) do
-                if ent ~= self and (ent:IsPlayer() or ent:IsVehicle()) then
-                    table.insert(entitiesToMove, ent)
-                end
+            if GetConVar("developer"):GetInt() > 0 then
+                print("[Hyperdrive Master] 4-stage Stargate travel failed: " .. (message or "Unknown error"))
+                print("[Hyperdrive Master] Falling back to standard travel")
             end
         end
     end
+
+    -- Get entities to transport using the new function
+    local entitiesToMove = self:GetEntitiesToTransport()
 
     -- Create master jump effect
     self:CreateMasterJumpEffect(self:GetPos(), true)
@@ -995,10 +980,211 @@ function ENT:GetCooldownRemaining()
     return math.max(0, self:GetCooldown() - CurTime())
 end
 
--- Network strings
+-- Get entities to transport for master engine
+function ENT:GetEntitiesToTransport()
+    -- Enhanced transport range based on integrations
+    local transportRange = 200
+    if self.IntegrationData.stargate.active and self:GetTechLevel() == "ancient" then
+        transportRange = 400
+    elseif self.IntegrationData.spacebuild.active then
+        transportRange = 300
+    end
+
+    local entitiesToMove = {}
+
+    -- Use advanced ship detection and classification if available
+    if HYPERDRIVE.ShipDetection and HYPERDRIVE.ShipDetection.DetectAndClassifyShip then
+        local detection = HYPERDRIVE.ShipDetection.DetectAndClassifyShip(self, transportRange)
+        entitiesToMove = detection.entities
+
+        -- Apply ship-specific optimizations
+        if detection.movementStrategy == "batch" then
+            self.UseBatchMovement = true
+        elseif detection.movementStrategy == "optimized" then
+            self.UseOptimizedMovement = true
+        end
+
+        if GetConVar("developer"):GetInt() > 0 then
+            print("[Hyperdrive Master] Using advanced ship detection - found " .. #entitiesToMove .. " entities")
+            print("[Hyperdrive Master] Ship type: " .. detection.shipType.name .. ", Strategy: " .. detection.movementStrategy)
+        end
+    -- Fallback to SC2 enhanced entity detection
+    elseif HYPERDRIVE.SpaceCombat2 and HYPERDRIVE.SpaceCombat2.EnhancedEntityDetection then
+        entitiesToMove = HYPERDRIVE.SpaceCombat2.EnhancedEntityDetection(self, transportRange)
+        if GetConVar("developer"):GetInt() > 0 then
+            print("[Hyperdrive Master] Using SC2 enhanced entity detection - found " .. #entitiesToMove .. " entities")
+        end
+    else
+        -- Fallback to original method
+        table.insert(entitiesToMove, self)
+
+        local vehicle = self:GetAttachedVehicle()
+        if IsValid(vehicle) then
+            table.insert(entitiesToMove, vehicle)
+            for i = 0, vehicle:GetPassengerCount() - 1 do
+                local passenger = vehicle:GetPassenger(i)
+                if IsValid(passenger) then
+                    table.insert(entitiesToMove, passenger)
+                end
+            end
+        else
+            local nearbyEnts = ents.FindInSphere(self:GetPos(), transportRange)
+            for _, ent in ipairs(nearbyEnts) do
+                if ent ~= self and (ent:IsPlayer() or ent:IsVehicle()) then
+                    table.insert(entitiesToMove, ent)
+                end
+            end
+        end
+    end
+
+    return entitiesToMove
+end
+
+-- Console command for testing 4-stage Stargate travel with master engine
+concommand.Add("hyperdrive_master_sg_test", function(ply, cmd, args)
+    if not IsValid(ply) or not ply:IsAdmin() then
+        if IsValid(ply) then
+            ply:ChatPrint("[Hyperdrive Master] Admin access required!")
+        end
+        return
+    end
+
+    local trace = ply:GetEyeTrace()
+    if not IsValid(trace.Entity) or trace.Entity:GetClass() ~= "hyperdrive_master_engine" then
+        ply:ChatPrint("[Hyperdrive Master] Look at a master hyperdrive engine")
+        return
+    end
+
+    local engine = trace.Entity
+    local destination = ply:GetPos() + ply:GetForward() * 1000
+
+    ply:ChatPrint("[Hyperdrive Master] Testing 4-stage Stargate travel with master engine...")
+
+    -- Check if 4-stage system is available
+    if not HYPERDRIVE.Stargate or not HYPERDRIVE.Stargate.StartFourStageTravel then
+        ply:ChatPrint("[Hyperdrive Master] Stargate 4-stage system not available")
+        return
+    end
+
+    -- Get entities to transport
+    local entitiesToMove = engine:GetEntitiesToTransport()
+
+    -- Try 4-stage Stargate travel (works with or without Stargate technology)
+    local success, message = HYPERDRIVE.Stargate.StartFourStageTravel(engine, destination, entitiesToMove)
+
+    if success then
+        ply:ChatPrint("[Hyperdrive Master] 4-stage Stargate travel initiated successfully!")
+        ply:ChatPrint("[Hyperdrive Master] Watch the HUD for stage progress indicators!")
+
+        if engine.IntegrationData.stargate.active then
+            ply:ChatPrint("[Hyperdrive Master] Enhanced with Stargate technology bonuses!")
+        else
+            ply:ChatPrint("[Hyperdrive Master] Using standard 4-stage travel system")
+        end
+    else
+        ply:ChatPrint("[Hyperdrive Master] 4-stage travel failed: " .. (message or "Unknown error"))
+    end
+end)
+
+-- Enhanced status command showing all integration features
+concommand.Add("hyperdrive_master_status", function(ply, cmd, args)
+    if not IsValid(ply) then return end
+
+    local trace = ply:GetEyeTrace()
+    if not IsValid(trace.Entity) or trace.Entity:GetClass() ~= "hyperdrive_master_engine" then
+        ply:ChatPrint("[Hyperdrive Master] Look at a master hyperdrive engine")
+        return
+    end
+
+    local engine = trace.Entity
+
+    ply:ChatPrint("[Hyperdrive Master] Enhanced Status Report:")
+    ply:ChatPrint("  • Engine Class: " .. engine:GetClass())
+    ply:ChatPrint("  • Energy: " .. math.floor(engine:GetEnergy()) .. "/" .. (HYPERDRIVE.Config and HYPERDRIVE.Config.MaxEnergy or 1000))
+    ply:ChatPrint("  • Efficiency Rating: " .. string.format("%.1fx", engine:GetEfficiencyRating()))
+    ply:ChatPrint("  • Operational Mode: " .. engine:GetOperationalMode())
+
+    -- Integration status
+    ply:ChatPrint("  • Integrations Active:")
+    if engine.IntegrationData.wiremod.active then
+        ply:ChatPrint("    - Wiremod: ✓ (" .. engine.IntegrationData.wiremod.inputs .. " inputs, " .. engine.IntegrationData.wiremod.outputs .. " outputs)")
+    end
+    if engine.IntegrationData.spacebuild.active then
+        ply:ChatPrint("    - Spacebuild: ✓ (Power: " .. math.floor(engine:GetPowerLevel()) .. ", O2: " .. math.floor(engine:GetOxygenLevel()) .. ")")
+    end
+    if engine.IntegrationData.stargate.active then
+        ply:ChatPrint("    - Stargate: ✓ (Tech: " .. string.upper(engine:GetTechLevel()) .. ", ZPM: " .. math.floor(engine:GetZPMPower()) .. "%)")
+    end
+
+    -- 4-Stage Travel System (works with or without Stargate technology)
+    local fourStageStatus = "DISABLED"
+    if HYPERDRIVE.Stargate and HYPERDRIVE.Stargate.Config.StageSystem.EnableFourStageTravel then
+        if engine.IntegrationData.stargate.active then
+            fourStageStatus = "ENABLED (Enhanced)"
+        else
+            fourStageStatus = "ENABLED (Standard)"
+        end
+    end
+    ply:ChatPrint("    - 4-Stage Travel: " .. fourStageStatus)
+
+    -- Current status
+    local canOperate, reason = engine:CanOperateMaster()
+    ply:ChatPrint("  • Status: " .. (canOperate and "READY" or "NOT READY"))
+    if not canOperate then
+        ply:ChatPrint("  • Issue: " .. reason)
+    end
+
+    -- Destination info
+    local dest = engine:GetDestination()
+    if dest ~= Vector(0, 0, 0) then
+        local distance = engine:GetPos():Distance(dest)
+        ply:ChatPrint("  • Destination: " .. tostring(dest) .. " (" .. math.floor(distance) .. " units)")
+    else
+        ply:ChatPrint("  • Destination: Not set")
+    end
+end)
+
+-- Simple 4-stage travel command for all players
+concommand.Add("hyperdrive_4stage", function(ply, cmd, args)
+    if not IsValid(ply) then return end
+
+    local trace = ply:GetEyeTrace()
+    if not IsValid(trace.Entity) or trace.Entity:GetClass() ~= "hyperdrive_master_engine" then
+        ply:ChatPrint("[Hyperdrive] Look at a master hyperdrive engine")
+        return
+    end
+
+    local engine = trace.Entity
+
+    -- Check if 4-stage system is available
+    if not HYPERDRIVE.Stargate or not HYPERDRIVE.Stargate.Config.StageSystem.EnableFourStageTravel then
+        ply:ChatPrint("[Hyperdrive] 4-stage travel system is disabled")
+        return
+    end
+
+    -- Check if engine can operate
+    local canOperate, reason = engine:CanOperateMaster()
+    if not canOperate then
+        ply:ChatPrint("[Hyperdrive] Engine cannot operate: " .. reason)
+        return
+    end
+
+    -- Check if destination is set
+    local destination = engine:GetDestination()
+    if destination == Vector(0, 0, 0) then
+        ply:ChatPrint("[Hyperdrive] No destination set. Use the engine interface to set a destination first.")
+        return
+    end
+
+    ply:ChatPrint("[Hyperdrive] Initiating 4-stage hyperdrive travel...")
+    ply:ChatPrint("[Hyperdrive] Destination: " .. tostring(destination))
+
+    -- Start the jump using the engine's normal method (which will use 4-stage if available)
+    engine:ExecuteJumpMaster()
+end)
+
+-- Network strings are loaded from hyperdrive_network_strings.lua
 if SERVER then
-    util.AddNetworkString("hyperdrive_master_interface")
-    util.AddNetworkString("hyperdrive_hyperspace_window")
 
     -- Simple interface network handlers
     net.Receive("hyperdrive_set_destination", function(len, ply)

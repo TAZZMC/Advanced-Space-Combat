@@ -73,24 +73,7 @@ if SERVER then
         return math.max(1, distance * HYPERDRIVE.Config.EnergyPerUnit)
     end
 
-    -- Network strings
-    util.AddNetworkString("hyperdrive_jump")
-    util.AddNetworkString("hyperdrive_status")
-    util.AddNetworkString("hyperdrive_destination")
-    util.AddNetworkString("hyperdrive_open_interface")
-    util.AddNetworkString("hyperdrive_set_destination")
-    util.AddNetworkString("hyperdrive_start_jump")
-
-    -- Enhanced effects network strings
-    util.AddNetworkString("hyperdrive_effect")
-    util.AddNetworkString("hyperdrive_quantum_event")
-    util.AddNetworkString("hyperdrive_security_alert")
-    util.AddNetworkString("hyperdrive_navigation_update")
-
-    -- Hyperspace network strings
-    util.AddNetworkString("hyperdrive_hyperspace_effect")
-    util.AddNetworkString("hyperdrive_hyperspace_enter")
-    util.AddNetworkString("hyperdrive_hyperspace_exit")
+    -- Network strings are now loaded from hyperdrive_network_strings.lua
 
     print("[Hyperdrive] Server initialization complete!")
 
@@ -105,7 +88,6 @@ elseif CLIENT then
     -- Load enhanced client-side systems (with error handling)
     local clientFiles = {
         "autorun/client/hyperdrive_hud.lua",
-        "autorun/client/hyperdrive_effects.lua",
         "autorun/client/hyperdrive_effects_v2.lua",
         "autorun/client/hyperdrive_sounds.lua",
         "autorun/client/hyperdrive_materials.lua",
