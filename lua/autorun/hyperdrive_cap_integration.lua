@@ -208,12 +208,15 @@ function HYPERDRIVE.CAP.DetectCAP()
 
     -- Check for Workshop/entity-based CAP
     local entityCount = 0
-    for category, entities in pairs(HYPERDRIVE.CAP.EntityCategories) do
-        for _, entClass in ipairs(entities) do
-            if scripted_ents.GetStored()[entClass] then
-                detection.entities[entClass] = true
-                detection.workshop = true
-                entityCount = entityCount + 1
+    local storedEnts = scripted_ents.GetStored()
+    if storedEnts then
+        for category, entities in pairs(HYPERDRIVE.CAP.EntityCategories) do
+            for _, entClass in ipairs(entities) do
+                if storedEnts[entClass] then
+                    detection.entities[entClass] = true
+                    detection.workshop = true
+                    entityCount = entityCount + 1
+                end
             end
         end
     end
@@ -726,7 +729,7 @@ function HYPERDRIVE.CAP.Initialize()
     HYPERDRIVE.CAP.Resources.Initialize()
 
     -- Register with hyperdrive system
-    if HYPERDRIVE.Shields then
+    if HYPERDRIVE.Shields and HYPERDRIVE.Shields.RegisterProvider then
         HYPERDRIVE.Shields.RegisterProvider("CAP", {
             CreateShield = HYPERDRIVE.CAP.Shields.CreateShield,
             ActivateShields = HYPERDRIVE.CAP.Shields.Activate,
@@ -734,6 +737,19 @@ function HYPERDRIVE.CAP.Initialize()
             GetShieldStatus = HYPERDRIVE.CAP.Shields.GetStatus,
             FindShields = HYPERDRIVE.CAP.Shields.FindShields
         })
+        print("[Hyperdrive CAP] Registered as shield provider")
+    else
+        -- Create the shield provider registration system if it doesn't exist
+        HYPERDRIVE.Shields = HYPERDRIVE.Shields or {}
+        HYPERDRIVE.Shields.Providers = HYPERDRIVE.Shields.Providers or {}
+        HYPERDRIVE.Shields.Providers["CAP"] = {
+            CreateShield = HYPERDRIVE.CAP.Shields.CreateShield,
+            ActivateShields = HYPERDRIVE.CAP.Shields.Activate,
+            DeactivateShields = HYPERDRIVE.CAP.Shields.Deactivate,
+            GetShieldStatus = HYPERDRIVE.CAP.Shields.GetStatus,
+            FindShields = HYPERDRIVE.CAP.Shields.FindShields
+        }
+        print("[Hyperdrive CAP] Created shield provider system and registered CAP")
     end
 
     -- Initialize modern UI integration for CAP

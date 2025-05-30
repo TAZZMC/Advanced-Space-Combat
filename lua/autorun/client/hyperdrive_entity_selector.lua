@@ -246,8 +246,8 @@ function entitySelector:CreateInfoPanel(parent)
 
             -- Entity-specific info
             if ent:GetClass():find("hyperdrive_engine") then
-                local energy = ent:GetEnergy and ent:GetEnergy() or 0
-                local maxEnergy = ent:GetMaxEnergy and ent:GetMaxEnergy() or 1000
+                local energy = (ent.GetEnergy and ent:GetEnergy()) and ent:GetEnergy() or 0
+                local maxEnergy = (ent.GetMaxEnergy and ent:GetMaxEnergy()) and ent:GetMaxEnergy() or 1000
                 local energyPercent = (energy / maxEnergy) * 100
 
                 draw.SimpleText("Energy: " .. math.floor(energyPercent) .. "%", "DermaDefault", 15, y, HYPERDRIVE.UI.GetColor("Success"))
@@ -255,9 +255,9 @@ function entitySelector:CreateInfoPanel(parent)
                 y = y + 40
 
                 local status = "Ready"
-                if ent:GetCharging and ent:GetCharging() then
+                if ent.GetCharging and ent:GetCharging() then
                     status = "Charging"
-                elseif ent:IsOnCooldown and ent:IsOnCooldown() then
+                elseif ent.IsOnCooldown and ent:IsOnCooldown() then
                     status = "Cooldown"
                 end
                 draw.SimpleText("Status: " .. status, "DermaDefault", 15, y, HYPERDRIVE.UI.GetColor("Info"))
@@ -498,9 +498,9 @@ function entitySelector:CreateEntityListItem(entity, index)
         local statusText = "●"
 
         if entity:GetClass():find("engine") then
-            if entity:GetCharging and entity:GetCharging() then
+            if entity.GetCharging and entity:GetCharging() then
                 statusColor = HYPERDRIVE.UI.GetColor("Warning")
-            elseif entity:IsOnCooldown and entity:IsOnCooldown() then
+            elseif entity.IsOnCooldown and entity:IsOnCooldown() then
                 statusColor = HYPERDRIVE.UI.GetColor("Error")
             end
         elseif entity:GetClass() == "ship_core" then

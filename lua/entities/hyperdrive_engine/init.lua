@@ -769,7 +769,11 @@ function ENT:Use(activator, caller)
     local valid, message = HYPERDRIVE.Interface and HYPERDRIVE.Interface.ValidateInteraction(self, activator, {
         sessionType = "hyperdrive_engine",
         maxDistance = 200
-    }) or (true, "")
+    })
+
+    if not valid then
+        valid, message = true, ""
+    end
 
     if not valid then
         if HYPERDRIVE.Interface then
