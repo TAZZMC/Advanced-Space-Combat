@@ -3,15 +3,32 @@
 
 include("shared.lua")
 
--- UI variables
+-- Enhanced UI variables with modern design
 local shipCoreUI = {
     visible = false,
     entity = nil,
     data = {},
-    panelWidth = 800,
-    panelHeight = 700,
+    panelWidth = 1000,
+    panelHeight = 800,
     lastUpdate = 0,
-    currentTab = "overview" -- overview, resources, systems
+    currentTab = "overview", -- overview, resources, systems, cap
+    animationTime = 0,
+    fadeAlpha = 0,
+    targetAlpha = 0,
+    tabAnimations = {},
+    notifications = {},
+    lastNotificationTime = 0,
+    theme = {
+        primary = Color(20, 30, 50, 240),
+        secondary = Color(40, 60, 90, 220),
+        accent = Color(100, 150, 255),
+        success = Color(100, 255, 100),
+        warning = Color(255, 200, 100),
+        error = Color(255, 100, 100),
+        text = Color(255, 255, 255),
+        textSecondary = Color(200, 200, 200),
+        textMuted = Color(150, 150, 150)
+    }
 }
 
 function ENT:Initialize()
@@ -92,41 +109,147 @@ function ENT:DrawStatusText()
     cam.End3D2D()
 end
 
--- UI Functions
+-- Enhanced UI Functions with animations
 function shipCoreUI:Open(entity, data)
     self.visible = true
     self.entity = entity
     self.data = data or {}
+    self.targetAlpha = 255
+    self.animationTime = CurTime()
+    self.currentTab = "overview"
+
+    -- Initialize tab animations
+    self.tabAnimations = {}
+    for _, tab in ipairs({"overview", "resources", "systems", "cap"}) do
+        self.tabAnimations[tab] = {
+            scale = 1.0,
+            targetScale = 1.0,
+            lastClick = 0
+        }
+    end
+
     gui.EnableScreenClicker(true)
 
-    print("[Ship Core UI] Interface opened")
+    -- Play opening sound
+    surface.PlaySound("buttons/button15.wav")
+
+    -- Add opening notification
+    self:AddNotification("Ship Core Interface Activated", "success")
+
+    print("[Ship Core UI] Enhanced interface opened")
 end
 
 function shipCoreUI:Close()
-    self.visible = false
-    self.entity = nil
-    self.data = {}
-    gui.EnableScreenClicker(false)
+    self.targetAlpha = 0
 
-    -- Send close command to server
-    if IsValid(self.entity) then
-        net.Start("ship_core_command")
-        net.WriteEntity(self.entity)
-        net.WriteString("close_ui")
-        net.WriteTable({})
-        net.SendToServer()
-    end
+    -- Animate close
+    timer.Simple(0.3, function()
+        if not self.visible then return end
 
-    print("[Ship Core UI] Interface closed")
+        self.visible = false
+        self.entity = nil
+        self.data = {}
+        self.notifications = {}
+        gui.EnableScreenClicker(false)
+
+        -- Send close command to server
+        if IsValid(self.entity) then
+            net.Start("ship_core_command")
+            net.WriteEntity(self.entity)
+            net.WriteString("close_ui")
+            net.WriteTable({})
+            net.SendToServer()
+        end
+    end)
+
+    -- Play closing sound
+    surface.PlaySound("buttons/button10.wav")
+
+    print("[Ship Core UI] Enhanced interface closed")
 end
 
 function shipCoreUI:Update(data)
     self.data = data or {}
     self.lastUpdate = CurTime()
+
+    -- Add update notification for critical changes
+    if data.coreState == ENT.States.EMERGENCY and self.data.coreState ~= ENT.States.EMERGENCY then
+        self:AddNotification("EMERGENCY: Core System Critical!", "error")
+    elseif data.resourceEmergencyMode and not self.data.resourceEmergencyMode then
+        self:AddNotification("WARNING: Resource Emergency Detected", "warning")
+    end
+end
+
+-- Animation and notification system
+function shipCoreUI:AddNotification(text, type)
+    local notification = {
+        text = text,
+        type = type or "info",
+        time = CurTime(),
+        alpha = 255,
+        y = 0
+    }
+
+    table.insert(self.notifications, notification)
+    self.lastNotificationTime = CurTime()
+
+    -- Limit notifications
+    if #self.notifications > 5 then
+        table.remove(self.notifications, 1)
+    end
+
+    -- Play notification sound
+    if type == "error" then
+        surface.PlaySound("buttons/button11.wav")
+    elseif type == "warning" then
+        surface.PlaySound("buttons/button8.wav")
+    else
+        surface.PlaySound("buttons/button17.wav")
+    end
+end
+
+function shipCoreUI:UpdateAnimations()
+    local currentTime = CurTime()
+    local deltaTime = FrameTime()
+
+    -- Update fade animation
+    if self.fadeAlpha < self.targetAlpha then
+        self.fadeAlpha = math.min(self.targetAlpha, self.fadeAlpha + deltaTime * 800)
+    elseif self.fadeAlpha > self.targetAlpha then
+        self.fadeAlpha = math.max(self.targetAlpha, self.fadeAlpha - deltaTime * 800)
+    end
+
+    -- Update tab animations
+    for tab, anim in pairs(self.tabAnimations) do
+        if anim.scale < anim.targetScale then
+            anim.scale = math.min(anim.targetScale, anim.scale + deltaTime * 8)
+        elseif anim.scale > anim.targetScale then
+            anim.scale = math.max(anim.targetScale, anim.scale - deltaTime * 8)
+        end
+    end
+
+    -- Update notifications
+    for i = #self.notifications, 1, -1 do
+        local notif = self.notifications[i]
+        local age = currentTime - notif.time
+
+        if age > 5 then
+            notif.alpha = math.max(0, notif.alpha - deltaTime * 400)
+            if notif.alpha <= 0 then
+                table.remove(self.notifications, i)
+            end
+        end
+
+        -- Animate notification position
+        notif.y = math.Approach(notif.y, (i - 1) * 35, deltaTime * 300)
+    end
 end
 
 function shipCoreUI:Draw()
     if not self.visible or not IsValid(self.entity) then return end
+
+    -- Update animations
+    self:UpdateAnimations()
 
     -- Update data from network variables
     self:UpdateData()
@@ -135,74 +258,182 @@ function shipCoreUI:Draw()
     local x = (scrW - self.panelWidth) / 2
     local y = (scrH - self.panelHeight) / 2
 
-    -- Main background
-    draw.RoundedBox(8, x, y, self.panelWidth, self.panelHeight, Color(20, 20, 30, 240))
-    draw.RoundedBox(8, x + 2, y + 2, self.panelWidth - 4, self.panelHeight - 4, Color(40, 40, 60, 220))
+    -- Apply fade animation
+    local alpha = self.fadeAlpha
 
-    -- Title bar
-    local titleColor = Color(100, 150, 255)
+    -- Modern glassmorphism background with blur effect
+    draw.RoundedBox(12, x - 5, y - 5, self.panelWidth + 10, self.panelHeight + 10, Color(0, 0, 0, alpha * 0.3))
+    draw.RoundedBox(12, x, y, self.panelWidth, self.panelHeight, Color(self.theme.primary.r, self.theme.primary.g, self.theme.primary.b, alpha))
+
+    -- Subtle border glow
+    draw.RoundedBox(12, x + 2, y + 2, self.panelWidth - 4, self.panelHeight - 4, Color(self.theme.secondary.r, self.theme.secondary.g, self.theme.secondary.b, alpha * 0.9))
+
+    -- Dynamic title bar with status-based coloring
+    local titleColor = Color(self.theme.accent.r, self.theme.accent.g, self.theme.accent.b, alpha)
     if self.data.coreState == ENT.States.EMERGENCY then
-        titleColor = Color(255, 100, 100)
+        titleColor = Color(255, 80, 80, alpha)
+        -- Add pulsing effect for emergency
+        local pulse = math.abs(math.sin(CurTime() * 3)) * 0.3 + 0.7
+        titleColor = Color(255 * pulse, 80 * pulse, 80 * pulse, alpha)
     elseif self.data.coreState == ENT.States.CRITICAL then
-        titleColor = Color(255, 150, 100)
+        titleColor = Color(255, 150, 80, alpha)
     elseif self.data.coreState == ENT.States.INVALID then
-        titleColor = Color(255, 255, 100)
+        titleColor = Color(255, 255, 80, alpha)
     end
 
-    draw.RoundedBox(8, x + 10, y + 10, self.panelWidth - 20, 40, titleColor)
-    draw.SimpleText("SHIP CORE MANAGEMENT SYSTEM", "DermaDefaultBold", x + self.panelWidth/2, y + 30, Color(255, 255, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+    -- Enhanced title bar with gradient
+    draw.RoundedBoxEx(8, x + 15, y + 15, self.panelWidth - 30, 50, titleColor, true, true, false, false)
+    draw.RoundedBoxEx(8, x + 15, y + 40, self.panelWidth - 30, 25, Color(titleColor.r * 0.7, titleColor.g * 0.7, titleColor.b * 0.7, alpha), false, false, true, true)
 
-    -- Tab navigation
-    self:DrawTabs(x + 10, y + 60)
+    -- Title text with shadow
+    draw.SimpleText("SHIP CORE MANAGEMENT SYSTEM", "DermaLarge", x + self.panelWidth/2 + 1, y + 41, Color(0, 0, 0, alpha * 0.5), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+    draw.SimpleText("SHIP CORE MANAGEMENT SYSTEM", "DermaLarge", x + self.panelWidth/2, y + 40, Color(255, 255, 255, alpha), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 
-    -- Content area based on current tab
-    local contentY = y + 100
+    -- Version and status info
+    local versionText = "v2.1.0 Enhanced"
+    draw.SimpleText(versionText, "DermaDefault", x + self.panelWidth - 20, y + 55, Color(200, 200, 200, alpha * 0.8), TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
+
+    -- Enhanced tab navigation
+    self:DrawTabs(x + 15, y + 75)
+
+    -- Content area with smooth transitions
+    local contentY = y + 120
+    local contentAlpha = alpha
+
     if self.currentTab == "overview" then
-        self:DrawOverviewTab(x + 20, contentY)
+        self:DrawOverviewTab(x + 25, contentY, contentAlpha)
     elseif self.currentTab == "resources" then
-        self:DrawResourcesTab(x + 20, contentY)
+        self:DrawResourcesTab(x + 25, contentY, contentAlpha)
     elseif self.currentTab == "systems" then
-        self:DrawSystemsTab(x + 20, contentY)
+        self:DrawSystemsTab(x + 25, contentY, contentAlpha)
     elseif self.currentTab == "cap" then
-        self:DrawCAPTab(x + 20, contentY)
+        self:DrawCAPTab(x + 25, contentY, contentAlpha)
     end
 
-    -- Close button
-    self:DrawButton("CLOSE", x + self.panelWidth - 80, y + 10, 70, 30, Color(150, 50, 50), function()
+    -- Modern close button with hover effect
+    local closeButtonColor = Color(200, 80, 80, alpha)
+    self:DrawModernButton("✕", x + self.panelWidth - 50, y + 20, 35, 35, closeButtonColor, function()
         self:Close()
-    end)
+    end, "DermaLarge")
+
+    -- Draw notifications
+    self:DrawNotifications(scrW - 320, 50)
+
+    -- Draw connection status indicator
+    self:DrawConnectionStatus(x + 20, y + self.panelHeight - 30, alpha)
 end
 
 function shipCoreUI:DrawTabs(x, y)
-    local tabWidth = 120
-    local tabHeight = 30
+    local tabWidth = 140
+    local tabHeight = 35
+    local tabSpacing = 8
     local tabs = {
-        {name = "OVERVIEW", id = "overview"},
-        {name = "RESOURCES", id = "resources"},
-        {name = "SYSTEMS", id = "systems"}
+        {name = "OVERVIEW", id = "overview", icon = "📊"},
+        {name = "RESOURCES", id = "resources", icon = "⚡"},
+        {name = "SYSTEMS", id = "systems", icon = "🛡️"}
     }
 
     -- Add CAP tab if CAP integration is active
     if self.data.capIntegrationActive then
-        table.insert(tabs, {name = "CAP", id = "cap"})
+        table.insert(tabs, {name = "CAP", id = "cap", icon = "🌟"})
     end
 
     for i, tab in ipairs(tabs) do
-        local tabX = x + (i - 1) * (tabWidth + 5)
+        local tabX = x + (i - 1) * (tabWidth + tabSpacing)
         local isActive = self.currentTab == tab.id
 
-        local bgColor = isActive and Color(100, 150, 255) or Color(60, 60, 80)
-        local textColor = isActive and Color(255, 255, 255) or Color(200, 200, 200)
+        -- Get animation data
+        local anim = self.tabAnimations[tab.id] or {scale = 1.0, targetScale = 1.0}
 
-        -- Highlight resource tab if emergency mode
-        if tab.id == "resources" and self.data.resourceEmergencyMode then
-            bgColor = Color(255, 100, 100)
-            textColor = Color(255, 255, 255)
+        -- Calculate colors with animation
+        local bgColor, textColor, borderColor
+
+        if isActive then
+            bgColor = Color(self.theme.accent.r, self.theme.accent.g, self.theme.accent.b, 200)
+            textColor = Color(255, 255, 255, 255)
+            borderColor = Color(255, 255, 255, 100)
+        else
+            bgColor = Color(60, 80, 120, 150)
+            textColor = Color(200, 200, 200, 200)
+            borderColor = Color(100, 120, 160, 80)
         end
 
-        self:DrawButton(tab.name, tabX, y, tabWidth, tabHeight, bgColor, function()
-            self.currentTab = tab.id
-        end, textColor)
+        -- Special highlighting for emergency states
+        if tab.id == "resources" and self.data.resourceEmergencyMode then
+            local pulse = math.abs(math.sin(CurTime() * 4)) * 0.4 + 0.6
+            bgColor = Color(255 * pulse, 100 * pulse, 100 * pulse, 200)
+            textColor = Color(255, 255, 255, 255)
+            borderColor = Color(255, 150, 150, 150)
+        elseif tab.id == "systems" and (self.data.coreState == ENT.States.EMERGENCY or self.data.coreState == ENT.States.CRITICAL) then
+            bgColor = Color(255, 150, 100, 180)
+            borderColor = Color(255, 200, 150, 120)
+        end
+
+        -- Apply scale animation
+        local scaledWidth = tabWidth * anim.scale
+        local scaledHeight = tabHeight * anim.scale
+        local scaleOffsetX = (tabWidth - scaledWidth) / 2
+        local scaleOffsetY = (tabHeight - scaledHeight) / 2
+
+        -- Draw tab with modern styling
+        self:DrawModernTab(tab.name, tab.icon, tabX + scaleOffsetX, y + scaleOffsetY, scaledWidth, scaledHeight, bgColor, borderColor, textColor, function()
+            -- Tab click animation
+            anim.targetScale = 0.95
+            timer.Simple(0.1, function()
+                if self.tabAnimations[tab.id] then
+                    self.tabAnimations[tab.id].targetScale = 1.0
+                end
+            end)
+
+            -- Change tab with sound
+            if self.currentTab ~= tab.id then
+                surface.PlaySound("buttons/button14.wav")
+                self.currentTab = tab.id
+
+                -- Add notification for tab change
+                self:AddNotification("Switched to " .. tab.name .. " tab", "info")
+            end
+        end, isActive)
+    end
+end
+
+-- Modern tab drawing function
+function shipCoreUI:DrawModernTab(text, icon, x, y, w, h, bgColor, borderColor, textColor, onClick, isActive)
+    local mouseX, mouseY = gui.MouseX(), gui.MouseY()
+    local isHovered = mouseX >= x and mouseX <= x + w and mouseY >= y and mouseY <= y + h
+
+    -- Hover effect
+    if isHovered and not isActive then
+        bgColor = Color(bgColor.r + 20, bgColor.g + 20, bgColor.b + 20, bgColor.a + 30)
+        borderColor = Color(borderColor.r + 30, borderColor.g + 30, borderColor.b + 30, borderColor.a + 50)
+    end
+
+    -- Draw tab background with rounded corners
+    draw.RoundedBoxEx(6, x, y, w, h, bgColor, true, true, not isActive, not isActive)
+
+    -- Draw border
+    if borderColor then
+        draw.RoundedBoxEx(6, x, y, w, 2, borderColor, true, true, false, false)
+        if not isActive then
+            draw.RoundedBoxEx(6, x, y + h - 2, w, 2, borderColor, false, false, true, true)
+        end
+    end
+
+    -- Draw icon and text
+    local iconY = y + h/2 - 8
+    local textY = y + h/2
+
+    if icon then
+        draw.SimpleText(icon, "DermaDefault", x + 15, iconY, textColor, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+        draw.SimpleText(text, "DermaDefaultBold", x + 35, textY, textColor, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+    else
+        draw.SimpleText(text, "DermaDefaultBold", x + w/2, textY, textColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+    end
+
+    -- Handle click
+    if isHovered and input.IsMouseDown(MOUSE_LEFT) and CurTime() - self.lastUpdate > 0.2 then
+        self.lastUpdate = CurTime()
+        if onClick then onClick() end
     end
 end
 
@@ -711,20 +942,112 @@ function shipCoreUI:DrawControlButtons(x, y)
     draw.SimpleText("Core: " .. (self.data.coreStateName or "Unknown"), "DermaDefault", x + 200, buttonY3 + 15, coreColor)
 end
 
-function shipCoreUI:DrawButton(text, x, y, w, h, color, onClick, customTextColor)
+-- Modern button drawing with enhanced styling
+function shipCoreUI:DrawModernButton(text, x, y, w, h, color, onClick, font, icon)
     local mouseX, mouseY = gui.MouseX(), gui.MouseY()
     local isHovered = mouseX >= x and mouseX <= x + w and mouseY >= y and mouseY <= y + h
 
-    local bgColor = isHovered and Color(color.r + 30, color.g + 30, color.b + 30) or color
-    local textColor = customTextColor or (isHovered and Color(255, 255, 255) or Color(200, 200, 200))
+    font = font or "DermaDefault"
 
-    draw.RoundedBox(4, x, y, w, h, bgColor)
-    draw.SimpleText(text, "DermaDefault", x + w/2, y + h/2, textColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+    -- Enhanced hover effects
+    local bgColor = Color(color.r, color.g, color.b, color.a)
+    local borderColor = Color(color.r + 40, color.g + 40, color.b + 40, 150)
+    local textColor = Color(255, 255, 255, 255)
 
-    -- Handle click
+    if isHovered then
+        bgColor = Color(color.r + 25, color.g + 25, color.b + 25, color.a + 20)
+        borderColor = Color(255, 255, 255, 100)
+
+        -- Add subtle glow effect
+        draw.RoundedBox(8, x - 2, y - 2, w + 4, h + 4, Color(255, 255, 255, 30))
+    end
+
+    -- Draw button with modern styling
+    draw.RoundedBox(6, x, y, w, h, bgColor)
+    draw.RoundedBox(6, x, y, w, 2, borderColor) -- Top border
+    draw.RoundedBox(6, x, y + h - 2, w, 2, Color(0, 0, 0, 100)) -- Bottom shadow
+
+    -- Draw icon and text
+    if icon then
+        draw.SimpleText(icon, font, x + 10, y + h/2, textColor, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+        draw.SimpleText(text, font, x + 30, y + h/2, textColor, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+    else
+        draw.SimpleText(text, font, x + w/2, y + h/2, textColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+    end
+
+    -- Handle click with animation
     if isHovered and input.IsMouseDown(MOUSE_LEFT) and CurTime() - self.lastUpdate > 0.2 then
         self.lastUpdate = CurTime()
+
+        -- Click animation
+        draw.RoundedBox(6, x, y, w, h, Color(255, 255, 255, 50))
+
+        -- Play click sound
+        surface.PlaySound("buttons/button9.wav")
+
         if onClick then onClick() end
+    end
+end
+
+-- Legacy button function for compatibility
+function shipCoreUI:DrawButton(text, x, y, w, h, color, onClick, customTextColor)
+    self:DrawModernButton(text, x, y, w, h, color, onClick, "DermaDefault")
+end
+
+-- Notification drawing system
+function shipCoreUI:DrawNotifications(x, y)
+    for i, notif in ipairs(self.notifications) do
+        local notifY = y + notif.y
+        local alpha = notif.alpha
+
+        -- Notification background color based on type
+        local bgColor = Color(60, 60, 60, alpha * 0.9)
+        local borderColor = Color(100, 100, 100, alpha)
+        local textColor = Color(255, 255, 255, alpha)
+
+        if notif.type == "error" then
+            bgColor = Color(120, 40, 40, alpha * 0.9)
+            borderColor = Color(255, 100, 100, alpha)
+        elseif notif.type == "warning" then
+            bgColor = Color(120, 80, 40, alpha * 0.9)
+            borderColor = Color(255, 200, 100, alpha)
+        elseif notif.type == "success" then
+            bgColor = Color(40, 120, 40, alpha * 0.9)
+            borderColor = Color(100, 255, 100, alpha)
+        end
+
+        -- Draw notification
+        local notifWidth = 300
+        local notifHeight = 30
+
+        draw.RoundedBox(6, x, notifY, notifWidth, notifHeight, bgColor)
+        draw.RoundedBox(6, x, notifY, 4, notifHeight, borderColor)
+
+        -- Notification icon
+        local icon = "ℹ️"
+        if notif.type == "error" then icon = "❌"
+        elseif notif.type == "warning" then icon = "⚠️"
+        elseif notif.type == "success" then icon = "✅"
+        end
+
+        draw.SimpleText(icon, "DermaDefault", x + 15, notifY + notifHeight/2, textColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        draw.SimpleText(notif.text, "DermaDefault", x + 35, notifY + notifHeight/2, textColor, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+    end
+end
+
+-- Connection status indicator
+function shipCoreUI:DrawConnectionStatus(x, y, alpha)
+    local isConnected = IsValid(self.entity)
+    local statusText = isConnected and "CONNECTED" or "DISCONNECTED"
+    local statusColor = isConnected and Color(100, 255, 100, alpha) or Color(255, 100, 100, alpha)
+    local pingTime = math.floor((self.lastUpdate and (CurTime() - self.lastUpdate) * 1000) or 0)
+
+    -- Connection indicator
+    draw.RoundedBox(4, x, y, 120, 25, Color(40, 40, 40, alpha * 0.8))
+    draw.SimpleText("STATUS: " .. statusText, "DermaDefault", x + 5, y + 12, statusColor, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+
+    if isConnected then
+        draw.SimpleText("PING: " .. pingTime .. "ms", "DermaDefault", x + 130, y + 12, Color(200, 200, 200, alpha), TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
     end
 end
 

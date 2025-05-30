@@ -45,7 +45,19 @@ function ENT:Initialize()
         end
     end)
 
-    print("[Ship Core] Ship core initialized at " .. tostring(self:GetPos()))
+    -- Initialize modern UI integration
+    self.UIData = {
+        lastUpdate = 0,
+        updateInterval = 0.5,
+        notifications = {},
+        theme = "modern",
+        activeTab = "overview",
+        animationState = {},
+        fadeAlpha = 255,
+        targetAlpha = 255
+    }
+
+    print("[Ship Core] Enhanced Ship Core v2.1.0 with modern UI initialized at " .. tostring(self:GetPos()))
 end
 
 function ENT:InitializeSystems()

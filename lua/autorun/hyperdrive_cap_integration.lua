@@ -736,12 +736,21 @@ function HYPERDRIVE.CAP.Initialize()
         })
     end
 
-    print("[Hyperdrive CAP] Comprehensive CAP integration initialized successfully!")
+    -- Initialize modern UI integration for CAP
+    HYPERDRIVE.CAP.UI = {
+        theme = "modern",
+        notifications = {},
+        lastUpdate = 0,
+        updateInterval = 1.0
+    }
+
+    print("[Hyperdrive CAP] Comprehensive CAP integration with modern UI initialized successfully!")
     print("[Hyperdrive CAP] Detection results:")
     print("  - Main CAP: " .. tostring(detection.main))
     print("  - CAP Resources: " .. tostring(detection.resources))
     print("  - Workshop CAP: " .. tostring(detection.workshop))
     print("  - Version: " .. detection.version)
+    print("  - Modern UI: Enabled")
 
     return true
 end

@@ -1,5 +1,5 @@
--- Enhanced Hyperdrive System v2.1 - Main Initialization
--- Comprehensive space travel system with ship core integration, ship naming, and USE key interfaces
+-- Enhanced Hyperdrive System v2.1.0 - Main Initialization
+-- Comprehensive space travel system with advanced UI, CAP integration, and ship management
 
 -- Shared initialization
 HYPERDRIVE = HYPERDRIVE or {}
@@ -7,22 +7,47 @@ HYPERDRIVE.Version = "2.1.0"
 HYPERDRIVE.Author = "Enhanced Hyperdrive Team"
 HYPERDRIVE.BuildDate = os.date("%Y-%m-%d")
 HYPERDRIVE.Features = {
-    "Ship Core System",
-    "Ship Naming System",
-    "Hull Damage System",
-    "Shield System",
-    "USE Key Interfaces",
-    "Wiremod Integration",
-    "CAP Integration",
-    "Spacebuild Integration",
-    "SB3 Resource Core System",
+    "Advanced Ship Core System",
+    "Modern UI Framework",
+    "CAP (Carter Addon Pack) Integration",
+    "4-Stage Stargate Hyperdrive",
+    "Ship Naming & Management",
+    "Hull Damage & Repair System",
+    "Advanced Shield Systems",
+    "Spacebuild 3 Integration",
+    "SB3 Resource Management",
     "Auto Resource Provision",
     "Weld Detection System",
-    "4-Stage Stargate Travel",
+    "Wiremod Integration",
+    "Real-time HUD System",
+    "Entity Selector Interface",
     "Q Menu Configuration",
-    "Enhanced Tabbed UI",
-    "Real-time Resource Monitoring",
-    "Emergency Mode Detection"
+    "Enhanced Visual Effects",
+    "Performance Optimization",
+    "Modern Theme System",
+    "Animation Framework",
+    "Notification System"
+}
+
+-- Core system namespaces
+HYPERDRIVE.Core = HYPERDRIVE.Core or {}
+HYPERDRIVE.ShipCore = HYPERDRIVE.ShipCore or {}
+HYPERDRIVE.CAP = HYPERDRIVE.CAP or {}
+HYPERDRIVE.Shields = HYPERDRIVE.Shields or {}
+HYPERDRIVE.HullDamage = HYPERDRIVE.HullDamage or {}
+HYPERDRIVE.SB3Resources = HYPERDRIVE.SB3Resources or {}
+HYPERDRIVE.Wire = HYPERDRIVE.Wire or {}
+HYPERDRIVE.Config = HYPERDRIVE.Config or {}
+HYPERDRIVE.Effects = HYPERDRIVE.Effects or {}
+HYPERDRIVE.UI = HYPERDRIVE.UI or {}
+HYPERDRIVE.Stargate = HYPERDRIVE.Stargate or {}
+
+-- System status tracking
+HYPERDRIVE.SystemStatus = {
+    Initialized = false,
+    LoadedModules = {},
+    IntegrationStatus = {},
+    LastUpdate = 0
 }
 
 -- Initialize core modules
@@ -74,7 +99,7 @@ if SERVER then
     -- Server-side initialization
     print("[Hyperdrive] Server-side initialization...")
 
-    -- Add client-side files to download
+    -- Add enhanced client-side files to download
     AddCSLuaFile("autorun/client/hyperdrive_hud.lua")
     AddCSLuaFile("autorun/client/hyperdrive_effects_v2.lua")
     AddCSLuaFile("autorun/client/hyperdrive_sounds.lua")
@@ -86,6 +111,8 @@ if SERVER then
     AddCSLuaFile("autorun/client/hyperdrive_stargate_client.lua")
     AddCSLuaFile("autorun/client/hyperdrive_visual_config.lua")
     AddCSLuaFile("autorun/client/hyperdrive_qmenu_config.lua")
+    AddCSLuaFile("autorun/client/hyperdrive_ui_theme.lua")
+    AddCSLuaFile("autorun/client/hyperdrive_entity_selector.lua")
 
     -- Add sound files to download
     resource.AddFile("sound/hyperdrive/ship_in_hyperspace.wav")
@@ -312,14 +339,23 @@ elseif CLIENT then
     HYPERDRIVE.HUD = {}
     HYPERDRIVE.Effects = {}
 
-    -- Load enhanced client-side systems (with error handling)
+    -- Load enhanced client-side systems (with error handling and proper order)
     local clientFiles = {
+        -- Core UI theme system (load first)
+        "autorun/client/hyperdrive_ui_theme.lua",
+
+        -- Enhanced HUD and effects
         "autorun/client/hyperdrive_hud.lua",
         "autorun/client/hyperdrive_effects_v2.lua",
         "autorun/client/hyperdrive_sounds.lua",
         "autorun/client/hyperdrive_materials.lua",
+
+        -- Interface systems
         "autorun/client/hyperdrive_simple_interface.lua",
+        "autorun/client/hyperdrive_entity_selector.lua",
         "autorun/client/hyperdrive_admin_panel.lua",
+
+        -- Advanced features
         "autorun/client/hyperdrive_hyperspace_effects.lua",
         "autorun/client/hyperdrive_hyperspace_window.lua",
         "autorun/client/hyperdrive_stargate_client.lua",

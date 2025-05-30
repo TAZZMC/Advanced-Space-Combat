@@ -495,4 +495,38 @@ HYPERDRIVE.EnhancedConfig.Core.CAP = {
     AutoProvisionCAP = true
 }
 
-print("[Hyperdrive] Enhanced configuration system with CAP integration loaded")
+-- Add modern UI configuration
+HYPERDRIVE.EnhancedConfig.Core.ModernUI = {
+    -- UI Theme Settings
+    EnableModernUI = true,
+    UseGlassmorphism = true,
+    EnableAnimations = true,
+    EnableNotifications = true,
+    EnableSoundEffects = true,
+
+    -- Animation Settings
+    AnimationSpeed = 1.0,
+    FadeSpeed = 800,
+    TabAnimationSpeed = 8,
+    NotificationDuration = 5.0,
+
+    -- Visual Settings
+    UIScale = 1.0,
+    BorderRadius = 12,
+    GlowIntensity = 0.3,
+    ShadowIntensity = 0.5,
+
+    -- Performance Settings
+    MaxNotifications = 5,
+    UIUpdateInterval = 0.5,
+    ReduceAnimationsOnLowFPS = true,
+    MinFPSForAnimations = 30,
+
+    -- Accessibility
+    HighContrastMode = false,
+    LargeTextMode = false,
+    ReducedMotion = false,
+    ColorBlindFriendly = false
+}
+
+print("[Hyperdrive] Enhanced configuration system with CAP integration and modern UI loaded")

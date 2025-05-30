@@ -3,18 +3,56 @@
 
 if SERVER then return end
 
--- Create the configuration panel
+-- Modern theme configuration
+local modernTheme = {
+    primary = Color(25, 35, 55),
+    secondary = Color(45, 65, 95),
+    accent = Color(100, 150, 255),
+    success = Color(100, 200, 100),
+    warning = Color(255, 200, 100),
+    error = Color(255, 120, 120),
+    text = Color(255, 255, 255),
+    textSecondary = Color(200, 200, 200),
+    textMuted = Color(150, 150, 150),
+    border = Color(80, 120, 180, 100)
+}
+
+-- Create the enhanced configuration panel
 local function CreateHyperdriveConfigPanel()
     local panel = vgui.Create("DPanel")
-    panel:SetSize(600, 500)
+    panel:SetSize(800, 650)
+    panel:SetPaintBackground(false)
 
-    -- Title
-    local title = vgui.Create("DLabel", panel)
-    title:SetPos(10, 10)
-    title:SetSize(580, 30)
-    title:SetText("Enhanced Hyperdrive System v" .. (HYPERDRIVE.Version or "2.1.0") .. " - Configuration")
-    title:SetFont("DermaLarge")
-    title:SetTextColor(Color(100, 200, 255))
+    -- Custom paint function for modern styling
+    panel.Paint = function(self, w, h)
+        -- Modern glassmorphism background
+        draw.RoundedBox(12, 0, 0, w, h, Color(modernTheme.primary.r, modernTheme.primary.g, modernTheme.primary.b, 240))
+        draw.RoundedBox(12, 2, 2, w - 4, h - 4, Color(modernTheme.secondary.r, modernTheme.secondary.g, modernTheme.secondary.b, 200))
+
+        -- Subtle border glow
+        draw.RoundedBox(12, 0, 0, w, 2, modernTheme.accent)
+        draw.RoundedBox(12, 0, h - 2, w, 2, Color(modernTheme.accent.r, modernTheme.accent.g, modernTheme.accent.b, 150))
+    end
+
+    -- Enhanced title with modern styling
+    local titlePanel = vgui.Create("DPanel", panel)
+    titlePanel:SetPos(15, 15)
+    titlePanel:SetSize(770, 60)
+    titlePanel:SetPaintBackground(false)
+
+    titlePanel.Paint = function(self, w, h)
+        -- Title background with gradient
+        draw.RoundedBoxEx(8, 0, 0, w, h, modernTheme.accent, true, true, false, false)
+        draw.RoundedBoxEx(8, 0, h/2, w, h/2, Color(modernTheme.accent.r * 0.7, modernTheme.accent.g * 0.7, modernTheme.accent.b * 0.7), false, false, true, true)
+
+        -- Title text with shadow
+        draw.SimpleText("ENHANCED HYPERDRIVE SYSTEM", "DermaLarge", w/2 + 1, 21, Color(0, 0, 0, 150), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        draw.SimpleText("ENHANCED HYPERDRIVE SYSTEM", "DermaLarge", w/2, 20, modernTheme.text, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+
+        -- Version and subtitle
+        local versionText = "v" .. (HYPERDRIVE.Version or "2.1.0") .. " - Advanced Configuration Panel"
+        draw.SimpleText(versionText, "DermaDefault", w/2, 40, Color(255, 255, 255, 200), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+    end
 
     -- Create scrollable panel for configuration options
     local scroll = vgui.Create("DScrollPanel", panel)

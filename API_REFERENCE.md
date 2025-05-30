@@ -1,6 +1,6 @@
-# Enhanced Hyperdrive System - API Reference
+# Enhanced Hyperdrive System v2.1.0 - API Reference
 
-This document provides comprehensive API documentation for developers working with the Enhanced Hyperdrive System.
+This document provides comprehensive API documentation for developers working with the Enhanced Hyperdrive System with modern UI framework and CAP integration.
 
 ## 🏗️ Core Architecture
 
@@ -12,14 +12,63 @@ HYPERDRIVE = {
     Version = "2.1.0",
     Core = {},           -- Core hyperdrive functionality
     ShipCore = {},       -- Ship core management
-    CAP = {},           -- CAP integration
-    Shields = {},       -- Shield systems
+    CAP = {},           -- CAP (Carter Addon Pack) integration
+    Shields = {},       -- Advanced shield systems
     HullDamage = {},    -- Hull damage system
     SB3Resources = {}, -- Spacebuild 3 integration
     Wire = {},          -- Wiremod integration
     Config = {},        -- Configuration system
-    Effects = {}        -- Visual effects
+    Effects = {},       -- Visual effects
+    UI = {},            -- Modern UI framework
+    Stargate = {},      -- 4-stage Stargate hyperdrive
+    Performance = {},   -- Performance optimization
+    SystemStatus = {}   -- System status tracking
 }
+```
+
+## 🎨 Modern UI Framework API
+
+### UI Theme System
+The modern UI framework provides a comprehensive theming system:
+
+```lua
+-- Access theme colors
+local color = HYPERDRIVE.UI.GetColor("Primary", 200) -- Color with custom alpha
+local font = HYPERDRIVE.UI.GetFont("Title")
+local spacing = HYPERDRIVE.UI.GetSpacing("Medium")
+
+-- Draw modern UI components
+HYPERDRIVE.UI.DrawModernPanel(x, y, w, h, "Primary", 12)
+HYPERDRIVE.UI.DrawModernButton(x, y, w, h, "Click Me", isHovered, isPressed, "Accent")
+HYPERDRIVE.UI.DrawProgressBar(x, y, w, h, value, maxValue, "Success", true)
+HYPERDRIVE.UI.DrawNotification(x, y, w, h, "Message", "info", 255)
+```
+
+### Animation System
+Create smooth animations for UI elements:
+
+```lua
+-- Create animation
+HYPERDRIVE.UI.CreateAnimation("fadeIn", 0, 255, 0.5, HYPERDRIVE.UI.Theme.Animation.Easing.EaseOut)
+
+-- Get current animation value
+local alpha = HYPERDRIVE.UI.GetAnimationValue("fadeIn")
+
+-- Update animations (called automatically)
+HYPERDRIVE.UI.UpdateAnimations()
+```
+
+### Entity Selector Interface
+Open the modern entity selector:
+
+```lua
+-- Open entity selector with callback
+HYPERDRIVE.EntitySelector.Open(function(selectedEntity)
+    print("Selected: " .. selectedEntity:GetClass())
+end)
+
+-- Close entity selector
+HYPERDRIVE.EntitySelector.Close()
 ```
 
 ## 🚢 Ship Core API
@@ -140,7 +189,7 @@ Locates all CAP shields on a ship.
 
 #### `HYPERDRIVE.CAP.Shields.GetStatus(core, ship)`
 Retrieves comprehensive shield status.
-- **Parameters**: 
+- **Parameters**:
   - `core` (Entity) - Ship core
   - `ship` (table) - Ship object
 - **Returns**: `table` - Shield status information
@@ -404,7 +453,7 @@ end
 -- Check if CAP is available
 if HYPERDRIVE.CAP.Available then
     print("CAP version: " .. HYPERDRIVE.CAP.Detection.version)
-    
+
     -- Find CAP shields on ship
     local shields = HYPERDRIVE.CAP.Shields.FindShields(ship)
     print("Found " .. #shields .. " CAP shields")

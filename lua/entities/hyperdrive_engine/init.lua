@@ -68,7 +68,15 @@ function ENT:Initialize()
         end)
     end
 
-    print("[Hyperdrive] Enhanced Engine v2.1.0 initialized: " .. self:EntIndex())
+    -- Initialize modern UI integration
+    self.UIData = {
+        lastUpdate = 0,
+        updateInterval = 1.0,
+        notifications = {},
+        theme = "modern"
+    }
+
+    print("[Hyperdrive] Enhanced Engine v2.1.0 with modern UI initialized: " .. self:EntIndex())
 end
 
 -- Initialize CAP integration
