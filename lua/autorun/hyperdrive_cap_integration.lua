@@ -102,9 +102,33 @@ function HYPERDRIVE.CAP.IsCAP_Loaded()
     }
 end
 
--- Enhanced entity detection using CAP framework
+-- Enhanced entity detection using CAP framework and Ship Core system
 function HYPERDRIVE.CAP.DetectCAPEntities(engine, searchRadius)
     if not GetCAPConfig("Enabled", true) then return {} end
+
+    -- Use our new ship core system first
+    if HYPERDRIVE.ShipCore then
+        local shipEntities = HYPERDRIVE.ShipCore.GetAttachedEntities(engine, searchRadius)
+        if #shipEntities > 0 then
+            print("[Hyperdrive CAP] Using Ship Core system - found " .. #shipEntities .. " entities")
+
+            -- Filter for CAP entities only
+            local capEntities = {}
+            for _, ent in ipairs(shipEntities) do
+                if IsValid(ent) then
+                    local category = HYPERDRIVE.CAP.GetEntityCategory(ent:GetClass())
+                    if category then
+                        table.insert(capEntities, ent)
+                    end
+                end
+            end
+
+            if #capEntities > 0 then
+                print("[Hyperdrive CAP] Found " .. #capEntities .. " CAP entities in ship")
+                return capEntities
+            end
+        end
+    end
 
     searchRadius = searchRadius or 2000
     local entities = {}
@@ -442,7 +466,7 @@ concommand.Add("hyperdrive_cap_destinations", function(ply, cmd, args)
 end)
 
 -- Integration with enhanced configuration system
-if HYPERDRIVE.EnhancedConfig then
+if HYPERDRIVE.EnhancedConfig and HYPERDRIVE.EnhancedConfig.RegisterIntegration then
     HYPERDRIVE.EnhancedConfig.RegisterIntegration("CAP", {
         name = "Carter Addon Pack",
         description = "Advanced Stargate systems integration",
@@ -457,6 +481,28 @@ if HYPERDRIVE.EnhancedConfig then
             "UseStargateAddresses"
         }
     })
+else
+    -- Fallback: register later when the function becomes available
+    timer.Simple(0.1, function()
+        if HYPERDRIVE.EnhancedConfig and HYPERDRIVE.EnhancedConfig.RegisterIntegration then
+            HYPERDRIVE.EnhancedConfig.RegisterIntegration("CAP", {
+                name = "Carter Addon Pack",
+                description = "Advanced Stargate systems integration",
+                version = "2.0.0",
+                checkFunction = HYPERDRIVE.CAP.IsCAP_Loaded,
+                validateFunction = HYPERDRIVE.CAP.ValidateShipConfiguration,
+                configCategories = {
+                    "UseStargateNetwork",
+                    "RespectShields",
+                    "ShareEnergyWithStargates",
+                    "PreventConflicts",
+                    "UseStargateAddresses"
+                }
+            })
+        else
+            print("[Hyperdrive] Warning: Could not register CAP integration - EnhancedConfig not available")
+        end
+    end)
 end
 
 -- Advanced CAP entity movement integration

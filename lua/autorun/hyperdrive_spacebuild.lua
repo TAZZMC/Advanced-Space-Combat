@@ -173,9 +173,34 @@ function HYPERDRIVE.Spacebuild.Enhanced.GetCAFAddons()
     return addons
 end
 
--- Enhanced entity detection using CAF framework
+-- Enhanced entity detection using CAF framework and Ship Core system
 function HYPERDRIVE.Spacebuild.Enhanced.DetectSpacebuildEntities(engine, searchRadius)
     if not GetSBConfig("Enabled", true) then return {} end
+
+    -- Use our new ship core system first
+    if HYPERDRIVE.ShipCore then
+        local shipEntities = HYPERDRIVE.ShipCore.GetAttachedEntities(engine, searchRadius)
+        if #shipEntities > 0 then
+            print("[Hyperdrive SB3] Using Ship Core system - found " .. #shipEntities .. " entities")
+
+            -- Filter for Spacebuild entities only
+            local spacebuildEntities = {}
+            for _, ent in ipairs(shipEntities) do
+                if IsValid(ent) then
+                    local category = HYPERDRIVE.Spacebuild.Enhanced.GetEntityCategory(ent:GetClass())
+                    if category then
+                        table.insert(spacebuildEntities, ent)
+                    end
+                end
+            end
+
+            if #spacebuildEntities > 0 then
+                print("[Hyperdrive SB3] Found " .. #spacebuildEntities .. " Spacebuild entities in ship")
+                return spacebuildEntities
+            end
+        end
+    end
+
     if not GetSBConfig("UseCAFFramework", true) then
         return HYPERDRIVE.Spacebuild.Enhanced.DetectSpacebuildEntitiesBasic(engine, searchRadius)
     end
@@ -567,7 +592,7 @@ concommand.Add("hyperdrive_sb3_resources", function(ply, cmd, args)
 end)
 
 -- Integration with enhanced configuration system
-if HYPERDRIVE.EnhancedConfig then
+if HYPERDRIVE.EnhancedConfig and HYPERDRIVE.EnhancedConfig.RegisterIntegration then
     HYPERDRIVE.EnhancedConfig.RegisterIntegration("Spacebuild3", {
         name = "Spacebuild 3",
         description = "Enhanced Spacebuild 3 CAF framework integration",
@@ -582,6 +607,28 @@ if HYPERDRIVE.EnhancedConfig then
             "ValidateShipIntegrity"
         }
     })
+else
+    -- Fallback: register later when the function becomes available
+    timer.Simple(0.1, function()
+        if HYPERDRIVE.EnhancedConfig and HYPERDRIVE.EnhancedConfig.RegisterIntegration then
+            HYPERDRIVE.EnhancedConfig.RegisterIntegration("Spacebuild3", {
+                name = "Spacebuild 3",
+                description = "Enhanced Spacebuild 3 CAF framework integration",
+                version = "2.0.0",
+                checkFunction = HYPERDRIVE.Spacebuild.Enhanced.IsSpacebuild3Loaded,
+                validateFunction = HYPERDRIVE.Spacebuild.Enhanced.ValidateShipConfiguration,
+                configCategories = {
+                    "RequireLifeSupport",
+                    "RequirePower",
+                    "UseCAFFramework",
+                    "CheckResourceDistribution",
+                    "ValidateShipIntegrity"
+                }
+            })
+        else
+            print("[Hyperdrive] Warning: Could not register Spacebuild3 integration - EnhancedConfig not available")
+        end
+    end)
 end
 
 print("[Hyperdrive] Enhanced Spacebuild 3 integration loaded successfully")

@@ -63,4 +63,13 @@ util.AddNetworkString("hyperdrive_delta_update")
 util.AddNetworkString("hyperdrive_priority_sync")
 util.AddNetworkString("hyperdrive_compression_data")
 
+-- Sound system network strings
+util.AddNetworkString("hyperdrive_play_sound")
+util.AddNetworkString("hyperdrive_play_sequence")
+util.AddNetworkString("hyperdrive_stop_sound")
+util.AddNetworkString("hyperdrive_ambient_sound")
+util.AddNetworkString("hyperdrive_stargate_sound")
+util.AddNetworkString("hyperdrive_beacon_sound")
+util.AddNetworkString("hyperdrive_fleet_sound")
+
 print("[Hyperdrive] Network strings loaded successfully")

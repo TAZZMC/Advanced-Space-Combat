@@ -32,9 +32,26 @@ if SERVER then
     AddCSLuaFile("autorun/client/hyperdrive_stargate_client.lua")
     AddCSLuaFile("autorun/client/hyperdrive_visual_config.lua")
 
+    -- Add sound files to download
+    resource.AddFile("sound/hyperdrive/ship_in_hyperspace.wav")
+
+    -- Emergency network safety check
+    local function IsNetworkSafe()
+        -- Check if we should disable network optimization to prevent overflow
+        local playerCount = #player.GetAll()
+        if playerCount > 10 then
+            print("[Hyperdrive] Warning: High player count (" .. playerCount .. "), disabling network optimization")
+            return false
+        end
+        return true
+    end
+
     -- Load core systems first (order matters for dependencies)
     local coreFiles = {
         "autorun/hyperdrive_config_enhanced.lua",
+        "autorun/hyperdrive_save_restore.lua",  -- Load early to protect entities
+        "autorun/hyperdrive_ship_core.lua",     -- Our new ship detection system
+        "autorun/hyperdrive_world_effects.lua", -- World-based effects system
         "autorun/hyperdrive_core_v2.lua",
         "autorun/hyperdrive_network_strings.lua",
         "autorun/hyperdrive_security.lua",
@@ -56,7 +73,6 @@ if SERVER then
     local integrationFiles = {
         "autorun/hyperdrive_wiremod.lua",
         "autorun/hyperdrive_spacebuild.lua",
-        "autorun/hyperdrive_spacecombat2.lua",
         "autorun/hyperdrive_cap_integration.lua",
         "autorun/hyperdrive_stargate.lua",
         "autorun/hyperdrive_hyperspace.lua",
@@ -65,7 +81,6 @@ if SERVER then
         "autorun/hyperdrive_ui_enhanced.lua",
         "autorun/hyperdrive_dashboard.lua",
         "autorun/hyperdrive_admin_panel.lua",
-        "autorun/hyperdrive_network_optimization.lua",
         "autorun/hyperdrive_master.lua",
         "autorun/server/hyperdrive_hyperspace_dimension.lua",
         "autorun/server/hyperdrive_destinations.lua"
@@ -77,6 +92,21 @@ if SERVER then
         else
             print("[Hyperdrive] Warning: " .. fileName .. " not found, skipping...")
         end
+    end
+
+    -- Load network system (simple or optimized based on safety)
+    if IsNetworkSafe() then
+        if file.Exists("autorun/hyperdrive_network_optimization.lua", "LUA") then
+            include("autorun/hyperdrive_network_optimization.lua")
+            print("[Hyperdrive] Network optimization loaded")
+        end
+    else
+        print("[Hyperdrive] Network optimization disabled for safety")
+    end
+
+    -- Always load simple network as fallback/override
+    if file.Exists("autorun/server/hyperdrive_simple_network.lua", "LUA") then
+        include("autorun/server/hyperdrive_simple_network.lua")
     end
 
     -- Custom resources would be added here if they existed

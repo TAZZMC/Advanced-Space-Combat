@@ -22,7 +22,7 @@ HYPERDRIVE.EnhancedConfig = {
         ShipCoreSearchRadius = 1500,        -- Radius to search for ship cores
         GravityOverrideDuration = 5,        -- Seconds to override gravity
     },
-    
+
     -- Spacebuild 3 Integration
     Spacebuild3 = {
         Enabled = true,                     -- Enable SB3 integration
@@ -33,7 +33,7 @@ HYPERDRIVE.EnhancedConfig = {
         ShipCoreSearchRadius = 1500,        -- Radius to search for ship cores
         GravityOverrideDuration = 5,        -- Seconds to override gravity
     },
-    
+
     -- Enhanced Entity Detection
     EntityDetection = {
         UseConstraintSystem = true,         -- Use constraint system as fallback
@@ -45,7 +45,7 @@ HYPERDRIVE.EnhancedConfig = {
         IncludeSCEntities = true,           -- Include Space Combat entities
         IncludeSBEntities = true,           -- Include Spacebuild entities
     },
-    
+
     -- Movement Optimization
     Movement = {
         UseBatchMovement = true,            -- Batch entity movement
@@ -54,7 +54,7 @@ HYPERDRIVE.EnhancedConfig = {
         NetworkOptimization = true,         -- Enable network optimization
         MovementDelay = 0,                  -- Delay between entity movements (seconds)
     },
-    
+
     -- Gravity Management
     Gravity = {
         OverrideDuringJumps = true,         -- Override gravity during jumps
@@ -62,7 +62,7 @@ HYPERDRIVE.EnhancedConfig = {
         RestoreDelay = 3,                   -- Delay before restoring gravity
         UseGamemodeOverride = true,         -- Use gamemode-specific gravity override
     },
-    
+
     -- Debug Options
     Debug = {
         LogEntityDetection = false,         -- Log entity detection details
@@ -89,6 +89,41 @@ function HYPERDRIVE.EnhancedConfig.Set(category, key, value)
     HYPERDRIVE.EnhancedConfig[category][key] = value
 end
 
+-- Integration registry
+HYPERDRIVE.EnhancedConfig.Integrations = HYPERDRIVE.EnhancedConfig.Integrations or {}
+
+-- Register an integration
+function HYPERDRIVE.EnhancedConfig.RegisterIntegration(name, config)
+    if not name or not config then
+        print("[Hyperdrive] Error: Invalid integration registration")
+        return false
+    end
+
+    HYPERDRIVE.EnhancedConfig.Integrations[name] = {
+        name = config.name or name,
+        description = config.description or "No description",
+        version = config.version or "1.0.0",
+        checkFunction = config.checkFunction,
+        validateFunction = config.validateFunction,
+        configCategories = config.configCategories or {},
+        registered = true,
+        registrationTime = CurTime()
+    }
+
+    print("[Hyperdrive] Registered integration: " .. name .. " (" .. (config.version or "1.0.0") .. ")")
+    return true
+end
+
+-- Get registered integrations
+function HYPERDRIVE.EnhancedConfig.GetIntegrations()
+    return HYPERDRIVE.EnhancedConfig.Integrations
+end
+
+-- Check if integration is registered
+function HYPERDRIVE.EnhancedConfig.IsIntegrationRegistered(name)
+    return HYPERDRIVE.EnhancedConfig.Integrations[name] ~= nil
+end
+
 -- Console commands for configuration
 concommand.Add("hyperdrive_config_show", function(ply, cmd, args)
     if not IsValid(ply) or not ply:IsAdmin() then
@@ -97,7 +132,7 @@ concommand.Add("hyperdrive_config_show", function(ply, cmd, args)
         end
         return
     end
-    
+
     local category = args[1]
     if category and HYPERDRIVE.EnhancedConfig[category] then
         ply:ChatPrint("[Hyperdrive] Configuration for " .. category .. ":")
@@ -122,16 +157,16 @@ concommand.Add("hyperdrive_config_set", function(ply, cmd, args)
         end
         return
     end
-    
+
     if #args < 3 then
         ply:ChatPrint("[Hyperdrive] Usage: hyperdrive_config_set <category> <key> <value>")
         return
     end
-    
+
     local category = args[1]
     local key = args[2]
     local value = args[3]
-    
+
     -- Convert value to appropriate type
     if value == "true" then
         value = true
@@ -140,7 +175,7 @@ concommand.Add("hyperdrive_config_set", function(ply, cmd, args)
     elseif tonumber(value) then
         value = tonumber(value)
     end
-    
+
     HYPERDRIVE.EnhancedConfig.Set(category, key, value)
     ply:ChatPrint("[Hyperdrive] Set " .. category .. "." .. key .. " = " .. tostring(value))
 end)
@@ -152,7 +187,7 @@ concommand.Add("hyperdrive_config_reset", function(ply, cmd, args)
         end
         return
     end
-    
+
     -- Reset to defaults (reload the file)
     include("autorun/hyperdrive_config_enhanced.lua")
     ply:ChatPrint("[Hyperdrive] Configuration reset to defaults")
@@ -166,37 +201,37 @@ function HYPERDRIVE.EnhancedConfig.CheckIntegrations()
         Wiremod = false,
         Stargate = false
     }
-    
+
     -- Check Space Combat 2
     if GAMEMODE and GAMEMODE.Name == "Space Combat 2" then
         status.SpaceCombat2 = true
     elseif file.Exists("gamemodes/spacecombat2/gamemode/init.lua", "GAME") then
         status.SpaceCombat2 = true
     end
-    
+
     -- Check Spacebuild 3
     if CAF then
         status.Spacebuild3 = true
     end
-    
+
     -- Check Wiremod
     if WireLib then
         status.Wiremod = true
     end
-    
+
     -- Check Stargate
     if StarGate then
         status.Stargate = true
     end
-    
+
     return status
 end
 
 concommand.Add("hyperdrive_integration_status", function(ply, cmd, args)
     if not IsValid(ply) then return end
-    
+
     local status = HYPERDRIVE.EnhancedConfig.CheckIntegrations()
-    
+
     ply:ChatPrint("[Hyperdrive] Integration Status:")
     for integration, enabled in pairs(status) do
         local statusText = enabled and "✓ Detected" or "✗ Not Found"
@@ -204,19 +239,35 @@ concommand.Add("hyperdrive_integration_status", function(ply, cmd, args)
     end
 end)
 
+concommand.Add("hyperdrive_list_integrations", function(ply, cmd, args)
+    if not IsValid(ply) then return end
+
+    local integrations = HYPERDRIVE.EnhancedConfig.GetIntegrations()
+
+    ply:ChatPrint("[Hyperdrive] Registered Integrations:")
+    for name, data in pairs(integrations) do
+        ply:ChatPrint("  • " .. data.name .. " v" .. data.version)
+        ply:ChatPrint("    " .. data.description)
+    end
+
+    if table.Count(integrations) == 0 then
+        ply:ChatPrint("  No integrations registered yet.")
+    end
+end)
+
 -- Auto-configure based on detected addons
 timer.Simple(1, function()
     local status = HYPERDRIVE.EnhancedConfig.CheckIntegrations()
-    
+
     -- Auto-disable integrations if addons not found
     if not status.SpaceCombat2 then
         HYPERDRIVE.EnhancedConfig.Set("SpaceCombat2", "Enabled", false)
     end
-    
+
     if not status.Spacebuild3 then
         HYPERDRIVE.EnhancedConfig.Set("Spacebuild3", "Enabled", false)
     end
-    
+
     print("[Hyperdrive] Enhanced configuration loaded with auto-detection:")
     print("  • Space Combat 2: " .. (status.SpaceCombat2 and "Detected" or "Not Found"))
     print("  • Spacebuild 3: " .. (status.Spacebuild3 and "Detected" or "Not Found"))

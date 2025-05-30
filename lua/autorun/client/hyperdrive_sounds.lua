@@ -5,32 +5,57 @@ HYPERDRIVE.Sounds = HYPERDRIVE.Sounds or {}
 
 -- Sound definitions
 HYPERDRIVE.Sounds.Library = {
+    -- Custom Hyperdrive sounds
+    hyperspace_travel = "hyperdrive/ship_in_hyperspace.wav",
+    hyperspace_ambient = "hyperdrive/ship_in_hyperspace.wav",
+
     -- Engine sounds
     engine_idle = "ambient/energy/electric_loop.wav",
     engine_startup = "ambient/energy/whiteflash.wav",
     engine_shutdown = "ambient/energy/zap1.wav",
+    engine_hum = "ambient/energy/electric_loop.wav",
 
     -- Charging sounds
     charge_start = "ambient/energy/spark1.wav",
     charge_loop = "ambient/energy/electric_loop.wav",
     charge_buildup = "ambient/energy/whiteflash.wav",
+    charge_complete = "ambient/energy/zap9.wav",
 
     -- Jump sounds
     jump_initiate = "ambient/energy/zap7.wav",
     jump_portal_open = "ambient/explosions/explode_4.wav",
-    jump_travel = "ambient/wind/wind_rooftop1.wav",
+    jump_travel = "hyperdrive/ship_in_hyperspace.wav", -- Use custom sound
     jump_arrival = "ambient/energy/zap9.wav",
+    jump_abort = "ambient/energy/zap1.wav",
+
+    -- Stargate 4-stage sounds
+    sg_initiation = "ambient/energy/spark6.wav",
+    sg_window_open = "ambient/energy/whiteflash.wav",
+    sg_hyperspace = "hyperdrive/ship_in_hyperspace.wav", -- Use custom sound
+    sg_exit = "ambient/energy/zap9.wav",
 
     -- Computer sounds
     computer_beep = "buttons/button15.wav",
     computer_error = "buttons/button10.wav",
     computer_confirm = "buttons/button9.wav",
     computer_startup = "ambient/energy/spark6.wav",
+    computer_shutdown = "ambient/energy/zap1.wav",
 
     -- Alert sounds
     alert_warning = "ambient/alarms/warningbell1.wav",
     alert_critical = "ambient/alarms/klaxon1.wav",
-    alert_success = "ambient/water/drip3.wav"
+    alert_success = "ambient/water/drip3.wav",
+    alert_low_energy = "ambient/alarms/warningbell1.wav",
+
+    -- Beacon sounds
+    beacon_pulse = "ambient/energy/spark1.wav",
+    beacon_activate = "ambient/energy/spark6.wav",
+    beacon_deactivate = "ambient/energy/zap1.wav",
+
+    -- Fleet sounds
+    fleet_sync = "buttons/button9.wav",
+    fleet_ready = "ambient/energy/zap9.wav",
+    fleet_jump = "ambient/energy/whiteflash.wav"
 }
 
 -- Sound instances
@@ -158,7 +183,14 @@ function HYPERDRIVE.Sounds.PlayChargeSequence(entity)
     end)
 end
 
-function HYPERDRIVE.Sounds.PlayJumpSequence(originPos, destinationPos)
+function HYPERDRIVE.Sounds.PlayJumpSequence(originPos, destinationPos, jumpType)
+    jumpType = jumpType or "standard"
+
+    if jumpType == "stargate" then
+        HYPERDRIVE.Sounds.PlayStargateSequence(originPos, destinationPos)
+        return
+    end
+
     -- Jump initiation
     HYPERDRIVE.Sounds.Play("jump_initiate", originPos, 90, 80)
 
@@ -167,15 +199,62 @@ function HYPERDRIVE.Sounds.PlayJumpSequence(originPos, destinationPos)
         HYPERDRIVE.Sounds.Play("jump_portal_open", originPos, 100, 60)
     end)
 
-    -- Travel sound (brief)
+    -- Travel sound with custom hyperspace audio
     timer.Simple(0.4, function()
-        HYPERDRIVE.Sounds.Play("jump_travel", originPos, 70, 150)
+        HYPERDRIVE.Sounds.Play("jump_travel", originPos, 80, 100)
     end)
 
     -- Arrival
-    timer.Simple(0.6, function()
+    timer.Simple(2.0, function() -- Longer travel time for immersion
         HYPERDRIVE.Sounds.Play("jump_arrival", destinationPos, 85, 120)
     end)
+end
+
+-- New function for Stargate 4-stage travel
+function HYPERDRIVE.Sounds.PlayStargateSequence(originPos, destinationPos)
+    -- Stage 1: Initiation (3 seconds)
+    HYPERDRIVE.Sounds.Play("sg_initiation", originPos, 85, 90)
+
+    -- Stage 2: Window Opening (2 seconds)
+    timer.Simple(3.0, function()
+        HYPERDRIVE.Sounds.Play("sg_window_open", originPos, 95, 80)
+    end)
+
+    -- Stage 3: Hyperspace Travel (5 seconds)
+    timer.Simple(5.0, function()
+        local sound = HYPERDRIVE.Sounds.Create("sg_hyperspace", game.GetWorld(), 75, 100)
+        if sound then
+            sound:Play()
+            -- Stop after hyperspace duration
+            timer.Simple(5.0, function()
+                sound:Stop()
+            end)
+        end
+    end)
+
+    -- Stage 4: Exit Stabilization (2 seconds)
+    timer.Simple(10.0, function()
+        HYPERDRIVE.Sounds.Play("sg_exit", destinationPos, 90, 110)
+    end)
+end
+
+-- New function for hyperspace ambient sound
+function HYPERDRIVE.Sounds.PlayHyperspaceAmbient(entity, duration)
+    if not IsValid(entity) then return end
+
+    local sound = HYPERDRIVE.Sounds.Create("hyperspace_ambient", entity, 60, 95)
+    if sound then
+        sound:Play()
+
+        -- Stop after duration
+        if duration then
+            timer.Simple(duration, function()
+                sound:Stop()
+            end)
+        end
+
+        return sound
+    end
 end
 
 function HYPERDRIVE.Sounds.PlayComputerSound(soundName, entity)
@@ -186,6 +265,54 @@ end
 function HYPERDRIVE.Sounds.PlayAlert(alertType, entity)
     local pos = IsValid(entity) and entity:GetPos() or nil
     HYPERDRIVE.Sounds.Play("alert_" .. alertType, pos, 80, 100)
+end
+
+-- New function for beacon sounds
+function HYPERDRIVE.Sounds.PlayBeaconSound(soundType, entity)
+    local pos = IsValid(entity) and entity:GetPos() or nil
+    HYPERDRIVE.Sounds.Play("beacon_" .. soundType, pos, 70, 100)
+end
+
+-- New function for fleet coordination sounds
+function HYPERDRIVE.Sounds.PlayFleetSound(soundType, position)
+    HYPERDRIVE.Sounds.Play("fleet_" .. soundType, position, 75, 100)
+end
+
+-- Enhanced charge sequence with completion sound
+function HYPERDRIVE.Sounds.PlayEnhancedChargeSequence(entity)
+    -- Initial charge sound
+    HYPERDRIVE.Sounds.Play("charge_start", entity:GetPos(), 70, 100)
+
+    -- Buildup loop
+    timer.Simple(0.3, function()
+        if IsValid(entity) then
+            local sound = HYPERDRIVE.Sounds.Create("charge_loop", entity, 65, 110)
+            if sound then
+                sound:Play()
+
+                -- Stop after charge time
+                local chargeTime = (HYPERDRIVE.Config and HYPERDRIVE.Config.JumpChargeTime) or 3
+                timer.Simple(chargeTime - 0.5, function()
+                    sound:Stop()
+                end)
+            end
+        end
+    end)
+
+    -- Final buildup
+    local chargeTime = (HYPERDRIVE.Config and HYPERDRIVE.Config.JumpChargeTime) or 3
+    timer.Simple(chargeTime - 0.2, function()
+        if IsValid(entity) then
+            HYPERDRIVE.Sounds.Play("charge_buildup", entity:GetPos(), 85, 120)
+        end
+    end)
+
+    -- Charge complete sound
+    timer.Simple(chargeTime, function()
+        if IsValid(entity) then
+            HYPERDRIVE.Sounds.Play("charge_complete", entity:GetPos(), 80, 110)
+        end
+    end)
 end
 
 -- Ambient sound management
@@ -247,6 +374,83 @@ concommand.Add("hyperdrive_list_sounds", function(ply, cmd, args)
     ply:ChatPrint("[Hyperdrive] Available sounds:")
     for name, path in pairs(HYPERDRIVE.Sounds.Library) do
         ply:ChatPrint("  • " .. name .. " (" .. path .. ")")
+    end
+end)
+
+-- Network receivers for server-triggered sounds
+net.Receive("hyperdrive_play_sound", function()
+    local soundName = net.ReadString()
+    local pos = net.ReadVector()
+    local volume = net.ReadFloat()
+    local pitch = net.ReadFloat()
+
+    HYPERDRIVE.Sounds.Play(soundName, pos, volume, pitch)
+end)
+
+net.Receive("hyperdrive_play_sequence", function()
+    local sequenceType = net.ReadString()
+    local originPos = net.ReadVector()
+    local destinationPos = net.ReadVector()
+    local jumpType = net.ReadString()
+
+    if sequenceType == "jump" then
+        HYPERDRIVE.Sounds.PlayJumpSequence(originPos, destinationPos, jumpType)
+    elseif sequenceType == "charge" then
+        local entity = net.ReadEntity()
+        if IsValid(entity) then
+            HYPERDRIVE.Sounds.PlayEnhancedChargeSequence(entity)
+        end
+    elseif sequenceType == "startup" then
+        local entity = net.ReadEntity()
+        if IsValid(entity) then
+            HYPERDRIVE.Sounds.PlayEngineStartup(entity)
+        end
+    end
+end)
+
+net.Receive("hyperdrive_stargate_sound", function()
+    local originPos = net.ReadVector()
+    local destinationPos = net.ReadVector()
+
+    HYPERDRIVE.Sounds.PlayStargateSequence(originPos, destinationPos)
+end)
+
+net.Receive("hyperdrive_beacon_sound", function()
+    local soundType = net.ReadString()
+    local entity = net.ReadEntity()
+
+    HYPERDRIVE.Sounds.PlayBeaconSound(soundType, entity)
+end)
+
+net.Receive("hyperdrive_fleet_sound", function()
+    local soundType = net.ReadString()
+    local position = net.ReadVector()
+
+    HYPERDRIVE.Sounds.PlayFleetSound(soundType, position)
+end)
+
+net.Receive("hyperdrive_ambient_sound", function()
+    local entity = net.ReadEntity()
+    local soundName = net.ReadString()
+    local duration = net.ReadFloat()
+
+    if IsValid(entity) then
+        if duration > 0 then
+            HYPERDRIVE.Sounds.PlayHyperspaceAmbient(entity, duration)
+        else
+            HYPERDRIVE.Sounds.StartAmbient(entity, soundName, 60, 100)
+        end
+    end
+end)
+
+net.Receive("hyperdrive_stop_sound", function()
+    local entity = net.ReadEntity()
+    local stopAll = net.ReadBool()
+
+    if stopAll then
+        HYPERDRIVE.Sounds.StopAll()
+    elseif IsValid(entity) then
+        HYPERDRIVE.Sounds.StopAmbient(entity)
     end
 end)
 

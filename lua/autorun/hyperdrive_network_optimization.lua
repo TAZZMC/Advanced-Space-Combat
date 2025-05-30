@@ -9,17 +9,19 @@ HYPERDRIVE.Network = HYPERDRIVE.Network or {}
 
 print("[Hyperdrive] Network optimization system loading...")
 
--- Network optimization configuration
+-- Network optimization configuration (Conservative settings to prevent overflow)
 HYPERDRIVE.Network.Config = {
     EnableOptimization = true,      -- Enable network optimizations
-    BatchSize = 32,                 -- Entities per network batch
-    BatchDelay = 0.005,             -- Delay between batches (seconds)
-    CompressionLevel = 6,           -- Data compression level (1-9)
+    BatchSize = 8,                  -- REDUCED: Entities per network batch
+    BatchDelay = 0.1,               -- INCREASED: Delay between batches (seconds)
+    CompressionLevel = 3,           -- REDUCED: Data compression level (1-9)
     PrioritySystem = true,          -- Enable priority-based updates
     DeltaCompression = true,        -- Enable delta compression
-    AdaptiveBatching = true,        -- Adaptive batch sizing
-    NetworkPrediction = true,       -- Enable client-side prediction
-    MaxBandwidth = 1000000,         -- Max bandwidth per second (bytes)
+    AdaptiveBatching = false,       -- DISABLED: Adaptive batch sizing
+    NetworkPrediction = false,      -- DISABLED: Client-side prediction
+    MaxBandwidth = 50000,           -- REDUCED: Max bandwidth per second (bytes)
+    MaxPacketSize = 1024,           -- NEW: Maximum packet size
+    MinUpdateInterval = 0.5,        -- NEW: Minimum time between updates
 }
 
 -- Network state tracking
@@ -34,6 +36,9 @@ HYPERDRIVE.Network.State = {
     },
     priorityQueue = {},
     deltaStates = {},
+    lastUpdateTime = {},            -- Track last update time per player
+    packetsSentThisSecond = {},     -- Track packets sent per player
+    lastPacketReset = 0,            -- Last time packet counters were reset
 }
 
 -- Network strings are loaded from hyperdrive_network_strings.lua
@@ -44,6 +49,46 @@ local function GetNetConfig(key, default)
         return HYPERDRIVE.EnhancedConfig.Get("Network", key, HYPERDRIVE.Network.Config[key] or default)
     end
     return HYPERDRIVE.Network.Config[key] or default
+end
+
+-- Rate limiting functions
+function HYPERDRIVE.Network.CanSendToPlayer(player)
+    if not IsValid(player) then return false end
+
+    local currentTime = CurTime()
+    local playerID = player:UserID()
+
+    -- Reset packet counters every second
+    if currentTime - HYPERDRIVE.Network.State.lastPacketReset > 1.0 then
+        HYPERDRIVE.Network.State.packetsSentThisSecond = {}
+        HYPERDRIVE.Network.State.lastPacketReset = currentTime
+    end
+
+    -- Check minimum update interval
+    local lastUpdate = HYPERDRIVE.Network.State.lastUpdateTime[playerID] or 0
+    local minInterval = GetNetConfig("MinUpdateInterval", 0.5)
+
+    if currentTime - lastUpdate < minInterval then
+        return false
+    end
+
+    -- Check packet rate limit (max 10 packets per second per player)
+    local packetsSent = HYPERDRIVE.Network.State.packetsSentThisSecond[playerID] or 0
+    if packetsSent >= 10 then
+        return false
+    end
+
+    return true
+end
+
+function HYPERDRIVE.Network.RecordPacketSent(player)
+    if not IsValid(player) then return end
+
+    local playerID = player:UserID()
+    local currentTime = CurTime()
+
+    HYPERDRIVE.Network.State.lastUpdateTime[playerID] = currentTime
+    HYPERDRIVE.Network.State.packetsSentThisSecond[playerID] = (HYPERDRIVE.Network.State.packetsSentThisSecond[playerID] or 0) + 1
 end
 
 -- Compress data using LZ4 or similar algorithm
@@ -239,9 +284,55 @@ end
 function HYPERDRIVE.Network.SendBatchUpdate(player, batchData)
     if not IsValid(player) or #batchData == 0 then return end
 
+    -- Check rate limiting first
+    if not HYPERDRIVE.Network.CanSendToPlayer(player) then
+        -- Queue for later transmission
+        table.insert(HYPERDRIVE.Network.State.priorityQueue, {
+            player = player,
+            data = batchData,
+            size = #batchData,
+            timestamp = CurTime(),
+            queued = true
+        })
+        return
+    end
+
     -- Compress batch data
     local serializedData = util.TableToJSON(batchData)
     local compressedData, compressedSize = HYPERDRIVE.Network.CompressData(serializedData)
+
+    -- Check packet size limit
+    local maxPacketSize = GetNetConfig("MaxPacketSize", 1024)
+    if compressedSize > maxPacketSize then
+        -- Split into smaller packets
+        local halfSize = math.ceil(#batchData / 2)
+        local firstHalf = {}
+        local secondHalf = {}
+
+        for i = 1, halfSize do
+            table.insert(firstHalf, batchData[i])
+        end
+        for i = halfSize + 1, #batchData do
+            table.insert(secondHalf, batchData[i])
+        end
+
+        -- Queue both halves
+        table.insert(HYPERDRIVE.Network.State.priorityQueue, {
+            player = player,
+            data = firstHalf,
+            size = #firstHalf,
+            timestamp = CurTime(),
+            queued = true
+        })
+        table.insert(HYPERDRIVE.Network.State.priorityQueue, {
+            player = player,
+            data = secondHalf,
+            size = #secondHalf,
+            timestamp = CurTime() + 0.1, -- Delay second half
+            queued = true
+        })
+        return
+    end
 
     -- Check bandwidth limits
     local currentTime = CurTime()
@@ -250,14 +341,15 @@ function HYPERDRIVE.Network.SendBatchUpdate(player, batchData)
         HYPERDRIVE.Network.State.lastBandwidthReset = currentTime
     end
 
-    local maxBandwidth = GetNetConfig("MaxBandwidth", 1000000)
+    local maxBandwidth = GetNetConfig("MaxBandwidth", 50000)
     if HYPERDRIVE.Network.State.bandwidthUsage + compressedSize > maxBandwidth then
         -- Queue for later transmission
         table.insert(HYPERDRIVE.Network.State.priorityQueue, {
             player = player,
-            data = compressedData,
+            data = batchData,
             size = compressedSize,
-            timestamp = currentTime
+            timestamp = currentTime,
+            queued = true
         })
         return
     end
@@ -268,7 +360,8 @@ function HYPERDRIVE.Network.SendBatchUpdate(player, batchData)
     net.WriteData(compressedData, compressedSize)
     net.Send(player)
 
-    -- Update bandwidth usage
+    -- Record packet sent and update bandwidth usage
+    HYPERDRIVE.Network.RecordPacketSent(player)
     HYPERDRIVE.Network.State.bandwidthUsage = HYPERDRIVE.Network.State.bandwidthUsage + compressedSize
 end
 

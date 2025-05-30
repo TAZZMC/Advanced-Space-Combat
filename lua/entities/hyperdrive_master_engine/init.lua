@@ -40,17 +40,25 @@ function ENT:Initialize()
     self:SetEfficiencyRating(1.0)
     self:SetOperationalMode(1) -- 1=Standard, 2=Enhanced, 3=Maximum
 
-    -- Integration data storage
-    self.IntegrationData = {
-        wiremod = {active = false, inputs = 0, outputs = 0},
-        spacebuild = {active = false, resources = {}, lifesupport = false},
-        stargate = {active = false, techLevel = "tau_ri", hasGate = false}
-    }
+    -- Integration data storage (safe initialization)
+    self.IntegrationData = self.IntegrationData or {}
+    if not self.IntegrationData.wiremod then
+        self.IntegrationData.wiremod = {active = false, inputs = 0, outputs = 0}
+    end
+    if not self.IntegrationData.spacebuild then
+        self.IntegrationData.spacebuild = {active = false, resources = {}, lifesupport = false}
+    end
+    if not self.IntegrationData.stargate then
+        self.IntegrationData.stargate = {active = false, techLevel = "tau_ri", hasGate = false}
+    end
 
     -- Initialize ALL integration systems
     self:InitializeWiremod()
     self:InitializeSpacebuild()
     self:InitializeStargate()
+
+    -- Initialize ship core system
+    self:InitializeShipCore()
 
     -- Master timer for all systems
     timer.Create("hyperdrive_master_" .. self:EntIndex(), 0.5, 0, function()
@@ -160,14 +168,21 @@ end
 function ENT:InitializeSpacebuild()
     if not CAF then return end
 
-    -- Setup Spacebuild resource nodes
-    self.SpacebuildNodes = {
-        energy = {capacity = 2000, amount = 0},
-        oxygen = {capacity = 1000, amount = 0},
-        coolant = {capacity = 400, amount = 0}
-    }
+    -- Setup Spacebuild resource nodes (safe initialization)
+    self.SpacebuildNodes = self.SpacebuildNodes or {}
+    if not self.SpacebuildNodes.energy then
+        self.SpacebuildNodes.energy = {capacity = 2000, amount = 0}
+    end
+    if not self.SpacebuildNodes.oxygen then
+        self.SpacebuildNodes.oxygen = {capacity = 1000, amount = 0}
+    end
+    if not self.SpacebuildNodes.coolant then
+        self.SpacebuildNodes.coolant = {capacity = 400, amount = 0}
+    end
 
-    self.IntegrationData.spacebuild.active = true
+    if self.IntegrationData and self.IntegrationData.spacebuild then
+        self.IntegrationData.spacebuild.active = true
+    end
     self:UpdateSystemIntegration()
 end
 
@@ -176,6 +191,38 @@ function ENT:InitializeStargate()
 
     self.IntegrationData.stargate.active = true
     self:UpdateSystemIntegration()
+end
+
+function ENT:InitializeShipCore()
+    -- Initialize with our new ship core system
+    if HYPERDRIVE.ShipCore then
+        timer.Simple(0.1, function()
+            if IsValid(self) then
+                local ship = HYPERDRIVE.ShipCore.DetectShipForEngine(self)
+                if ship then
+                    print("[Hyperdrive Master] Ship detected: " .. ship:GetShipType() .. " with " .. #ship:GetEntities() .. " entities")
+
+                    -- Store ship reference
+                    self.Ship = ship
+
+                    -- Update integration data with ship info
+                    local classification = ship:GetClassification()
+                    self.IntegrationData.shipcore = {
+                        active = true,
+                        shipType = ship:GetShipType(),
+                        entityCount = classification.entityCount,
+                        playerCount = classification.playerCount,
+                        mass = classification.mass,
+                        volume = classification.volume
+                    }
+                else
+                    print("[Hyperdrive Master] No ship detected")
+                end
+            end
+        end)
+    else
+        print("[Hyperdrive Master] Ship Core system not available")
+    end
 end
 
 function ENT:UpdateSystemIntegration()
@@ -388,8 +435,13 @@ function ENT:StartJumpMaster()
     self:SetCharging(true)
     self:SetJumpReady(false)
 
-    -- Enhanced charging effects
-    self:EmitSound("ambient/energy/whiteflash.wav", 75, 100)
+    -- Create world effects around ship
+    if HYPERDRIVE.WorldEffects and self.Ship then
+        HYPERDRIVE.WorldEffects.CreateChargingEffects(self, self.Ship)
+    else
+        -- Fallback sound effect
+        self:EmitSound("ambient/energy/whiteflash.wav", 75, 100)
+    end
 
     -- Calculate charge time with all bonuses
     local chargeTime = (HYPERDRIVE.Config and HYPERDRIVE.Config.JumpChargeTime) or 3
@@ -492,19 +544,29 @@ function ENT:ExecuteJumpMaster()
     -- Get entities to transport using the new function
     local entitiesToMove = self:GetEntitiesToTransport()
 
-    -- Create master jump effect
-    self:CreateMasterJumpEffect(self:GetPos(), true)
+    -- Create world effects around ship instead of HUD effects
+    if HYPERDRIVE.WorldEffects and self.Ship then
+        -- Entry window effect
+        HYPERDRIVE.WorldEffects.CreateHyperspaceWindow(self, self.Ship, "enter")
 
-    -- Send hyperspace window animation to nearby players
-    for _, ply in ipairs(player.GetAll()) do
-        local distance = ply:GetPos():Distance(self:GetPos())
-        local inVehicle = IsValid(self:GetAttachedVehicle()) and ply:GetVehicle() == self:GetAttachedVehicle()
+        -- Starlines during travel
+        timer.Simple(0.5, function()
+            if IsValid(self) and self.Ship then
+                HYPERDRIVE.WorldEffects.CreateStarlinesEffect(self, self.Ship)
+            end
+        end)
 
-        if inVehicle or distance < 500 then
-            net.Start("hyperdrive_hyperspace_window")
-            net.WriteString("enter")
-            net.Send(ply)
-        end
+        -- Exit window at destination
+        timer.Simple(2.5, function()
+            if IsValid(self) and self.Ship then
+                -- Update ship position for exit effect
+                self.Ship.center = destination
+                HYPERDRIVE.WorldEffects.CreateHyperspaceWindow(self, self.Ship, "exit")
+            end
+        end)
+    else
+        -- Fallback to old effect system
+        self:CreateMasterJumpEffect(self:GetPos(), true)
     end
 
     -- Use timer for hyperspace travel effect (3 seconds)
@@ -982,6 +1044,58 @@ end
 
 -- Get entities to transport for master engine
 function ENT:GetEntitiesToTransport()
+    local entitiesToMove = {}
+
+    -- Use our new ship core system first
+    if HYPERDRIVE.ShipCore and self.Ship then
+        -- Get all entities from ship
+        entitiesToMove = self.Ship:GetEntities()
+
+        -- Add players in ship
+        local players = self.Ship:GetPlayers()
+        for _, ply in ipairs(players) do
+            if IsValid(ply) then
+                table.insert(entitiesToMove, ply)
+            end
+        end
+
+        local shipInfo = self.Ship:GetClassification()
+        print("[Hyperdrive Master] Using Ship Core system - found " .. #entitiesToMove .. " entities")
+        print("[Hyperdrive Master] Ship type: " .. self.Ship:GetShipType() .. " (" .. shipInfo.entityCount .. " entities, " .. shipInfo.playerCount .. " players)")
+
+        -- Set movement strategy based on ship size
+        if shipInfo.entityCount > 100 then
+            self.UseBatchMovement = true
+        elseif shipInfo.entityCount > 50 then
+            self.UseOptimizedMovement = true
+        end
+
+        return entitiesToMove
+    end
+
+    -- Fallback: Use ship core detection without stored ship
+    if HYPERDRIVE.ShipCore then
+        local entities = HYPERDRIVE.ShipCore.GetAttachedEntities(self)
+        local players = HYPERDRIVE.ShipCore.GetPlayersInShip(self)
+
+        for _, ent in ipairs(entities) do
+            if IsValid(ent) then
+                table.insert(entitiesToMove, ent)
+            end
+        end
+
+        for _, ply in ipairs(players) do
+            if IsValid(ply) then
+                table.insert(entitiesToMove, ply)
+            end
+        end
+
+        if #entitiesToMove > 0 then
+            print("[Hyperdrive Master] Using Ship Core fallback detection - found " .. #entitiesToMove .. " entities")
+            return entitiesToMove
+        end
+    end
+
     -- Enhanced transport range based on integrations
     local transportRange = 200
     if self.IntegrationData.stargate.active and self:GetTechLevel() == "ancient" then
@@ -990,53 +1104,28 @@ function ENT:GetEntitiesToTransport()
         transportRange = 300
     end
 
-    local entitiesToMove = {}
+    -- Final fallback to sphere detection
+    table.insert(entitiesToMove, self)
 
-    -- Use advanced ship detection and classification if available
-    if HYPERDRIVE.ShipDetection and HYPERDRIVE.ShipDetection.DetectAndClassifyShip then
-        local detection = HYPERDRIVE.ShipDetection.DetectAndClassifyShip(self, transportRange)
-        entitiesToMove = detection.entities
-
-        -- Apply ship-specific optimizations
-        if detection.movementStrategy == "batch" then
-            self.UseBatchMovement = true
-        elseif detection.movementStrategy == "optimized" then
-            self.UseOptimizedMovement = true
-        end
-
-        if GetConVar("developer"):GetInt() > 0 then
-            print("[Hyperdrive Master] Using advanced ship detection - found " .. #entitiesToMove .. " entities")
-            print("[Hyperdrive Master] Ship type: " .. detection.shipType.name .. ", Strategy: " .. detection.movementStrategy)
-        end
-    -- Fallback to SC2 enhanced entity detection
-    elseif HYPERDRIVE.SpaceCombat2 and HYPERDRIVE.SpaceCombat2.EnhancedEntityDetection then
-        entitiesToMove = HYPERDRIVE.SpaceCombat2.EnhancedEntityDetection(self, transportRange)
-        if GetConVar("developer"):GetInt() > 0 then
-            print("[Hyperdrive Master] Using SC2 enhanced entity detection - found " .. #entitiesToMove .. " entities")
+    local vehicle = self:GetAttachedVehicle()
+    if IsValid(vehicle) then
+        table.insert(entitiesToMove, vehicle)
+        for i = 0, vehicle:GetPassengerCount() - 1 do
+            local passenger = vehicle:GetPassenger(i)
+            if IsValid(passenger) then
+                table.insert(entitiesToMove, passenger)
+            end
         end
     else
-        -- Fallback to original method
-        table.insert(entitiesToMove, self)
-
-        local vehicle = self:GetAttachedVehicle()
-        if IsValid(vehicle) then
-            table.insert(entitiesToMove, vehicle)
-            for i = 0, vehicle:GetPassengerCount() - 1 do
-                local passenger = vehicle:GetPassenger(i)
-                if IsValid(passenger) then
-                    table.insert(entitiesToMove, passenger)
-                end
-            end
-        else
-            local nearbyEnts = ents.FindInSphere(self:GetPos(), transportRange)
-            for _, ent in ipairs(nearbyEnts) do
-                if ent ~= self and (ent:IsPlayer() or ent:IsVehicle()) then
-                    table.insert(entitiesToMove, ent)
-                end
+        local nearbyEnts = ents.FindInSphere(self:GetPos(), transportRange)
+        for _, ent in ipairs(nearbyEnts) do
+            if ent ~= self and (ent:IsPlayer() or ent:IsVehicle()) then
+                table.insert(entitiesToMove, ent)
             end
         end
     end
 
+    print("[Hyperdrive Master] Using fallback sphere detection - found " .. #entitiesToMove .. " entities")
     return entitiesToMove
 end
 

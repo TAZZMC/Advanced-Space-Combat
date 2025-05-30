@@ -175,6 +175,14 @@ function HYPERDRIVE.Stargate.StartInitiationStage(travelData)
         HYPERDRIVE.Stargate.CreateEnhancedInitiationEffects(pos, travelData.techBonus, config)
     end
 
+    -- Create world effects using our new system
+    if HYPERDRIVE.WorldEffects and HYPERDRIVE.ShipCore then
+        local ship = HYPERDRIVE.ShipCore.GetShip(engine) or HYPERDRIVE.ShipCore.DetectShipForEngine(engine)
+        if ship then
+            HYPERDRIVE.WorldEffects.CreateStargateEffects(engine, ship, "initiation")
+        end
+    end
+
     -- Play charging sounds with energy surge effects
     if config.InitiationSounds then
         HYPERDRIVE.Stargate.PlayEnhancedInitiationSounds(pos, travelData.techBonus, config)
@@ -225,6 +233,14 @@ function HYPERDRIVE.Stargate.StartWindowOpeningStage(travelData)
     -- Create enhanced window opening effects with blue/purple swirling energy
     if config.WindowEffects then
         HYPERDRIVE.Stargate.CreateEnhancedWindowEffects(pos, travelData.techBonus, config)
+    end
+
+    -- Create world effects using our new system
+    if HYPERDRIVE.WorldEffects and HYPERDRIVE.ShipCore then
+        local ship = HYPERDRIVE.ShipCore.GetShip(engine) or HYPERDRIVE.ShipCore.DetectShipForEngine(engine)
+        if ship then
+            HYPERDRIVE.WorldEffects.CreateStargateEffects(engine, ship, "window")
+        end
     end
 
     -- Play dimensional tear sounds
@@ -297,6 +313,14 @@ function HYPERDRIVE.Stargate.StartHyperspaceTravel(travelData)
         HYPERDRIVE.Stargate.CreateStarlineEffects(travelData)
     end
 
+    -- Create world effects using our new system
+    if HYPERDRIVE.WorldEffects and HYPERDRIVE.ShipCore then
+        local ship = HYPERDRIVE.ShipCore.GetShip(engine) or HYPERDRIVE.ShipCore.DetectShipForEngine(engine)
+        if ship then
+            HYPERDRIVE.WorldEffects.CreateStargateEffects(engine, ship, "travel")
+        end
+    end
+
     -- Create abstract dimensional tunnel visuals
     if config.DimensionalVisuals then
         HYPERDRIVE.Stargate.CreateDimensionalTunnelEffects(travelData)
@@ -355,6 +379,16 @@ function HYPERDRIVE.Stargate.StartExitStage(travelData)
     -- Create enhanced exit effects with bright flash and shimmer
     if config.ExitEffects then
         HYPERDRIVE.Stargate.CreateEnhancedExitEffects(destination, travelData.techBonus, config)
+    end
+
+    -- Create world effects using our new system
+    if HYPERDRIVE.WorldEffects and HYPERDRIVE.ShipCore then
+        local ship = HYPERDRIVE.ShipCore.GetShip(engine) or HYPERDRIVE.ShipCore.DetectShipForEngine(engine)
+        if ship then
+            -- Update ship position for exit effect
+            ship.center = destination
+            HYPERDRIVE.WorldEffects.CreateStargateEffects(engine, ship, "exit")
+        end
     end
 
     -- Show hyperspace window collapse

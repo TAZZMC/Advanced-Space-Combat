@@ -25,25 +25,25 @@ function ENT:Initialize()
     self.LastUse = 0
     self.Owner = nil
 
-    -- Enhanced computer data
-    self.SavedWaypoints = {}
-    self.LocationHistory = {}
+    -- Enhanced computer data (initialize with safe defaults)
+    self.SavedWaypoints = self.SavedWaypoints or {}
+    self.LocationHistory = self.LocationHistory or {}
     self.ManualControlTarget = NULL
     self.CurrentCoordinates = Vector(0, 0, 0)
-    self.JumpQueue = {}
+    self.JumpQueue = self.JumpQueue or {}
     self.SafetyChecks = true
 
     -- Planet detection system
-    self.DetectedPlanets = {}
+    self.DetectedPlanets = self.DetectedPlanets or {}
     self.LastPlanetScan = 0
     self.PlanetScanInterval = 30 -- Scan every 30 seconds
     self.AutoDetectPlanets = true
 
     -- Auto-linking system
-    self.LinkedPlanets = {}
+    self.LinkedPlanets = self.LinkedPlanets or {}
     self.AutoLinkPlanets = true
     self.PlanetLinkRadius = 100000 -- 100km auto-link radius
-    self.QuickJumpTargets = {} -- Fast access planet targets
+    self.QuickJumpTargets = self.QuickJumpTargets or {} -- Fast access planet targets
 
     -- Master Engine Control System
     self.ControlledMasterEngine = NULL
@@ -53,6 +53,21 @@ function ENT:Initialize()
     self.FourStageJumpInProgress = false
     self.CurrentJumpStage = 0
     self.StageStartTime = 0
+
+    -- Ship Core Integration
+    self.DetectedShip = nil
+    self.ShipUpdateInterval = 2.0
+    self.LastShipUpdate = 0
+    self.ShipInfo = {}
+
+    -- Initialize ship detection
+    if HYPERDRIVE.ShipCore then
+        timer.Simple(0.5, function()
+            if IsValid(self) then
+                self:UpdateShipDetection()
+            end
+        end)
+    end
 
     -- Initialize Wiremod support
     if WireLib then
@@ -100,6 +115,11 @@ function ENT:Initialize()
             "ManualTarget [ENTITY]",
             "JumpCost",
             "EstimatedTime",
+            "TriggerChargingEffects",
+            "TriggerHyperspaceWindow",
+            "TriggerStarlinesEffect",
+            "TriggerStargateStage [STRING]",
+            "UpdateShipDetection",
             "PlanetsDetected",
             "PlanetDetectionEnabled",
             "LastPlanetScan",
@@ -120,7 +140,14 @@ function ENT:Initialize()
             "CurrentStage",
             "StageProgress",
             "MasterEfficiencyRating",
-            "MasterIntegrations [STRING]"
+            "MasterIntegrations [STRING]",
+            "ShipDetected",
+            "ShipType [STRING]",
+            "ShipEntityCount",
+            "ShipPlayerCount",
+            "ShipMass",
+            "ShipVolume",
+            "ShipCenter [VECTOR]"
         })
     end
 
@@ -262,15 +289,8 @@ function ENT:ExecuteFleetJump(destination)
         return false, "No engines ready for jump"
     end
 
-    -- Send hyperspace entry animation to nearby players
-    for _, ply in ipairs(player.GetAll()) do
-        local distance = ply:GetPos():Distance(self:GetPos())
-        if distance < 1000 then
-            net.Start("hyperdrive_hyperspace_window")
-            net.WriteString("enter")
-            net.Send(ply)
-        end
-    end
+    -- Create world effects instead of HUD animations
+    self:CreateFleetJumpEffects(destination)
 
     -- Use hyperspace dimension system if available, otherwise use direct engine jumps
     local primaryEngine = readyEngines[1].engine
@@ -302,25 +322,18 @@ function ENT:ExecuteFleetJump(destination)
             end
         end
 
-        -- Send hyperspace exit animation after a delay for direct jumps
-        timer.Simple(3, function()
-            if IsValid(self) then
-                for _, ply in ipairs(player.GetAll()) do
-                    local distance = ply:GetPos():Distance(destination)
-                    if distance < 1000 then
-                        net.Start("hyperdrive_hyperspace_window")
-                        net.WriteString("exit")
-                        net.Send(ply)
-                    end
-                end
-            end
-        end)
+        -- World effects are already handled by CreateFleetJumpEffects
     end
 
     return true, string.format("Fleet jump initiated: %d engines", #readyEngines)
 end
 
 function ENT:Think()
+    -- Update ship detection
+    if HYPERDRIVE.ShipCore and CurTime() - self.LastShipUpdate > self.ShipUpdateInterval then
+        self:UpdateShipDetection()
+    end
+
     -- Update power status based on linked engines
     local hasOnlineEngine = false
     for _, engine in ipairs(self.LinkedEngines) do
@@ -483,6 +496,34 @@ function ENT:TriggerInput(iname, value)
 
     elseif iname == "CheckMasterStatus" and value > 0 then
         self:CheckMasterEngineStatus()
+
+    -- World Effects Control Inputs
+    elseif iname == "TriggerChargingEffects" and value > 0 then
+        if HYPERDRIVE.WorldEffects and self.DetectedShip then
+            HYPERDRIVE.WorldEffects.CreateChargingEffects(self, self.DetectedShip)
+        end
+
+    elseif iname == "TriggerHyperspaceWindow" and value > 0 then
+        if HYPERDRIVE.WorldEffects and self.DetectedShip then
+            HYPERDRIVE.WorldEffects.CreateHyperspaceWindow(self, self.DetectedShip, "enter")
+        end
+
+    elseif iname == "TriggerStarlinesEffect" and value > 0 then
+        if HYPERDRIVE.WorldEffects and self.DetectedShip then
+            HYPERDRIVE.WorldEffects.CreateStarlinesEffect(self, self.DetectedShip)
+        end
+
+    elseif iname == "TriggerStargateStage" and isstring(value) and value ~= "" then
+        if HYPERDRIVE.WorldEffects and self.DetectedShip then
+            local validStages = {"initiation", "window", "travel", "exit"}
+            local stage = string.lower(value)
+            if table.HasValue(validStages, stage) then
+                HYPERDRIVE.WorldEffects.CreateStargateEffects(self, self.DetectedShip, stage)
+            end
+        end
+
+    elseif iname == "UpdateShipDetection" and value > 0 then
+        self:UpdateShipDetection()
     end
 
     self:UpdateWireOutputs()
@@ -590,6 +631,26 @@ function ENT:UpdateWireOutputs()
         WireLib.TriggerOutput(self, "StageProgress", 0)
         WireLib.TriggerOutput(self, "MasterEfficiencyRating", 0)
         WireLib.TriggerOutput(self, "MasterIntegrations", "")
+    end
+
+    -- Update ship information outputs
+    if self.DetectedShip and self.ShipInfo then
+        local classification = self.ShipInfo.classification
+        WireLib.TriggerOutput(self, "ShipDetected", 1)
+        WireLib.TriggerOutput(self, "ShipType", self.ShipInfo.shipType or "unknown")
+        WireLib.TriggerOutput(self, "ShipEntityCount", classification.entityCount or 0)
+        WireLib.TriggerOutput(self, "ShipPlayerCount", classification.playerCount or 0)
+        WireLib.TriggerOutput(self, "ShipMass", math.Round(classification.mass or 0, 2))
+        WireLib.TriggerOutput(self, "ShipVolume", math.Round(classification.volume or 0, 2))
+        WireLib.TriggerOutput(self, "ShipCenter", self.ShipInfo.center or Vector(0, 0, 0))
+    else
+        WireLib.TriggerOutput(self, "ShipDetected", 0)
+        WireLib.TriggerOutput(self, "ShipType", "none")
+        WireLib.TriggerOutput(self, "ShipEntityCount", 0)
+        WireLib.TriggerOutput(self, "ShipPlayerCount", 0)
+        WireLib.TriggerOutput(self, "ShipMass", 0)
+        WireLib.TriggerOutput(self, "ShipVolume", 0)
+        WireLib.TriggerOutput(self, "ShipCenter", Vector(0, 0, 0))
     end
 end
 
@@ -700,14 +761,21 @@ function ENT:ExecuteManualJump(engine, destination, ply)
         return false, string.format("Insufficient energy (need %d, have %d)", requiredEnergy, engine:GetEnergy())
     end
 
-    -- Send hyperspace entry animation to nearby players
-    for _, player in ipairs(player.GetAll()) do
-        local distance = player:GetPos():Distance(engine:GetPos())
-        if distance < 1000 then
-            net.Start("hyperdrive_hyperspace_window")
-            net.WriteString("enter")
-            net.Send(player)
-        end
+    -- Create world effects instead of HUD animations
+    if HYPERDRIVE.WorldEffects and self.DetectedShip then
+        HYPERDRIVE.WorldEffects.CreateChargingEffects(engine, self.DetectedShip)
+
+        timer.Simple(1, function()
+            if IsValid(engine) and self.DetectedShip then
+                HYPERDRIVE.WorldEffects.CreateHyperspaceWindow(engine, self.DetectedShip, "enter")
+            end
+        end)
+
+        timer.Simple(2, function()
+            if IsValid(engine) and self.DetectedShip then
+                HYPERDRIVE.WorldEffects.CreateStarlinesEffect(engine, self.DetectedShip)
+            end
+        end)
     end
 
     -- Debug information
@@ -754,17 +822,12 @@ function ENT:ExecuteManualJump(engine, destination, ply)
             end
         end
 
-        -- Send hyperspace exit animation after a delay for direct jumps
+        -- Create exit effects with world effects system
         timer.Simple(3, function()
-            if IsValid(engine) then
-                for _, player in ipairs(player.GetAll()) do
-                    local distance = player:GetPos():Distance(destination)
-                    if distance < 1000 then
-                        net.Start("hyperdrive_hyperspace_window")
-                        net.WriteString("exit")
-                        net.Send(player)
-                    end
-                end
+            if IsValid(engine) and HYPERDRIVE.WorldEffects and self.DetectedShip then
+                -- Update ship position for exit effect
+                self.DetectedShip.center = destination
+                HYPERDRIVE.WorldEffects.CreateHyperspaceWindow(engine, self.DetectedShip, "exit")
             end
         end)
     end
@@ -800,29 +863,156 @@ function ENT:EmergencyAbort()
     return aborted > 0, string.format("Emergency abort: %d operations cancelled", aborted)
 end
 
--- Save waypoints to file
-function ENT:SaveWaypointsToFile()
-    local data = util.TableToJSON(self.SavedWaypoints)
-    if data then
-        file.CreateDir("hyperdrive")
-        file.Write("hyperdrive/computer_waypoints_" .. self:EntIndex() .. ".txt", data)
+-- Safe table access functions
+function ENT:SafeGetTable(tableName)
+    if not self[tableName] then
+        self[tableName] = {}
+    end
+    return self[tableName]
+end
+
+function ENT:SafeAddToTable(tableName, key, value)
+    local tbl = self:SafeGetTable(tableName)
+    if key ~= nil and value ~= nil then
+        tbl[key] = value
     end
 end
 
--- Load waypoints from file
+function ENT:SafeRemoveFromTable(tableName, key)
+    local tbl = self:SafeGetTable(tableName)
+    if key ~= nil then
+        tbl[key] = nil
+    end
+end
+
+-- Save waypoints to file (with safe serialization)
+function ENT:SaveWaypointsToFile()
+    local waypoints = self:SafeGetTable("SavedWaypoints")
+
+    -- Clean waypoints before saving
+    local cleanWaypoints = {}
+    for name, pos in pairs(waypoints) do
+        if name and pos and isvector(pos) then
+            cleanWaypoints[tostring(name)] = Vector(pos.x, pos.y, pos.z)
+        end
+    end
+
+    local data = util.TableToJSON(cleanWaypoints)
+    if data then
+        file.CreateDir("hyperdrive")
+        file.Write("hyperdrive/computer_waypoints_" .. self:EntIndex() .. ".txt", data)
+        return true
+    end
+    return false
+end
+
+-- Load waypoints from file (with safe deserialization)
 function ENT:LoadWaypointsFromFile()
     local fileName = "hyperdrive/computer_waypoints_" .. self:EntIndex() .. ".txt"
     if file.Exists(fileName, "DATA") then
         local data = file.Read(fileName, "DATA")
         if data then
             local waypoints = util.JSONToTable(data)
-            if waypoints then
-                self.SavedWaypoints = waypoints
+            if waypoints and istable(waypoints) then
+                -- Safely restore waypoints
+                self.SavedWaypoints = {}
+                for name, pos in pairs(waypoints) do
+                    if name and pos and isvector(pos) then
+                        self.SavedWaypoints[tostring(name)] = Vector(pos.x, pos.y, pos.z)
+                    end
+                end
                 return true
             end
         end
     end
     return false
+end
+
+-- Update ship detection using ship core system
+function ENT:UpdateShipDetection()
+    if not HYPERDRIVE.ShipCore then return end
+
+    self.LastShipUpdate = CurTime()
+
+    -- Try to detect ship using computer as core
+    local ship = HYPERDRIVE.ShipCore.GetShip(self)
+    if not ship then
+        -- Try to detect ship using linked engines
+        for _, engine in ipairs(self.LinkedEngines) do
+            if IsValid(engine) then
+                ship = HYPERDRIVE.ShipCore.GetShip(engine)
+                if ship then break end
+            end
+        end
+    end
+
+    if not ship then
+        -- Try to create ship detection with computer as core
+        ship = HYPERDRIVE.ShipCore.DetectShipForEngine(self)
+    end
+
+    if ship then
+        self.DetectedShip = ship
+        self.ShipInfo = {
+            shipType = ship:GetShipType(),
+            classification = ship:GetClassification(),
+            center = ship:GetCenter(),
+            bounds = {ship:GetBounds()},
+            entities = ship:GetEntities(),
+            players = ship:GetPlayers()
+        }
+
+        print("[Hyperdrive Computer] Ship detected: " .. ship:GetShipType() .. " with " .. #ship:GetEntities() .. " entities")
+    else
+        self.DetectedShip = nil
+        self.ShipInfo = {}
+    end
+end
+
+-- Get ship information for display
+function ENT:GetShipInfo()
+    if self.DetectedShip then
+        return self.ShipInfo
+    end
+    return nil
+end
+
+-- Create world effects for fleet jump
+function ENT:CreateFleetJumpEffects(destination)
+    if not HYPERDRIVE.WorldEffects or not self.DetectedShip then return end
+
+    -- Create charging effects around ship
+    HYPERDRIVE.WorldEffects.CreateChargingEffects(self, self.DetectedShip)
+
+    -- Create hyperspace window sequence
+    timer.Simple(1, function()
+        if IsValid(self) and self.DetectedShip then
+            HYPERDRIVE.WorldEffects.CreateHyperspaceWindow(self, self.DetectedShip, "enter")
+        end
+    end)
+
+    -- Create starlines during travel
+    timer.Simple(2, function()
+        if IsValid(self) and self.DetectedShip then
+            HYPERDRIVE.WorldEffects.CreateStarlinesEffect(self, self.DetectedShip)
+        end
+    end)
+
+    -- Create exit effects
+    timer.Simple(4, function()
+        if IsValid(self) and self.DetectedShip then
+            -- Update ship position for exit effect
+            self.DetectedShip.center = destination
+            HYPERDRIVE.WorldEffects.CreateHyperspaceWindow(self, self.DetectedShip, "exit")
+        end
+    end)
+end
+
+-- Create Stargate 4-stage effects
+function ENT:Create4StageEffects(stage)
+    if not HYPERDRIVE.WorldEffects or not self.DetectedShip then return end
+
+    HYPERDRIVE.WorldEffects.CreateStargateEffects(self, self.DetectedShip, stage)
 end
 
 -- Planet Detection System
