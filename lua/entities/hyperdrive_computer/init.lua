@@ -96,7 +96,13 @@ function ENT:Initialize()
             "SetMasterDestination [VECTOR]",
             "StartMasterJump",
             "AbortMasterJump",
-            "CheckMasterStatus"
+            "CheckMasterStatus",
+            "ShowFrontIndicator",
+            "HideFrontIndicator",
+            "SetFrontDirection [VECTOR]",
+            "AutoDetectFront",
+            "ActivateShield",
+            "DeactivateShield"
         })
 
         self.Outputs = WireLib.CreateOutputs(self, {
@@ -147,7 +153,14 @@ function ENT:Initialize()
             "ShipPlayerCount",
             "ShipMass",
             "ShipVolume",
-            "ShipCenter [VECTOR]"
+            "ShipCenter [VECTOR]",
+            "FrontIndicatorVisible",
+            "ShipFrontDirection [VECTOR]",
+            "ShieldActive",
+            "ShieldStrength",
+            "ShieldStrengthPercent",
+            "ShieldReason [STRING]",
+            "ShieldUsingCAP"
         })
     end
 
@@ -228,7 +241,80 @@ function ENT:Use(activator, caller)
             net.WriteFloat(engine:GetCooldown())
             net.WriteBool(engine:GetCharging())
             net.WriteVector(engine:GetDestination())
+
+            -- Enhanced shield data
+            local shieldStatus = HYPERDRIVE.Shields and HYPERDRIVE.Shields.GetShieldStatus(engine) or {}
+            net.WriteBool(shieldStatus.active or false)
+            net.WriteFloat(shieldStatus.strength or 0)
+            net.WriteFloat(shieldStatus.strengthPercent or 0)
+            net.WriteBool(shieldStatus.recharging or false)
+            net.WriteBool(shieldStatus.overloaded or false)
+            net.WriteBool(shieldStatus.capIntegrated or false)
         end
+    end
+
+    -- Send ship information
+    local shipDetected = self.DetectedShip and self.ShipInfo
+    net.WriteBool(shipDetected)
+
+    if shipDetected then
+        local classification = self.ShipInfo.classification
+        net.WriteString(self.ShipInfo.shipType or "unknown")
+        net.WriteInt(classification.entityCount or 0, 16)
+        net.WriteInt(classification.playerCount or 0, 8)
+        net.WriteFloat(classification.mass or 0)
+        net.WriteVector(self.ShipInfo.center or Vector(0, 0, 0))
+
+        -- Front direction information
+        local frontDirection = Vector(1, 0, 0)
+        local frontIndicatorVisible = false
+
+        if HYPERDRIVE.ShipCore and self.DetectedShip and self.DetectedShip.core then
+            local ship = HYPERDRIVE.ShipCore.GetShipByEntity(self.DetectedShip.core)
+            if ship then
+                frontDirection = ship:GetFrontDirection()
+                frontIndicatorVisible = ship.showFrontIndicator or false
+            end
+        end
+
+        net.WriteVector(frontDirection)
+        net.WriteBool(frontIndicatorVisible)
+
+        -- Ship core validation status (ONE CORE PER SHIP ENFORCEMENT)
+        local coreValid = true
+        local coreMessage = "Ship core valid"
+        if self.DetectedShip and self.DetectedShip.core and IsValid(self.DetectedShip.core) and HYPERDRIVE.ShipCore and HYPERDRIVE.ShipCore.ValidateShipCoreUniqueness then
+            coreValid, coreMessage = HYPERDRIVE.ShipCore.ValidateShipCoreUniqueness(self.DetectedShip.core)
+        end
+        net.WriteBool(coreValid)
+        net.WriteString(coreMessage)
+
+        -- Hull damage status
+        local hullStatus = nil
+        if self.DetectedShip and self.DetectedShip.core and IsValid(self.DetectedShip.core) and HYPERDRIVE.HullDamage then
+            hullStatus = HYPERDRIVE.HullDamage.GetHullStatus(self.DetectedShip.core)
+        end
+
+        if hullStatus then
+            net.WriteBool(true) -- Hull system available
+            net.WriteFloat(hullStatus.integrityPercent or 100)
+            net.WriteBool(hullStatus.criticalMode or false)
+            net.WriteBool(hullStatus.emergencyMode or false)
+            net.WriteInt(hullStatus.breaches or 0, 8)
+            net.WriteInt(hullStatus.systemFailures or 0, 8)
+            net.WriteBool(hullStatus.autoRepairActive or false)
+        else
+            net.WriteBool(false) -- Hull system not available
+            net.WriteFloat(100) -- Default integrity
+            net.WriteBool(false) -- Not critical
+            net.WriteBool(false) -- Not emergency
+            net.WriteInt(0, 8) -- No breaches
+            net.WriteInt(0, 8) -- No system failures
+            net.WriteBool(false) -- No auto-repair
+        end
+
+        -- Ship core UI availability
+        net.WriteBool(self.DetectedShip and self.DetectedShip.core and IsValid(self.DetectedShip.core))
     end
 
     net.Send(activator)
@@ -524,6 +610,42 @@ function ENT:TriggerInput(iname, value)
 
     elseif iname == "UpdateShipDetection" and value > 0 then
         self:UpdateShipDetection()
+
+    -- Front Indicator Control Inputs
+    elseif iname == "ShowFrontIndicator" and value > 0 then
+        if HYPERDRIVE.ShipCore and self.DetectedShip and self.DetectedShip.core then
+            HYPERDRIVE.ShipCore.ShowFrontIndicator(self.DetectedShip.core)
+        end
+
+    elseif iname == "HideFrontIndicator" and value > 0 then
+        if HYPERDRIVE.ShipCore and self.DetectedShip and self.DetectedShip.core then
+            HYPERDRIVE.ShipCore.HideFrontIndicator(self.DetectedShip.core)
+        end
+
+    elseif iname == "SetFrontDirection" and isvector(value) then
+        if HYPERDRIVE.ShipCore and self.DetectedShip and self.DetectedShip.core then
+            HYPERDRIVE.ShipCore.SetFrontDirection(self.DetectedShip.core, value)
+        end
+
+    elseif iname == "AutoDetectFront" and value > 0 then
+        if HYPERDRIVE.ShipCore and self.DetectedShip and self.DetectedShip.core then
+            HYPERDRIVE.ShipCore.AutoDetectFrontDirection(self.DetectedShip.core)
+            -- Show indicator temporarily
+            HYPERDRIVE.ShipCore.ShowFrontIndicator(self.DetectedShip.core)
+            timer.Simple(5, function()
+                if IsValid(self) and self.DetectedShip and self.DetectedShip.core then
+                    HYPERDRIVE.ShipCore.HideFrontIndicator(self.DetectedShip.core)
+                end
+            end)
+        end
+    elseif iname == "ActivateShield" and value > 0 then
+        if HYPERDRIVE.Shields and self.DetectedShip and self.DetectedShip.core then
+            HYPERDRIVE.Shields.ManualActivate(self.DetectedShip.core, self.DetectedShip)
+        end
+    elseif iname == "DeactivateShield" and value > 0 then
+        if HYPERDRIVE.Shields and self.DetectedShip and self.DetectedShip.core then
+            HYPERDRIVE.Shields.ManualDeactivate(self.DetectedShip.core, self.DetectedShip)
+        end
     end
 
     self:UpdateWireOutputs()
@@ -643,6 +765,21 @@ function ENT:UpdateWireOutputs()
         WireLib.TriggerOutput(self, "ShipMass", math.Round(classification.mass or 0, 2))
         WireLib.TriggerOutput(self, "ShipVolume", math.Round(classification.volume or 0, 2))
         WireLib.TriggerOutput(self, "ShipCenter", self.ShipInfo.center or Vector(0, 0, 0))
+
+        -- Front indicator outputs
+        if HYPERDRIVE.ShipCore and self.DetectedShip and self.DetectedShip.core then
+            local ship = HYPERDRIVE.ShipCore.GetShipByEntity(self.DetectedShip.core)
+            if ship then
+                WireLib.TriggerOutput(self, "FrontIndicatorVisible", ship.showFrontIndicator and 1 or 0)
+                WireLib.TriggerOutput(self, "ShipFrontDirection", ship:GetFrontDirection())
+            else
+                WireLib.TriggerOutput(self, "FrontIndicatorVisible", 0)
+                WireLib.TriggerOutput(self, "ShipFrontDirection", Vector(1, 0, 0))
+            end
+        else
+            WireLib.TriggerOutput(self, "FrontIndicatorVisible", 0)
+            WireLib.TriggerOutput(self, "ShipFrontDirection", Vector(1, 0, 0))
+        end
     else
         WireLib.TriggerOutput(self, "ShipDetected", 0)
         WireLib.TriggerOutput(self, "ShipType", "none")
@@ -651,6 +788,26 @@ function ENT:UpdateWireOutputs()
         WireLib.TriggerOutput(self, "ShipMass", 0)
         WireLib.TriggerOutput(self, "ShipVolume", 0)
         WireLib.TriggerOutput(self, "ShipCenter", Vector(0, 0, 0))
+        WireLib.TriggerOutput(self, "FrontIndicatorVisible", 0)
+        WireLib.TriggerOutput(self, "ShipFrontDirection", Vector(1, 0, 0))
+    end
+
+    -- Enhanced shield outputs
+    if HYPERDRIVE.Shields and self.DetectedShip and self.DetectedShip.core then
+        local shieldStatus = HYPERDRIVE.Shields.GetShieldStatus(self.DetectedShip.core)
+        WireLib.TriggerOutput(self, "ShieldActive", shieldStatus.active and 1 or 0)
+        WireLib.TriggerOutput(self, "ShieldStrength", shieldStatus.strength or 0)
+        WireLib.TriggerOutput(self, "ShieldPercent", shieldStatus.strengthPercent or 0)
+        WireLib.TriggerOutput(self, "ShieldRecharging", shieldStatus.recharging and 1 or 0)
+        WireLib.TriggerOutput(self, "ShieldOverloaded", shieldStatus.overloaded and 1 or 0)
+        WireLib.TriggerOutput(self, "CAPIntegrated", shieldStatus.capIntegrated and 1 or 0)
+    else
+        WireLib.TriggerOutput(self, "ShieldActive", 0)
+        WireLib.TriggerOutput(self, "ShieldStrength", 0)
+        WireLib.TriggerOutput(self, "ShieldPercent", 0)
+        WireLib.TriggerOutput(self, "ShieldRecharging", 0)
+        WireLib.TriggerOutput(self, "ShieldOverloaded", 0)
+        WireLib.TriggerOutput(self, "CAPIntegrated", 0)
     end
 end
 
@@ -1421,6 +1578,53 @@ function ENT:QuickJumpToPlanet(planetName, engine)
     end
 end
 
+-- Fleet shield control
+function ENT:FleetShieldControl(activate)
+    if not HYPERDRIVE.Shields then
+        return false, "Shield system not available"
+    end
+
+    if not HYPERDRIVE.ShipCore then
+        return false, "Ship core system not available"
+    end
+
+    local successCount = 0
+    local totalEngines = 0
+
+    for _, engine in ipairs(self.LinkedEngines) do
+        if IsValid(engine) then
+            totalEngines = totalEngines + 1
+            local ship = HYPERDRIVE.ShipCore.GetShipByEntity(engine)
+
+            if ship then
+                local success = false
+                if activate then
+                    success = HYPERDRIVE.Shields.ActivateShield(engine, ship)
+                else
+                    success = HYPERDRIVE.Shields.DeactivateShield(engine)
+                end
+
+                if success then
+                    successCount = successCount + 1
+                end
+            end
+        end
+    end
+
+    if totalEngines == 0 then
+        return false, "No linked engines found"
+    end
+
+    local action = activate and "activated" or "deactivated"
+    if successCount == totalEngines then
+        return true, string.format("Fleet shields %s (%d/%d engines)", action, successCount, totalEngines)
+    elseif successCount > 0 then
+        return true, string.format("Partial fleet shield %s (%d/%d engines)", action, successCount, totalEngines)
+    else
+        return false, string.format("Failed to %s fleet shields (0/%d engines)", action:gsub("ed$", "e"), totalEngines)
+    end
+end
+
 -- Find best engine for a jump
 function ENT:FindBestEngineForJump(destination)
     local bestEngine = nil
@@ -1715,6 +1919,37 @@ net.Receive("hyperdrive_quick_jump_planet", function(len, ply)
 
     local success, message = computer:QuickJumpToPlanet(planetName)
     ply:ChatPrint("[Hyperdrive Computer] " .. message)
+end)
+
+net.Receive("hyperdrive_fleet_shields", function(len, ply)
+    local computer = net.ReadEntity()
+    local activate = net.ReadBool()
+
+    if not IsValid(computer) or computer:GetClass() ~= "hyperdrive_computer" then return end
+    if computer:GetPos():Distance(ply:GetPos()) > 200 then return end
+
+    local success, message = computer:FleetShieldControl(activate)
+    ply:ChatPrint("[Hyperdrive Computer] " .. message)
+end)
+
+-- Ship core UI command handler
+net.Receive("hyperdrive_computer_command", function(len, ply)
+    local computer = net.ReadEntity()
+    local command = net.ReadString()
+
+    if not IsValid(computer) or not IsValid(ply) then return end
+    if computer:GetClass() ~= "hyperdrive_computer" then return end
+    if computer:GetPos():Distance(ply:GetPos()) > 200 then return end
+
+    if command == "open_ship_core_ui" then
+        -- Try to open ship core UI
+        if computer.DetectedShip and computer.DetectedShip.core and IsValid(computer.DetectedShip.core) then
+            computer.DetectedShip.core:OpenUI(ply)
+            ply:ChatPrint("[Hyperdrive Computer] Opening ship core management interface...")
+        else
+            ply:ChatPrint("[Hyperdrive Computer] No ship core detected")
+        end
+    end
 end)
 
 -- ========================================
@@ -2045,4 +2280,49 @@ concommand.Add("hyperdrive_computer_abort", function(ply, cmd, args)
     ply:ChatPrint("[Hyperdrive Computer] " .. message)
 end)
 
-print("[Hyperdrive Computer] Master Engine control functions and commands loaded")
+-- Network message handlers for UI buttons
+net.Receive("hyperdrive_toggle_front_indicator", function(len, ply)
+    local computer = net.ReadEntity()
+
+    if not IsValid(computer) or not IsValid(ply) then return end
+    if computer:GetClass() ~= "hyperdrive_computer" then return end
+
+    if HYPERDRIVE.ShipCore and computer.DetectedShip and computer.DetectedShip.core then
+        local ship = HYPERDRIVE.ShipCore.GetShipByEntity(computer.DetectedShip.core)
+        if ship then
+            if ship.showFrontIndicator then
+                HYPERDRIVE.ShipCore.HideFrontIndicator(computer.DetectedShip.core)
+                ply:ChatPrint("Front indicator hidden")
+            else
+                HYPERDRIVE.ShipCore.ShowFrontIndicator(computer.DetectedShip.core)
+                ply:ChatPrint("Front indicator shown")
+            end
+        end
+    else
+        ply:ChatPrint("No ship detected")
+    end
+end)
+
+net.Receive("hyperdrive_auto_detect_front", function(len, ply)
+    local computer = net.ReadEntity()
+
+    if not IsValid(computer) or not IsValid(ply) then return end
+    if computer:GetClass() ~= "hyperdrive_computer" then return end
+
+    if HYPERDRIVE.ShipCore and computer.DetectedShip and computer.DetectedShip.core then
+        HYPERDRIVE.ShipCore.AutoDetectFrontDirection(computer.DetectedShip.core)
+        HYPERDRIVE.ShipCore.ShowFrontIndicator(computer.DetectedShip.core)
+        ply:ChatPrint("Auto-detected ship front direction")
+
+        -- Hide indicator after 5 seconds
+        timer.Simple(5, function()
+            if IsValid(computer) and computer.DetectedShip and computer.DetectedShip.core then
+                HYPERDRIVE.ShipCore.HideFrontIndicator(computer.DetectedShip.core)
+            end
+        end)
+    else
+        ply:ChatPrint("No ship detected")
+    end
+end)
+
+print("[Hyperdrive Computer] Enhanced computer system with UI integration loaded")

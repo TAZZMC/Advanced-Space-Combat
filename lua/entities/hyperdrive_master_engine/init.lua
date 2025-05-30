@@ -127,7 +127,19 @@ function ENT:InitializeWiremod()
         -- Master inputs
         "SetMode",
         "SystemScan",
-        "FleetCoordinate"
+        "FleetCoordinate",
+
+        -- Front Indicator inputs
+        "ShowFrontIndicator",
+        "HideFrontIndicator",
+        "SetFrontDirection [VECTOR]",
+        "AutoDetectFront",
+
+        -- Shield inputs
+        "ActivateShield",
+        "DeactivateShield",
+        "ToggleShield",
+        "SetShieldStrength"
     })
 
     -- Combined outputs from all systems
@@ -158,7 +170,19 @@ function ENT:InitializeWiremod()
         "EfficiencyRating",
         "OperationalMode",
         "IntegrationCount",
-        "MasterStatus [STRING]"
+        "MasterStatus [STRING]",
+
+        -- Front Indicator outputs
+        "FrontIndicatorVisible",
+        "ShipFrontDirection [VECTOR]",
+
+        -- Shield outputs
+        "ShieldActive",
+        "ShieldStrength",
+        "ShieldPercent",
+        "ShieldRecharging",
+        "ShieldOverloaded",
+        "CAPIntegrated"
     })
 
     self.IntegrationData.wiremod.active = true
@@ -361,6 +385,34 @@ end
 function ENT:CanOperateMaster()
     local issues = {}
 
+    -- MANDATORY: Ship core validation (REQUIRED for all hyperdrive operations)
+    if HYPERDRIVE.Core and HYPERDRIVE.Core.ValidateShipForJump then
+        local valid, message = HYPERDRIVE.Core.ValidateShipForJump(self)
+        if not valid then
+            table.insert(issues, "SHIP CORE: " .. message)
+        end
+    else
+        -- Fallback validation if core system not available
+        if not HYPERDRIVE.ShipCore then
+            table.insert(issues, "SHIP CORE: System not loaded")
+        else
+            local ship = HYPERDRIVE.ShipCore.GetShipByEntity(self)
+            if not ship then
+                table.insert(issues, "SHIP CORE: No ship detected")
+            elseif not ship.core or not IsValid(ship.core) then
+                table.insert(issues, "SHIP CORE: Core missing or invalid")
+            end
+        end
+    end
+
+    -- Hull integrity validation
+    if HYPERDRIVE.Core and HYPERDRIVE.Core.Config.EnableHullDamage and HYPERDRIVE.Core.CheckHullIntegrityForJump then
+        local hullValid, hullMessage = HYPERDRIVE.Core.CheckHullIntegrityForJump(self)
+        if not hullValid then
+            table.insert(issues, "HULL: " .. hullMessage)
+        end
+    end
+
     -- Core checks
     if self:GetEnergy() <= 0 then
         table.insert(issues, "No energy")
@@ -401,10 +453,31 @@ function ENT:StartJumpMaster()
     if self:GetCharging() then return false, "Already charging" end
     if self:GetCooldown() > CurTime() then return false, "Cooldown active" end
 
-    -- Calculate distance and energy cost with advanced optimization
+    -- Enhanced validation using core system
     local destination = self:GetDestination()
+    if HYPERDRIVE.Core and HYPERDRIVE.Core.PrepareForJump then
+        local issues, warnings = HYPERDRIVE.Core.PrepareForJump(self, destination)
+
+        if #issues > 0 then
+            return false, "Jump preparation failed: " .. table.concat(issues, ", ")
+        end
+
+        if #warnings > 0 then
+            print("[Hyperdrive Master] Warnings: " .. table.concat(warnings, ", "))
+        end
+    end
+
+    -- Calculate distance and energy cost with enhanced core
     local distance = self:GetPos():Distance(destination)
-    local energyCost = math.max(10, distance * 0.1)
+    local energyCost
+
+    if HYPERDRIVE.Core and HYPERDRIVE.Core.CalculateEnergyCost then
+        local ship = HYPERDRIVE.Core.GetShipFromEngine(self)
+        local mass = ship and ship:GetMass() or 1000
+        energyCost = HYPERDRIVE.Core.CalculateEnergyCost(distance, mass, self:GetEfficiencyRating(), 1.0)
+    else
+        energyCost = math.max(10, distance * 0.1)
+    end
 
     -- Use ship detection for optimized energy calculation if available
     if HYPERDRIVE.ShipDetection and HYPERDRIVE.ShipDetection.CalculateOptimizedEnergyCost then
@@ -435,13 +508,24 @@ function ENT:StartJumpMaster()
     self:SetCharging(true)
     self:SetJumpReady(false)
 
+    -- Auto-activate shields if available
+    if HYPERDRIVE.Core and HYPERDRIVE.Core.ActivateShieldsForJump then
+        HYPERDRIVE.Core.ActivateShieldsForJump(self)
+    end
+
+    -- Get ship for effects
+    local ship = HYPERDRIVE.Core and HYPERDRIVE.Core.GetShipFromEngine(self) or self.Ship
+
     -- Create world effects around ship
-    if HYPERDRIVE.WorldEffects and self.Ship then
-        HYPERDRIVE.WorldEffects.CreateChargingEffects(self, self.Ship)
+    if HYPERDRIVE.WorldEffects and ship then
+        HYPERDRIVE.WorldEffects.CreateChargingEffects(self, ship)
     else
         -- Fallback sound effect
         self:EmitSound("ambient/energy/whiteflash.wav", 75, 100)
     end
+
+    -- Call hook for other systems
+    hook.Call("HyperdriveChargingStart", nil, self, ship)
 
     -- Calculate charge time with all bonuses
     local chargeTime = (HYPERDRIVE.Config and HYPERDRIVE.Config.JumpChargeTime) or 3
@@ -775,6 +859,19 @@ function ENT:ExecuteJumpMaster()
     self:SetCharging(false)
     self:SetJumpReady(false)
 
+    -- Auto-deactivate shields if configured
+    if HYPERDRIVE.Core and HYPERDRIVE.Core.DeactivateShieldsAfterJump then
+        timer.Simple(2, function()
+            if IsValid(self) then
+                HYPERDRIVE.Core.DeactivateShieldsAfterJump(self)
+            end
+        end)
+    end
+
+    -- Call hook for other systems
+    local ship = HYPERDRIVE.Core and HYPERDRIVE.Core.GetShipFromEngine(self)
+    hook.Call("HyperdriveJumpComplete", nil, self, ship)
+
     -- Enhanced arrival sound
     timer.Simple(0.1, function()
         if IsValid(self) then
@@ -840,6 +937,63 @@ function ENT:TriggerInput(iname, value)
 
     elseif iname == "SystemScan" and value > 0 then
         self:UpdateAllSystems()
+
+    -- Front Indicator inputs
+    elseif iname == "ShowFrontIndicator" and value > 0 then
+        if HYPERDRIVE.ShipCore then
+            HYPERDRIVE.ShipCore.ShowFrontIndicator(self)
+        end
+    elseif iname == "HideFrontIndicator" and value > 0 then
+        if HYPERDRIVE.ShipCore then
+            HYPERDRIVE.ShipCore.HideFrontIndicator(self)
+        end
+    elseif iname == "SetFrontDirection" and isvector(value) then
+        if HYPERDRIVE.ShipCore then
+            HYPERDRIVE.ShipCore.SetFrontDirection(self, value)
+        end
+    elseif iname == "AutoDetectFront" and value > 0 then
+        if HYPERDRIVE.ShipCore then
+            HYPERDRIVE.ShipCore.AutoDetectFrontDirection(self)
+            -- Show indicator temporarily
+            HYPERDRIVE.ShipCore.ShowFrontIndicator(self)
+            timer.Simple(5, function()
+                if IsValid(self) then
+                    HYPERDRIVE.ShipCore.HideFrontIndicator(self)
+                end
+            end)
+        end
+    elseif iname == "ActivateShield" and value > 0 then
+        if HYPERDRIVE.Shields and HYPERDRIVE.ShipCore then
+            local ship = HYPERDRIVE.ShipCore.GetShipByEntity(self)
+            if ship then
+                HYPERDRIVE.Shields.ActivateShield(self, ship)
+            end
+        end
+    elseif iname == "DeactivateShield" and value > 0 then
+        if HYPERDRIVE.Shields then
+            HYPERDRIVE.Shields.DeactivateShield(self)
+        end
+    elseif iname == "ToggleShield" and value > 0 then
+        if HYPERDRIVE.Shields and HYPERDRIVE.ShipCore then
+            local ship = HYPERDRIVE.ShipCore.GetShipByEntity(self)
+            if ship then
+                if HYPERDRIVE.Shields.IsShieldActive(self) then
+                    HYPERDRIVE.Shields.DeactivateShield(self)
+                else
+                    HYPERDRIVE.Shields.ActivateShield(self, ship)
+                end
+            end
+        end
+    elseif iname == "SetShieldStrength" and value > 0 then
+        if HYPERDRIVE.Shields then
+            local shield = HYPERDRIVE.Shields.GetShield(self)
+            if shield then
+                shield.maxStrength = math.max(1000, value)
+                if shield.strength > shield.maxStrength then
+                    shield.strength = shield.maxStrength
+                end
+            end
+        end
     end
 
     self:UpdateAllWireOutputs()
@@ -881,6 +1035,39 @@ function ENT:UpdateAllWireOutputs()
     local canOperate, reason = self:CanOperateMaster()
     WireLib.TriggerOutput(self, "Status", canOperate and "READY" or "NOT_READY")
     WireLib.TriggerOutput(self, "MasterStatus", reason)
+
+    -- Front indicator outputs
+    if HYPERDRIVE.ShipCore then
+        local ship = HYPERDRIVE.ShipCore.GetShipByEntity(self)
+        if ship then
+            WireLib.TriggerOutput(self, "FrontIndicatorVisible", ship.showFrontIndicator and 1 or 0)
+            WireLib.TriggerOutput(self, "ShipFrontDirection", ship:GetFrontDirection())
+        else
+            WireLib.TriggerOutput(self, "FrontIndicatorVisible", 0)
+            WireLib.TriggerOutput(self, "ShipFrontDirection", Vector(1, 0, 0))
+        end
+    else
+        WireLib.TriggerOutput(self, "FrontIndicatorVisible", 0)
+        WireLib.TriggerOutput(self, "ShipFrontDirection", Vector(1, 0, 0))
+    end
+
+    -- Shield outputs
+    if HYPERDRIVE.Shields then
+        local shieldStatus = HYPERDRIVE.Shields.GetShieldStatus(self)
+        WireLib.TriggerOutput(self, "ShieldActive", shieldStatus.active and 1 or 0)
+        WireLib.TriggerOutput(self, "ShieldStrength", shieldStatus.strength or 0)
+        WireLib.TriggerOutput(self, "ShieldPercent", shieldStatus.strengthPercent or 0)
+        WireLib.TriggerOutput(self, "ShieldRecharging", shieldStatus.recharging and 1 or 0)
+        WireLib.TriggerOutput(self, "ShieldOverloaded", shieldStatus.overloaded and 1 or 0)
+        WireLib.TriggerOutput(self, "CAPIntegrated", shieldStatus.capIntegrated and 1 or 0)
+    else
+        WireLib.TriggerOutput(self, "ShieldActive", 0)
+        WireLib.TriggerOutput(self, "ShieldStrength", 0)
+        WireLib.TriggerOutput(self, "ShieldPercent", 0)
+        WireLib.TriggerOutput(self, "ShieldRecharging", 0)
+        WireLib.TriggerOutput(self, "ShieldOverloaded", 0)
+        WireLib.TriggerOutput(self, "CAPIntegrated", 0)
+    end
 end
 
 -- Standard functions with master enhancements
@@ -1232,6 +1419,81 @@ concommand.Add("hyperdrive_master_status", function(ply, cmd, args)
         ply:ChatPrint("  • Destination: Not set")
     end
 end)
+
+-- Use function for master engine interface
+function ENT:Use(activator, caller)
+    if not IsValid(activator) or not activator:IsPlayer() then return end
+
+    -- Check distance
+    if self:GetPos():Distance(activator:GetPos()) > 200 then
+        activator:ChatPrint("[Hyperdrive Master] Too far away to access interface")
+        return
+    end
+
+    -- Check if player is holding shift for ship core UI
+    if activator:KeyDown(IN_WALK) then
+        -- Try to open ship core UI if available
+        local ship = HYPERDRIVE.ShipCore and HYPERDRIVE.ShipCore.GetShipByEntity(self)
+        if ship and ship.core and IsValid(ship.core) then
+            ship.core:OpenUI(activator)
+            activator:ChatPrint("[Hyperdrive Master] Opening ship core management interface...")
+            return
+        else
+            activator:ChatPrint("[Hyperdrive Master] No ship core detected. Ship core required for management interface.")
+            return
+        end
+    end
+
+    -- Default USE action - open master engine interface
+    self:OpenMasterEngineInterface(activator)
+end
+
+-- Open master engine interface
+function ENT:OpenMasterEngineInterface(activator)
+    if not IsValid(activator) or not activator:IsPlayer() then return end
+
+    -- Show comprehensive engine info
+    activator:ChatPrint("[Hyperdrive Master Engine] Advanced Status Report:")
+    activator:ChatPrint("Energy: " .. math.floor(self:GetEnergy()) .. "/" .. self.MaxEnergy)
+    activator:ChatPrint("Status: " .. (self:GetCharging() and "Charging" or "Ready"))
+    activator:ChatPrint("Integration Level: " .. self:GetSystemIntegration())
+    activator:ChatPrint("Hold SHIFT + USE for ship core management interface")
+
+    local ship = HYPERDRIVE.ShipCore and HYPERDRIVE.ShipCore.GetShipByEntity(self)
+    if ship then
+        activator:ChatPrint("Ship: " .. ship:GetShipType() .. " (" .. #ship:GetEntities() .. " entities)")
+        if ship.core and IsValid(ship.core) then
+            local hullStatus = HYPERDRIVE.HullDamage and HYPERDRIVE.HullDamage.GetHullStatus(ship.core)
+            if hullStatus then
+                local hullColor = hullStatus.integrityPercent >= 75 and "Good" or
+                                 hullStatus.integrityPercent >= 50 and "Damaged" or
+                                 hullStatus.integrityPercent >= 25 and "Critical" or "Emergency"
+                activator:ChatPrint("Hull: " .. string.format("%.1f", hullStatus.integrityPercent) .. "% (" .. hullColor .. ")")
+            end
+
+            local shieldStatus = HYPERDRIVE.Shields and HYPERDRIVE.Shields.GetShieldStatus(self)
+            if shieldStatus and shieldStatus.available then
+                activator:ChatPrint("Shields: " .. (shieldStatus.active and "Active" or "Inactive") ..
+                                  " (" .. string.format("%.1f", shieldStatus.strengthPercent or 0) .. "%)")
+            end
+        end
+    else
+        activator:ChatPrint("No ship detected - ship core required for operation")
+    end
+
+    -- Show integration status
+    if self.IntegrationData then
+        local integrations = {}
+        if self.IntegrationData.wiremod.active then table.insert(integrations, "Wiremod") end
+        if self.IntegrationData.spacebuild.active then table.insert(integrations, "Spacebuild") end
+        if self.IntegrationData.stargate.active then table.insert(integrations, "Stargate") end
+        if self.IntegrationData.shipcore.active then table.insert(integrations, "Ship Core") end
+
+        if #integrations > 0 then
+            activator:ChatPrint("Active Integrations: " .. table.concat(integrations, ", "))
+        end
+    end
+end
 
 -- Simple 4-stage travel command for all players
 concommand.Add("hyperdrive_4stage", function(ply, cmd, args)

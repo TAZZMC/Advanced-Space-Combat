@@ -1,27 +1,55 @@
--- Hyperdrive CAP (Carter Addon Pack) Integration
--- Advanced integration with Carter Addon Pack Stargate systems
--- Based on official CAP repository: https://github.com/RafaelDeJongh/cap
+-- Enhanced Hyperdrive System - Comprehensive CAP Integration v2.1.0
+-- Integrates with Carter Addon Pack (CAP) for shields, stargates, resources, and effects
+-- Supports: CAP main addon, CAP resources, Steam Workshop CAP
+-- GitHub: https://github.com/RafaelDeJongh/cap
+-- Resources: https://github.com/RafaelDeJongh/cap_resources
+-- Workshop: https://steamcommunity.com/workshop/filedetails/?id=180077636
 
-if CLIENT then return end
+if not HYPERDRIVE then return end
 
--- Initialize CAP integration
-HYPERDRIVE = HYPERDRIVE or {}
 HYPERDRIVE.CAP = HYPERDRIVE.CAP or {}
+HYPERDRIVE.CAP.Resources = HYPERDRIVE.CAP.Resources or {}
+HYPERDRIVE.CAP.Stargates = HYPERDRIVE.CAP.Stargates or {}
+HYPERDRIVE.CAP.Shields = HYPERDRIVE.CAP.Shields or {}
+HYPERDRIVE.CAP.Effects = HYPERDRIVE.CAP.Effects or {}
 
-print("[Hyperdrive] CAP (Carter Addon Pack) integration loading...")
+print("[Hyperdrive] Comprehensive CAP (Carter Addon Pack) integration v2.1.0 loading...")
 
--- CAP integration configuration
+-- Enhanced CAP integration configuration
 HYPERDRIVE.CAP.Config = {
+    -- Core Integration
     Enabled = true,                     -- Enable CAP integration
+    AutoDetectCAP = true,               -- Auto-detect CAP installations
+    PreferCAPSystems = true,            -- Prefer CAP systems over built-in alternatives
+
+    -- Stargate Integration
     UseStargateNetwork = true,          -- Use Stargate network for destinations
     RequireStargateEnergy = false,      -- Require Stargate energy for hyperdrive
     ShareEnergyWithStargates = true,    -- Share energy between hyperdrive and stargates
-    RespectShields = true,              -- Respect CAP shield systems
     UseStargateAddresses = true,        -- Use Stargate addresses for navigation
     IntegrateWithDHD = true,            -- Integrate with Dial Home Devices
     CheckStargateStatus = true,         -- Check Stargate operational status
     PreventConflicts = true,            -- Prevent conflicts with active Stargate connections
     UseStargateProtection = true,       -- Use Stargate protection systems
+
+    -- Shield Integration
+    RespectShields = true,              -- Respect CAP shield systems
+    AutoCreateShields = true,           -- Auto-create shields for ships
+    UseShieldFrequencies = true,        -- Use shield frequency system
+    IntegrateShieldPower = true,        -- Integrate shield power with ship core
+    ShieldActivationDelay = 2.0,        -- Delay before shield activation
+
+    -- Resource Integration
+    UseCAPResources = true,             -- Use CAP resource systems
+    ShareResourceStorage = true,        -- Share resources with CAP entities
+    AutoProvisionCAP = true,            -- Auto-provision CAP entities
+    UseCAPEnergyTypes = true,           -- Use CAP energy types (ZPM, Naquadah, etc.)
+
+    -- Effects Integration
+    UseCAPEffects = true,               -- Use CAP visual/audio effects
+    UseStargateEffects = true,          -- Use Stargate-style hyperdrive effects
+    UseShieldEffects = true,            -- Use CAP shield effects
+    UseTransportEffects = true,         -- Use CAP transport effects
 }
 
 -- CAP state tracking
@@ -34,40 +62,95 @@ HYPERDRIVE.CAP.State = {
     energySharing = {},
 }
 
--- CAP entity categories
+-- Comprehensive CAP entity detection system
 HYPERDRIVE.CAP.EntityCategories = {
+    -- Stargate entities (all variants)
     STARGATES = {
-        "stargate_atlantis",
-        "stargate_milkyway",
-        "stargate_universe",
-        "stargate_supergate",
-        "stargate_orlin",
-        "stargate_tollan"
+        -- Main CAP Stargates
+        "stargate_atlantis", "stargate_milkyway", "stargate_universe",
+        "stargate_supergate", "stargate_orlin", "stargate_tollan",
+        -- Workshop variants
+        "cap_stargate", "cap_stargate_sg1", "cap_stargate_atlantis",
+        "cap_stargate_universe", "cap_stargate_destiny",
+        -- Legacy variants
+        "sg_atlantis", "sg_milkyway", "sg_universe"
     },
+
+    -- Shield entities (all types)
     SHIELDS = {
-        "shield",
-        "shield_core_buble",
-        "shield_core_goauld",
-        "shield_core_asgard",
-        "shield_core_atlantis"
+        -- Main CAP Shields
+        "shield", "shield_core_buble", "shield_core_goauld",
+        "shield_core_asgard", "shield_core_atlantis",
+        -- Workshop variants
+        "cap_shield_generator", "cap_bubble_shield", "cap_iris_shield",
+        "cap_personal_shield", "cap_asgard_shield", "cap_ancient_shield",
+        -- Legacy variants
+        "sg_shield", "sg_iris"
     },
+
+    -- DHD and control entities
     DHD = {
-        "dhd_atlantis",
-        "dhd_milkyway",
-        "dhd_universe",
-        "dhd_pegasus"
+        -- Main CAP DHDs
+        "dhd_atlantis", "dhd_milkyway", "dhd_universe", "dhd_pegasus",
+        -- Workshop variants
+        "cap_dhd", "cap_dhd_atlantis", "cap_dhd_milkyway",
+        "cap_dhd_universe", "cap_control_crystal",
+        -- Control interfaces
+        "cap_ancient_console", "cap_computer", "cap_control_chair"
     },
+
+    -- Energy systems (power sources)
     ENERGY_SYSTEMS = {
-        "zpm",
-        "zpm_hub",
-        "naquadah_generator",
-        "potentia"
+        -- Main CAP Energy
+        "zpm", "zpm_hub", "naquadah_generator", "potentia",
+        -- Workshop variants
+        "cap_zpm", "cap_zpm_hub", "cap_naquadah_generator",
+        "cap_potentia", "cap_energy_crystal",
+        -- Advanced power
+        "cap_zero_point_module", "cap_power_core", "cap_reactor"
     },
+
+    -- Transportation systems
     TRANSPORTATION = {
-        "rings_ancient",
-        "rings_goauld",
-        "rings_ori",
-        "transporter"
+        -- Ring transporters
+        "rings_ancient", "rings_goauld", "rings_ori", "transporter",
+        -- Workshop variants
+        "cap_ring_transporter", "cap_asgard_transporter",
+        "cap_ancient_transporter", "cap_ori_transporter",
+        -- Beam systems
+        "cap_beam_transporter", "cap_teleporter"
+    },
+
+    -- Weapon systems
+    WEAPONS = {
+        -- Personal weapons
+        "cap_staff_weapon", "cap_zat", "cap_goa_ribbon_device",
+        -- Ship weapons
+        "cap_drone_weapon", "cap_plasma_cannon", "cap_ion_cannon",
+        -- Defense systems
+        "cap_defense_drone", "cap_satellite_weapon"
+    },
+
+    -- Technology and devices
+    TECHNOLOGY = {
+        -- Communication
+        "cap_long_range_communicator", "cap_subspace_communicator",
+        -- Sensors
+        "cap_sensor_array", "cap_life_signs_detector",
+        -- Medical
+        "cap_sarcophagus", "cap_healing_device",
+        -- Misc tech
+        "cap_hologram_projector", "cap_time_dilation_device"
+    },
+
+    -- Resource entities (CAP Resources addon)
+    RESOURCES = {
+        -- Storage
+        "cap_resource_storage", "cap_liquid_storage", "cap_gas_storage",
+        -- Processing
+        "cap_refinery", "cap_processor", "cap_converter",
+        -- Distribution
+        "cap_resource_node", "cap_pipe", "cap_conduit"
     }
 }
 
@@ -79,712 +162,673 @@ local function GetCAPConfig(key, default)
     return HYPERDRIVE.CAP.Config[key] or default
 end
 
--- Check if CAP is loaded and functional
-function HYPERDRIVE.CAP.IsCAP_Loaded()
-    if not StarGate then return false, "StarGate global not found" end
-    if not StarGate.CheckModule then return false, "StarGate.CheckModule not available" end
-
-    -- Check for core CAP functionality
-    local hasCore = StarGate.IsEntityValid and StarGate.GetEntityCentre and true or false
-    if not hasCore then return false, "Core StarGate functions missing" end
-
-    -- Check for specific CAP features
-    local hasShields = StarGate.IsEntityShielded and true or false
-    local hasTracing = StarGate.Trace and true or false
-    local hasEventHorizon = StarGate.EventHorizonTypes and true or false
-
-    return true, "CAP fully loaded", {
-        core = true,
-        shields = hasShields,
-        tracing = hasTracing,
-        eventHorizon = hasEventHorizon,
-        version = StarGate.Version or "unknown"
+-- Comprehensive CAP Detection System
+function HYPERDRIVE.CAP.DetectCAP()
+    local detection = {
+        main = false,
+        resources = false,
+        workshop = false,
+        stargate = false,
+        entities = {},
+        version = "Unknown",
+        features = {}
     }
+
+    -- Check for main CAP addon (StarGate global)
+    if StarGate then
+        detection.stargate = true
+        detection.main = true
+        detection.version = StarGate.Version or StarGate.version or "Unknown"
+
+        -- Check StarGate features
+        detection.features.core = StarGate.IsEntityValid and StarGate.GetEntityCentre and true or false
+        detection.features.shields = StarGate.IsEntityShielded and true or false
+        detection.features.tracing = StarGate.Trace and true or false
+        detection.features.eventHorizon = StarGate.EventHorizonTypes and true or false
+        detection.features.addresses = StarGate.GetAddresses and true or false
+        detection.features.network = StarGate.GetStargateNetwork and true or false
+
+        print("[Hyperdrive CAP] Main CAP addon detected: " .. detection.version)
+    end
+
+    -- Check for CAP global (alternative detection)
+    if CAP then
+        detection.main = true
+        if not detection.version or detection.version == "Unknown" then
+            detection.version = CAP.Version or CAP.version or "CAP Detected"
+        end
+        print("[Hyperdrive CAP] CAP global detected: " .. detection.version)
+    end
+
+    -- Check for CAP Resources addon
+    if CAP_RESOURCES or cap_resources or (CAP and CAP.Resources) then
+        detection.resources = true
+        print("[Hyperdrive CAP] CAP Resources addon detected")
+    end
+
+    -- Check for Workshop/entity-based CAP
+    local entityCount = 0
+    for category, entities in pairs(HYPERDRIVE.CAP.EntityCategories) do
+        for _, entClass in ipairs(entities) do
+            if scripted_ents.GetStored()[entClass] then
+                detection.entities[entClass] = true
+                detection.workshop = true
+                entityCount = entityCount + 1
+            end
+        end
+    end
+
+    if detection.workshop then
+        print("[Hyperdrive CAP] Workshop CAP entities detected: " .. entityCount .. " types")
+    end
+
+    -- Store detection results
+    HYPERDRIVE.CAP.Detection = detection
+    HYPERDRIVE.CAP.Available = detection.main or detection.resources or detection.workshop
+
+    return HYPERDRIVE.CAP.Available, detection
+end
+
+-- Check if specific CAP feature is available
+function HYPERDRIVE.CAP.HasFeature(feature)
+    if not HYPERDRIVE.CAP.Detection then
+        HYPERDRIVE.CAP.DetectCAP()
+    end
+
+    return HYPERDRIVE.CAP.Detection.features and HYPERDRIVE.CAP.Detection.features[feature] or false
+end
+
+-- Get entity category
+function HYPERDRIVE.CAP.GetEntityCategory(className)
+    for category, entities in pairs(HYPERDRIVE.CAP.EntityCategories) do
+        for _, entClass in ipairs(entities) do
+            if entClass == className then
+                return category
+            end
+        end
+    end
+    return nil
+end
+
+-- Enhanced CAP Shield System Integration
+HYPERDRIVE.CAP.Shields = HYPERDRIVE.CAP.Shields or {}
+
+-- Initialize shield system
+function HYPERDRIVE.CAP.Shields.Initialize()
+    if not HYPERDRIVE.CAP.Available then return false end
+
+    -- Register shield types with their capabilities
+    HYPERDRIVE.CAP.Shields.Types = {
+        -- Main CAP shields
+        shield = { power = 100, radius = 500, frequency = true, bubble = true },
+        shield_core_buble = { power = 150, radius = 750, frequency = true, bubble = true },
+        shield_core_goauld = { power = 120, radius = 600, frequency = true, bubble = false },
+        shield_core_asgard = { power = 200, radius = 1000, frequency = true, bubble = true },
+        shield_core_atlantis = { power = 250, radius = 1200, frequency = true, bubble = true },
+
+        -- Workshop variants
+        cap_shield_generator = { power = 100, radius = 500, frequency = false, bubble = true },
+        cap_bubble_shield = { power = 150, radius = 750, frequency = true, bubble = true },
+        cap_iris_shield = { power = 80, radius = 200, frequency = false, bubble = false },
+        cap_personal_shield = { power = 50, radius = 100, frequency = false, bubble = false },
+        cap_asgard_shield = { power = 200, radius = 1000, frequency = true, bubble = true },
+        cap_ancient_shield = { power = 250, radius = 1200, frequency = true, bubble = true }
+    }
+
+    print("[Hyperdrive CAP] Shield system initialized with " .. table.Count(HYPERDRIVE.CAP.Shields.Types) .. " shield types")
+    return true
+end
+
+-- Find CAP shields on ship
+function HYPERDRIVE.CAP.Shields.FindShields(ship)
+    if not ship or not ship.GetEntities then return {} end
+
+    local shields = {}
+    for _, ent in ipairs(ship:GetEntities()) do
+        if IsValid(ent) then
+            local category = HYPERDRIVE.CAP.GetEntityCategory(ent:GetClass())
+            if category == "SHIELDS" then
+                table.insert(shields, ent)
+            end
+        end
+    end
+
+    return shields
+end
+
+-- Create CAP shield for ship
+function HYPERDRIVE.CAP.Shields.CreateShield(core, ship, shieldType)
+    if not HYPERDRIVE.CAP.Available then return nil end
+    if not GetCAPConfig("AutoCreateShields", true) then return nil end
+
+    shieldType = shieldType or "cap_bubble_shield"
+
+    -- Check if shield type is available
+    if not HYPERDRIVE.CAP.Shields.Types[shieldType] then
+        shieldType = "cap_shield_generator" -- Fallback
+    end
+
+    -- Don't create if shields already exist
+    local existingShields = HYPERDRIVE.CAP.Shields.FindShields(ship)
+    if #existingShields > 0 then
+        return existingShields[1]
+    end
+
+    -- Create shield entity
+    local shield = ents.Create(shieldType)
+    if IsValid(shield) then
+        -- Position shield near ship core
+        local pos = core:GetPos() + Vector(0, 0, 100)
+        shield:SetPos(pos)
+        shield:SetAngles(core:GetAngles())
+        shield:Spawn()
+        shield:Activate()
+
+        -- Link to hyperdrive system
+        shield.ShipCore = core
+        shield.HyperdriveManaged = true
+        shield.CreatedBy = "hyperdrive_system"
+
+        -- Configure shield properties
+        local shieldConfig = HYPERDRIVE.CAP.Shields.Types[shieldType]
+        if shieldConfig then
+            if shield.SetShieldStrength then
+                shield:SetShieldStrength(shieldConfig.power)
+            end
+
+            if shield.SetShieldRadius then
+                local shipSize = ship and ship.GetSize and ship:GetSize() or 500
+                local radius = math.max(shipSize * 1.2, shieldConfig.radius)
+                shield:SetShieldRadius(radius)
+            end
+
+            if shield.SetFrequency and shieldConfig.frequency then
+                shield:SetFrequency(math.random(1000, 9999))
+            end
+        end
+
+        print("[Hyperdrive CAP] Created " .. shieldType .. " for ship")
+        return shield
+    end
+
+    return nil
+end
+
+-- Activate CAP shields
+function HYPERDRIVE.CAP.Shields.Activate(core, ship, reason)
+    if not HYPERDRIVE.CAP.Available then return false end
+
+    local shields = HYPERDRIVE.CAP.Shields.FindShields(ship)
+    if #shields == 0 and GetCAPConfig("AutoCreateShields", true) then
+        local newShield = HYPERDRIVE.CAP.Shields.CreateShield(core, ship)
+        if newShield then
+            shields = {newShield}
+        end
+    end
+
+    local activatedCount = 0
+    for _, shield in ipairs(shields) do
+        if IsValid(shield) then
+            local activated = false
+
+            -- Try multiple activation methods for compatibility
+            if shield.Activate then
+                shield:Activate()
+                activated = true
+            elseif shield.TurnOn then
+                shield:TurnOn()
+                activated = true
+            elseif shield.SetActive then
+                shield:SetActive(true)
+                activated = true
+            elseif shield.Enable then
+                shield:Enable()
+                activated = true
+            elseif shield.SetEnabled then
+                shield:SetEnabled(true)
+                activated = true
+            end
+
+            if activated then
+                shield.ActivationReason = reason or "hyperdrive"
+                shield.ActivatedBy = "hyperdrive_system"
+                shield.ActivationTime = CurTime()
+                activatedCount = activatedCount + 1
+
+                -- Trigger CAP shield effects
+                HYPERDRIVE.CAP.Effects.TriggerShieldActivation(shield)
+            end
+        end
+    end
+
+    if activatedCount > 0 then
+        print("[Hyperdrive CAP] Activated " .. activatedCount .. " shields for " .. (reason or "hyperdrive"))
+        return true
+    end
+
+    return false
+end
+
+-- Deactivate CAP shields
+function HYPERDRIVE.CAP.Shields.Deactivate(core, ship, reason)
+    if not HYPERDRIVE.CAP.Available then return false end
+
+    local shields = HYPERDRIVE.CAP.Shields.FindShields(ship)
+    local deactivatedCount = 0
+
+    for _, shield in ipairs(shields) do
+        if IsValid(shield) then
+            local deactivated = false
+
+            -- Try multiple deactivation methods for compatibility
+            if shield.Deactivate then
+                shield:Deactivate()
+                deactivated = true
+            elseif shield.TurnOff then
+                shield:TurnOff()
+                deactivated = true
+            elseif shield.SetActive then
+                shield:SetActive(false)
+                deactivated = true
+            elseif shield.Disable then
+                shield:Disable()
+                deactivated = true
+            elseif shield.SetEnabled then
+                shield:SetEnabled(false)
+                deactivated = true
+            end
+
+            if deactivated then
+                shield.DeactivationReason = reason or "hyperdrive"
+                shield.DeactivatedBy = "hyperdrive_system"
+                shield.DeactivationTime = CurTime()
+                deactivatedCount = deactivatedCount + 1
+
+                -- Trigger CAP shield effects
+                HYPERDRIVE.CAP.Effects.TriggerShieldDeactivation(shield)
+            end
+        end
+    end
+
+    if deactivatedCount > 0 then
+        print("[Hyperdrive CAP] Deactivated " .. deactivatedCount .. " shields for " .. (reason or "hyperdrive"))
+        return true
+    end
+
+    return false
+end
+
+-- Get comprehensive shield status
+function HYPERDRIVE.CAP.Shields.GetStatus(core, ship)
+    if not HYPERDRIVE.CAP.Available then return nil end
+
+    local shields = HYPERDRIVE.CAP.Shields.FindShields(ship)
+    if #shields == 0 then return nil end
+
+    local status = {
+        count = #shields,
+        active = 0,
+        totalStrength = 0,
+        maxStrength = 0,
+        averagePercentage = 0,
+        shields = {}
+    }
+
+    for i, shield in ipairs(shields) do
+        if IsValid(shield) then
+            local shieldStatus = {
+                entity = shield,
+                class = shield:GetClass(),
+                active = false,
+                strength = 0,
+                maxStrength = 100,
+                percentage = 0,
+                frequency = 0,
+                radius = 0,
+                overloaded = false,
+                recharging = false
+            }
+
+            -- Get shield status using multiple methods
+            if shield.GetActive then
+                shieldStatus.active = shield:GetActive()
+            elseif shield.IsActive then
+                shieldStatus.active = shield:IsActive()
+            elseif shield.GetEnabled then
+                shieldStatus.active = shield:GetEnabled()
+            end
+
+            if shield.GetShieldStrength then
+                shieldStatus.strength = shield:GetShieldStrength()
+            elseif shield.GetHealth then
+                shieldStatus.strength = shield:GetHealth()
+            end
+
+            if shield.GetMaxShieldStrength then
+                shieldStatus.maxStrength = shield:GetMaxShieldStrength()
+            elseif shield.GetMaxHealth then
+                shieldStatus.maxStrength = shield:GetMaxHealth()
+            end
+
+            if shieldStatus.maxStrength > 0 then
+                shieldStatus.percentage = (shieldStatus.strength / shieldStatus.maxStrength) * 100
+            end
+
+            if shield.GetFrequency then
+                shieldStatus.frequency = shield:GetFrequency()
+            end
+
+            if shield.GetShieldRadius then
+                shieldStatus.radius = shield:GetShieldRadius()
+            end
+
+            if shield.GetOverloaded then
+                shieldStatus.overloaded = shield:GetOverloaded()
+            end
+
+            if shield.GetRecharging then
+                shieldStatus.recharging = shield:GetRecharging()
+            end
+
+            -- Add to totals
+            if shieldStatus.active then
+                status.active = status.active + 1
+            end
+            status.totalStrength = status.totalStrength + shieldStatus.strength
+            status.maxStrength = status.maxStrength + shieldStatus.maxStrength
+
+            status.shields[i] = shieldStatus
+        end
+    end
+
+    -- Calculate average percentage
+    if status.maxStrength > 0 then
+        status.averagePercentage = (status.totalStrength / status.maxStrength) * 100
+    end
+
+    return status
+end
+
+-- CAP Effects System Integration
+HYPERDRIVE.CAP.Effects = HYPERDRIVE.CAP.Effects or {}
+
+-- Initialize effects system
+function HYPERDRIVE.CAP.Effects.Initialize()
+    if not HYPERDRIVE.CAP.Available then return false end
+
+    print("[Hyperdrive CAP] Effects system initialized")
+    return true
+end
+
+-- Trigger shield activation effects
+function HYPERDRIVE.CAP.Effects.TriggerShieldActivation(shield)
+    if not IsValid(shield) then return end
+
+    -- Play CAP shield activation sound
+    if shield.EmitSound then
+        shield:EmitSound("stargate/shield_activate.wav", 75, 100)
+    end
+
+    -- Create visual effect
+    if CLIENT then return end
+
+    local effectData = EffectData()
+    effectData:SetOrigin(shield:GetPos())
+    effectData:SetEntity(shield)
+    util.Effect("cap_shield_activate", effectData)
+end
+
+-- Trigger shield deactivation effects
+function HYPERDRIVE.CAP.Effects.TriggerShieldDeactivation(shield)
+    if not IsValid(shield) then return end
+
+    -- Play CAP shield deactivation sound
+    if shield.EmitSound then
+        shield:EmitSound("stargate/shield_deactivate.wav", 75, 100)
+    end
+
+    -- Create visual effect
+    if CLIENT then return end
+
+    local effectData = EffectData()
+    effectData:SetOrigin(shield:GetPos())
+    effectData:SetEntity(shield)
+    util.Effect("cap_shield_deactivate", effectData)
+end
+
+-- CAP Resource Integration
+HYPERDRIVE.CAP.Resources = HYPERDRIVE.CAP.Resources or {}
+
+-- Initialize resource system
+function HYPERDRIVE.CAP.Resources.Initialize()
+    if not HYPERDRIVE.CAP.Available then return false end
+
+    -- Define CAP resource types and their SB3 equivalents
+    HYPERDRIVE.CAP.Resources.Types = {
+        -- CAP energy types
+        zpm_energy = { sb3_type = "energy", multiplier = 10, capacity = 50000 },
+        naquadah_energy = { sb3_type = "energy", multiplier = 5, capacity = 25000 },
+        potentia_energy = { sb3_type = "energy", multiplier = 3, capacity = 15000 },
+
+        -- CAP resource types (if CAP Resources addon is present)
+        naquadah = { sb3_type = "fuel", multiplier = 2, capacity = 5000 },
+        trinium = { sb3_type = "coolant", multiplier = 1.5, capacity = 3000 },
+        neutronium = { sb3_type = "nitrogen", multiplier = 1, capacity = 2000 }
+    }
+
+    print("[Hyperdrive CAP] Resource system initialized with " .. table.Count(HYPERDRIVE.CAP.Resources.Types) .. " resource types")
+    return true
+end
+
+-- Find CAP energy sources on ship
+function HYPERDRIVE.CAP.Resources.FindEnergySources(ship)
+    if not ship or not ship.GetEntities then return {} end
+
+    local energySources = {}
+    for _, ent in ipairs(ship:GetEntities()) do
+        if IsValid(ent) then
+            local category = HYPERDRIVE.CAP.GetEntityCategory(ent:GetClass())
+            if category == "ENERGY_SYSTEMS" then
+                table.insert(energySources, ent)
+            end
+        end
+    end
+
+    return energySources
+end
+
+-- Get total CAP energy available
+function HYPERDRIVE.CAP.Resources.GetTotalEnergy(ship)
+    local energySources = HYPERDRIVE.CAP.Resources.FindEnergySources(ship)
+    local totalEnergy = 0
+
+    for _, source in ipairs(energySources) do
+        if IsValid(source) then
+            local energy = 0
+
+            -- Try different methods to get energy
+            if source.GetEnergy then
+                energy = source:GetEnergy()
+            elseif source.GetPower then
+                energy = source:GetPower()
+            elseif source.GetCharge then
+                energy = source:GetCharge()
+            elseif source.GetStoredEnergy then
+                energy = source:GetStoredEnergy()
+            end
+
+            totalEnergy = totalEnergy + energy
+        end
+    end
+
+    return totalEnergy
+end
+
+-- Transfer CAP energy to SB3 system
+function HYPERDRIVE.CAP.Resources.TransferToSB3(ship, core, amount)
+    if not HYPERDRIVE.SB3Resources then return false end
+    if not GetCAPConfig("ShareResourceStorage", true) then return false end
+
+    local energySources = HYPERDRIVE.CAP.Resources.FindEnergySources(ship)
+    local transferred = 0
+
+    for _, source in ipairs(energySources) do
+        if IsValid(source) and transferred < amount then
+            local available = 0
+
+            -- Get available energy
+            if source.GetEnergy then
+                available = source:GetEnergy()
+            elseif source.GetPower then
+                available = source:GetPower()
+            elseif source.GetCharge then
+                available = source:GetCharge()
+            end
+
+            if available > 0 then
+                local toTransfer = math.min(available, amount - transferred)
+
+                -- Remove from CAP source
+                if source.SetEnergy then
+                    source:SetEnergy(available - toTransfer)
+                elseif source.SetPower then
+                    source:SetPower(available - toTransfer)
+                elseif source.SetCharge then
+                    source:SetCharge(available - toTransfer)
+                end
+
+                -- Add to SB3 system
+                HYPERDRIVE.SB3Resources.AddResource(core, "energy", toTransfer)
+                transferred = transferred + toTransfer
+            end
+        end
+    end
+
+    return transferred
+end
+
+-- Main CAP Integration System
+function HYPERDRIVE.CAP.Initialize()
+    if not GetCAPConfig("Enabled", true) then
+        print("[Hyperdrive CAP] CAP integration disabled in configuration")
+        return false
+    end
+
+    local available, detection = HYPERDRIVE.CAP.DetectCAP()
+    if not available then
+        print("[Hyperdrive CAP] CAP not detected - integration disabled")
+        return false
+    end
+
+    -- Initialize subsystems
+    HYPERDRIVE.CAP.Shields.Initialize()
+    HYPERDRIVE.CAP.Effects.Initialize()
+    HYPERDRIVE.CAP.Resources.Initialize()
+
+    -- Register with hyperdrive system
+    if HYPERDRIVE.Shields then
+        HYPERDRIVE.Shields.RegisterProvider("CAP", {
+            CreateShield = HYPERDRIVE.CAP.Shields.CreateShield,
+            ActivateShields = HYPERDRIVE.CAP.Shields.Activate,
+            DeactivateShields = HYPERDRIVE.CAP.Shields.Deactivate,
+            GetShieldStatus = HYPERDRIVE.CAP.Shields.GetStatus,
+            FindShields = HYPERDRIVE.CAP.Shields.FindShields
+        })
+    end
+
+    print("[Hyperdrive CAP] Comprehensive CAP integration initialized successfully!")
+    print("[Hyperdrive CAP] Detection results:")
+    print("  - Main CAP: " .. tostring(detection.main))
+    print("  - CAP Resources: " .. tostring(detection.resources))
+    print("  - Workshop CAP: " .. tostring(detection.workshop))
+    print("  - Version: " .. detection.version)
+
+    return true
 end
 
 -- Enhanced entity detection using CAP framework and Ship Core system
 function HYPERDRIVE.CAP.DetectCAPEntities(engine, searchRadius)
     if not GetCAPConfig("Enabled", true) then return {} end
 
-    -- Use our new ship core system first
+    -- Use our ship core system first
     if HYPERDRIVE.ShipCore then
-        local shipEntities = HYPERDRIVE.ShipCore.GetAttachedEntities(engine, searchRadius)
-        if #shipEntities > 0 then
-            print("[Hyperdrive CAP] Using Ship Core system - found " .. #shipEntities .. " entities")
+        local ship = HYPERDRIVE.ShipCore.GetShipByEntity(engine)
+        if ship and ship.GetEntities then
+            local shipEntities = ship:GetEntities()
+            if #shipEntities > 0 then
+                print("[Hyperdrive CAP] Using Ship Core system - found " .. #shipEntities .. " entities")
 
-            -- Filter for CAP entities only
-            local capEntities = {}
-            for _, ent in ipairs(shipEntities) do
-                if IsValid(ent) then
-                    local category = HYPERDRIVE.CAP.GetEntityCategory(ent:GetClass())
-                    if category then
-                        table.insert(capEntities, ent)
+                -- Filter for CAP entities only
+                local capEntities = {}
+                for _, ent in ipairs(shipEntities) do
+                    if IsValid(ent) then
+                        local category = HYPERDRIVE.CAP.GetEntityCategory(ent:GetClass())
+                        if category then
+                            table.insert(capEntities, ent)
+                        end
                     end
                 end
-            end
 
-            if #capEntities > 0 then
-                print("[Hyperdrive CAP] Found " .. #capEntities .. " CAP entities in ship")
-                return capEntities
+                if #capEntities > 0 then
+                    print("[Hyperdrive CAP] Found " .. #capEntities .. " CAP entities in ship")
+                    return capEntities
+                end
             end
         end
     end
 
-    searchRadius = searchRadius or 2000
-    local entities = {}
-    local enginePos = engine:GetPos()
+    -- Fallback to radius search
+    local entities = ents.FindInSphere(engine:GetPos(), searchRadius or 2000)
+    local capEntities = {}
 
-    -- Get all entities in radius
-    local nearbyEnts = ents.FindInSphere(enginePos, searchRadius)
-
-    -- Categorize CAP entities
-    local categorizedEntities = {
-        stargates = {},
-        shields = {},
-        dhds = {},
-        energySystems = {},
-        transportation = {},
-        other = {}
-    }
-
-    for _, ent in ipairs(nearbyEnts) do
+    for _, ent in ipairs(entities) do
         if IsValid(ent) then
-            local entClass = ent:GetClass()
-            local category = HYPERDRIVE.CAP.GetEntityCategory(entClass)
-
+            local category = HYPERDRIVE.CAP.GetEntityCategory(ent:GetClass())
             if category then
-                local entityData = {
-                    entity = ent,
-                    class = entClass,
-                    position = ent:GetPos(),
-                    distance = enginePos:Distance(ent:GetPos()),
-                    category = category
-                }
-
-                -- Add CAP-specific data
-                if category == "stargates" and ent.IsStargate then
-                    entityData.isOpen = StarGate.IsStargateOpen(ent)
-                    entityData.isDialling = StarGate.IsStargateDialling(ent)
-                    entityData.address = ent.GetGateAddress and ent:GetGateAddress() or ""
-                    entityData.energy = ent.GetEnergy and ent:GetEnergy() or 0
-                    entityData.hasIris = StarGate.IsIrisClosed(ent)
-                elseif category == "shields" then
-                    entityData.active = not ent:GetNWBool("depleted", false)
-                    entityData.size = ent:GetNWInt("size", 0)
-                    entityData.energy = ent:GetNWInt("energy", 0)
-                elseif category == "energySystems" then
-                    entityData.energy = ent.GetEnergy and ent:GetEnergy() or 0
-                    entityData.maxEnergy = ent.GetMaxEnergy and ent:GetMaxEnergy() or 0
-                end
-
-                table.insert(categorizedEntities[category], entityData)
-                table.insert(entities, ent)
+                table.insert(capEntities, ent)
             end
         end
     end
 
-    -- Store categorized data
-    HYPERDRIVE.CAP.State.detectedStargates = categorizedEntities.stargates
-    HYPERDRIVE.CAP.State.detectedShields = categorizedEntities.shields
-    HYPERDRIVE.CAP.State.detectedDHDs = categorizedEntities.dhds
-    HYPERDRIVE.CAP.State.lastScan = CurTime()
-
-    return entities
+    return capEntities
 end
 
--- Get entity category based on class name
-function HYPERDRIVE.CAP.GetEntityCategory(className)
-    for categoryName, classes in pairs(HYPERDRIVE.CAP.EntityCategories) do
-        for _, class in ipairs(classes) do
-            if className == class then
-                return string.lower(categoryName)
-            end
-        end
-    end
-    return nil
-end
+-- Hook integration
+hook.Add("Initialize", "HyperdriveCAP", function()
+    timer.Simple(1, function() -- Delay to ensure other addons load first
+        HYPERDRIVE.CAP.Initialize()
+    end)
+end)
 
--- Check if position is protected by CAP shields
-function HYPERDRIVE.CAP.IsPositionShielded(position)
-    if not GetCAPConfig("RespectShields", true) then return false end
-    if not StarGate or not StarGate.IsEntityShielded then return false end
-
-    -- Create a temporary entity at the position for shield checking
-    local testEnt = ents.Create("prop_physics")
-    if IsValid(testEnt) then
-        testEnt:SetPos(position)
-        testEnt:Spawn()
-
-        local isShielded = StarGate.IsEntityShielded(testEnt)
-        testEnt:Remove()
-
-        return isShielded
-    end
-
-    return false
-end
-
--- Check if hyperdrive jump would conflict with active Stargate operations
-function HYPERDRIVE.CAP.CheckStargateConflicts(engine, destination)
-    if not GetCAPConfig("PreventConflicts", true) then return false, {} end
-
-    local conflicts = {}
-    local categorized = HYPERDRIVE.CAP.State.detectedStargates
-
-    for _, stargateData in ipairs(categorized) do
-        local stargate = stargateData.entity
-        if IsValid(stargate) then
-            -- Check if Stargate is currently active
-            if stargateData.isOpen or stargateData.isDialling then
-                local distance = engine:GetPos():Distance(stargate:GetPos())
-                if distance < 1000 then -- Within interference range
-                    table.insert(conflicts, {
-                        type = "active_stargate",
-                        entity = stargate,
-                        distance = distance,
-                        status = stargateData.isOpen and "open" or "dialling",
-                        message = "Active Stargate within interference range"
-                    })
-                end
-            end
-
-            -- Check if destination is near a Stargate
-            local destDistance = destination:Distance(stargate:GetPos())
-            if destDistance < 500 then -- Too close to destination
-                table.insert(conflicts, {
-                    type = "destination_conflict",
-                    entity = stargate,
-                    distance = destDistance,
-                    message = "Destination too close to Stargate"
-                })
-            end
-        end
-    end
-
-    return #conflicts > 0, conflicts
-end
-
--- Validate CAP ship configuration
-function HYPERDRIVE.CAP.ValidateShipConfiguration(engine)
-    if not GetCAPConfig("Enabled", true) then return true, {} end
-    if not IsValid(engine) then return false, {"Invalid engine"} end
-
-    local issues = {}
-    local warnings = {}
-
-    -- Detect CAP entities
-    local entities = HYPERDRIVE.CAP.DetectCAPEntities(engine)
-
-    -- Check for shield conflicts
-    if GetCAPConfig("RespectShields", true) then
-        local engineShielded = HYPERDRIVE.CAP.IsPositionShielded(engine:GetPos())
-        if engineShielded then
-            table.insert(warnings, "Hyperdrive engine is inside a shield - may affect jump performance")
-        end
-    end
-
-    -- Check for Stargate conflicts
-    if GetCAPConfig("CheckStargateStatus", true) then
-        local hasConflicts, conflicts = HYPERDRIVE.CAP.CheckStargateConflicts(engine, engine:GetPos() + Vector(1000, 0, 0))
-        if hasConflicts then
-            for _, conflict in ipairs(conflicts) do
-                if conflict.type == "active_stargate" then
-                    table.insert(issues, conflict.message)
-                else
-                    table.insert(warnings, conflict.message)
-                end
-            end
-        end
-    end
-
-    -- Check energy systems integration
-    if GetCAPConfig("ShareEnergyWithStargates", true) then
-        local energySystems = 0
-        for _, entData in ipairs(HYPERDRIVE.CAP.State.detectedStargates) do
-            if entData.energy and entData.energy > 0 then
-                energySystems = energySystems + 1
-            end
-        end
-
-        if energySystems == 0 then
-            table.insert(warnings, "No active Stargate energy systems detected for energy sharing")
-        end
-    end
-
-    local isValid = #issues == 0
-    local allIssues = {}
-
-    for _, issue in ipairs(issues) do
-        table.insert(allIssues, {type = "error", message = issue})
-    end
-    for _, warning in ipairs(warnings) do
-        table.insert(allIssues, {type = "warning", message = warning})
-    end
-
-    return isValid, allIssues
-end
-
--- Enhanced gravity override with CAP shield integration
-function HYPERDRIVE.CAP.OverrideGravity(player, override)
-    if not IsValid(player) or not player:IsPlayer() then return end
-    if not GetCAPConfig("Enabled", true) then return end
-
-    if override then
-        -- Store original gravity state
-        player.HyperdriveOriginalGravity = player:GetGravity()
-
-        -- Check if player is in a shield
-        local isShielded = GetCAPConfig("RespectShields", true) and
-                          StarGate and StarGate.IsEntityShielded and
-                          StarGate.IsEntityShielded(player)
-
-        -- Set appropriate gravity based on shield status
-        local gravityValue = isShielded and 0.8 or 0.3
-        player:SetGravity(gravityValue)
-
-        player.HyperdriveInCAP_Shield = isShielded
-    else
-        -- Restore original gravity
-        if player.HyperdriveOriginalGravity then
-            player:SetGravity(player.HyperdriveOriginalGravity)
-            player.HyperdriveOriginalGravity = nil
-        end
-
-        player.HyperdriveInCAP_Shield = nil
-    end
-end
-
--- Get Stargate network destinations
-function HYPERDRIVE.CAP.GetStargateDestinations()
-    if not GetCAPConfig("UseStargateNetwork", true) then return {} end
-
-    local destinations = {}
-    local allStargates = ents.FindByClass("stargate_*")
-
-    for _, stargate in ipairs(allStargates) do
-        if IsValid(stargate) and stargate.IsStargate then
-            local address = stargate.GetGateAddress and stargate:GetGateAddress() or ""
-            if address ~= "" then
-                table.insert(destinations, {
-                    name = "Stargate " .. address,
-                    address = address,
-                    position = stargate:GetPos(),
-                    entity = stargate,
-                    type = "stargate"
-                })
-            end
-        end
-    end
-
-    return destinations
-end
-
--- Console commands for CAP integration
-concommand.Add("hyperdrive_cap_validate", function(ply, cmd, args)
-    if not IsValid(ply) then return end
-
-    local engine = ply:GetEyeTrace().Entity
-    if not IsValid(engine) or not string.find(engine:GetClass(), "hyperdrive") then
-        ply:ChatPrint("[Hyperdrive CAP] Please look at a hyperdrive engine")
+-- Console command for CAP status
+concommand.Add("hyperdrive_cap_status", function(ply, cmd, args)
+    if not HYPERDRIVE.CAP then
+        print("CAP integration not loaded")
         return
     end
 
-    local isValid, issues = HYPERDRIVE.CAP.ValidateShipConfiguration(engine)
+    local detection = HYPERDRIVE.CAP.Detection
+    if detection then
+        print("=== Enhanced Hyperdrive CAP Integration Status ===")
+        print("Main CAP: " .. tostring(detection.main))
+        print("CAP Resources: " .. tostring(detection.resources))
+        print("Workshop CAP: " .. tostring(detection.workshop))
+        print("Version: " .. detection.version)
+        print("Available: " .. tostring(HYPERDRIVE.CAP.Available))
 
-    ply:ChatPrint("[Hyperdrive CAP] Ship Validation Results:")
-    ply:ChatPrint("  • Status: " .. (isValid and "VALID" or "INVALID"))
-    ply:ChatPrint("  • Issues Found: " .. #issues)
-
-    for i, issue in ipairs(issues) do
-        if i <= 10 then -- Limit output
-            local prefix = issue.type == "error" and "ERROR" or "WARNING"
-            ply:ChatPrint("  • [" .. prefix .. "] " .. issue.message)
-        end
-    end
-
-    if #issues > 10 then
-        ply:ChatPrint("  • ... and " .. (#issues - 10) .. " more issues")
-    end
-end)
-
-concommand.Add("hyperdrive_cap_status", function(ply, cmd, args)
-    local target = IsValid(ply) and ply or nil
-    local function sendMessage(msg)
-        if target then
-            target:ChatPrint(msg)
-        else
-            print(msg)
-        end
-    end
-
-    local isLoaded, status, details = HYPERDRIVE.CAP.IsCAP_Loaded()
-
-    sendMessage("[Hyperdrive CAP] Integration Status:")
-    sendMessage("  • CAP Loaded: " .. (isLoaded and "Yes" or "No"))
-    sendMessage("  • Status: " .. status)
-
-    if details then
-        sendMessage("  • Core Functions: " .. (details.core and "Available" or "Missing"))
-        sendMessage("  • Shield System: " .. (details.shields and "Available" or "Missing"))
-        sendMessage("  • Tracing System: " .. (details.tracing and "Available" or "Missing"))
-        sendMessage("  • Event Horizon: " .. (details.eventHorizon and "Available" or "Missing"))
-        sendMessage("  • Version: " .. (details.version or "unknown"))
-    end
-
-    -- Entity statistics
-    local totalStargates = #ents.FindByClass("stargate_*")
-    local totalShields = #ents.FindByClass("shield*")
-    local totalDHDs = #ents.FindByClass("dhd_*")
-
-    sendMessage("[Hyperdrive CAP] Entity Counts:")
-    sendMessage("  • Stargates: " .. totalStargates)
-    sendMessage("  • Shields: " .. totalShields)
-    sendMessage("  • DHDs: " .. totalDHDs)
-
-    -- Stargate network
-    local destinations = HYPERDRIVE.CAP.GetStargateDestinations()
-    sendMessage("  • Network Destinations: " .. #destinations)
-end)
-
-concommand.Add("hyperdrive_cap_destinations", function(ply, cmd, args)
-    if not IsValid(ply) then return end
-
-    local destinations = HYPERDRIVE.CAP.GetStargateDestinations()
-
-    ply:ChatPrint("[Hyperdrive CAP] Stargate Network Destinations:")
-    ply:ChatPrint("  • Total Destinations: " .. #destinations)
-
-    for i, dest in ipairs(destinations) do
-        if i <= 10 then -- Limit output
-            ply:ChatPrint("  • " .. dest.name .. " (" .. dest.address .. ")")
-        end
-    end
-
-    if #destinations > 10 then
-        ply:ChatPrint("  • ... and " .. (#destinations - 10) .. " more destinations")
-    end
-end)
-
--- Integration with enhanced configuration system
-if HYPERDRIVE.EnhancedConfig and HYPERDRIVE.EnhancedConfig.RegisterIntegration then
-    HYPERDRIVE.EnhancedConfig.RegisterIntegration("CAP", {
-        name = "Carter Addon Pack",
-        description = "Advanced Stargate systems integration",
-        version = "2.0.0",
-        checkFunction = HYPERDRIVE.CAP.IsCAP_Loaded,
-        validateFunction = HYPERDRIVE.CAP.ValidateShipConfiguration,
-        configCategories = {
-            "UseStargateNetwork",
-            "RespectShields",
-            "ShareEnergyWithStargates",
-            "PreventConflicts",
-            "UseStargateAddresses"
-        }
-    })
-else
-    -- Fallback: register later when the function becomes available
-    timer.Simple(0.1, function()
-        if HYPERDRIVE.EnhancedConfig and HYPERDRIVE.EnhancedConfig.RegisterIntegration then
-            HYPERDRIVE.EnhancedConfig.RegisterIntegration("CAP", {
-                name = "Carter Addon Pack",
-                description = "Advanced Stargate systems integration",
-                version = "2.0.0",
-                checkFunction = HYPERDRIVE.CAP.IsCAP_Loaded,
-                validateFunction = HYPERDRIVE.CAP.ValidateShipConfiguration,
-                configCategories = {
-                    "UseStargateNetwork",
-                    "RespectShields",
-                    "ShareEnergyWithStargates",
-                    "PreventConflicts",
-                    "UseStargateAddresses"
-                }
-            })
-        else
-            print("[Hyperdrive] Warning: Could not register CAP integration - EnhancedConfig not available")
-        end
-    end)
-end
-
--- Advanced CAP entity movement integration
-function HYPERDRIVE.CAP.MoveEntitiesWithCAP_Awareness(entities, destination, engine)
-    if not GetCAPConfig("Enabled", true) then
-        return HYPERDRIVE.MoveEntities(entities, destination, engine)
-    end
-
-    local movedEntities = {}
-    local failedEntities = {}
-    local shieldConflicts = {}
-
-    -- Pre-movement validation
-    for _, ent in ipairs(entities) do
-        if IsValid(ent) then
-            local targetPos = destination + (ent:GetPos() - engine:GetPos())
-
-            -- Check if destination is shielded
-            if GetCAPConfig("RespectShields", true) then
-                local isShielded = HYPERDRIVE.CAP.IsPositionShielded(targetPos)
-                if isShielded then
-                    table.insert(shieldConflicts, {
-                        entity = ent,
-                        position = targetPos,
-                        reason = "Destination protected by shield"
-                    })
-                    continue
-                end
-            end
-
-            -- Check for Stargate conflicts at destination
-            if GetCAPConfig("PreventConflicts", true) then
-                local hasConflicts, conflicts = HYPERDRIVE.CAP.CheckStargateConflicts(ent, targetPos)
-                if hasConflicts then
-                    table.insert(failedEntities, {
-                        entity = ent,
-                        conflicts = conflicts,
-                        reason = "Stargate interference"
-                    })
-                    continue
-                end
-            end
-
-            -- Perform the movement
-            local success = HYPERDRIVE.CAP.MoveEntitySafely(ent, targetPos)
-            if success then
-                table.insert(movedEntities, ent)
-            else
-                table.insert(failedEntities, {
-                    entity = ent,
-                    reason = "Movement failed"
-                })
+        if detection.features then
+            print("Features:")
+            for feature, available in pairs(detection.features) do
+                print("  " .. feature .. ": " .. tostring(available))
             end
         end
-    end
 
-    return {
-        success = #movedEntities > 0,
-        movedEntities = movedEntities,
-        failedEntities = failedEntities,
-        shieldConflicts = shieldConflicts,
-        totalMoved = #movedEntities,
-        totalFailed = #failedEntities + #shieldConflicts
-    }
-end
-
--- Safe entity movement with CAP integration
-function HYPERDRIVE.CAP.MoveEntitySafely(entity, destination)
-    if not IsValid(entity) then return false end
-
-    -- Store original position for rollback
-    local originalPos = entity:GetPos()
-    local originalAng = entity:GetAngles()
-
-    -- Check if entity is a CAP entity that needs special handling
-    local entityClass = entity:GetClass()
-    local category = HYPERDRIVE.CAP.GetEntityCategory(entityClass)
-
-    if category == "stargates" then
-        -- Special handling for Stargates
-        if entity.IsStargate and (StarGate.IsStargateOpen(entity) or StarGate.IsStargateDialling(entity)) then
-            -- Don't move active Stargates
-            return false
+        if detection.entities then
+            print("Detected entities: " .. table.Count(detection.entities))
         end
-
-        -- Safely move Stargate
-        entity:SetPos(destination)
-
-        -- Update Stargate network if needed
-        if entity.UpdateNetworkPosition then
-            entity:UpdateNetworkPosition()
-        end
-
-    elseif category == "shields" then
-        -- Special handling for shields
-        local wasActive = not entity:GetNWBool("depleted", false)
-
-        -- Temporarily disable shield during movement
-        if wasActive then
-            entity:SetNWBool("depleted", true)
-        end
-
-        entity:SetPos(destination)
-
-        -- Re-enable shield after movement
-        if wasActive then
-            timer.Simple(0.1, function()
-                if IsValid(entity) then
-                    entity:SetNWBool("depleted", false)
-                end
-            end)
-        end
-
     else
-        -- Standard movement for other entities
-        entity:SetPos(destination)
+        print("CAP detection not run yet")
     end
+end)
 
-    return true
-end
-
--- Enhanced energy sharing system
-function HYPERDRIVE.CAP.ManageEnergySharing(engine, energyRequired)
-    if not GetCAPConfig("ShareEnergyWithStargates", true) then return false, 0 end
-
-    local availableEnergy = 0
-    local energySources = {}
-
-    -- Find nearby energy sources
-    local nearbyEnts = ents.FindInSphere(engine:GetPos(), 1500)
-
-    for _, ent in ipairs(nearbyEnts) do
-        if IsValid(ent) then
-            local category = HYPERDRIVE.CAP.GetEntityCategory(ent:GetClass())
-
-            if category == "energySystems" or category == "stargates" then
-                local energy = 0
-
-                -- Get energy from different CAP entities
-                if ent.GetEnergy then
-                    energy = ent:GetEnergy()
-                elseif ent:GetClass() == "zpm" then
-                    energy = ent:GetNWInt("energy", 0)
-                elseif ent:GetClass() == "zpm_hub" then
-                    energy = ent:GetNWInt("energy", 0)
-                elseif ent.IsStargate then
-                    energy = ent:GetNWInt("energy", 0)
-                end
-
-                if energy > 1000 then -- Minimum threshold
-                    table.insert(energySources, {
-                        entity = ent,
-                        available = energy,
-                        type = category
-                    })
-                    availableEnergy = availableEnergy + energy
-                end
-            end
-        end
-    end
-
-    -- Check if we have enough energy
-    if availableEnergy < energyRequired then
-        return false, availableEnergy
-    end
-
-    -- Distribute energy consumption
-    local remainingRequired = energyRequired
-    local consumedSources = {}
-
-    for _, source in ipairs(energySources) do
-        if remainingRequired <= 0 then break end
-
-        local toConsume = math.min(remainingRequired, source.available * 0.8) -- Don't drain completely
-
-        -- Consume energy from source
-        if source.entity.SetEnergy then
-            source.entity:SetEnergy(source.available - toConsume)
-        elseif source.entity:GetClass() == "zpm" or source.entity:GetClass() == "zpm_hub" then
-            source.entity:SetNWInt("energy", source.available - toConsume)
-        elseif source.entity.IsStargate then
-            source.entity:SetNWInt("energy", source.available - toConsume)
-        end
-
-        table.insert(consumedSources, {
-            entity = source.entity,
-            consumed = toConsume,
-            remaining = source.available - toConsume
-        })
-
-        remainingRequired = remainingRequired - toConsume
-    end
-
-    -- Store energy sharing data for monitoring
-    HYPERDRIVE.CAP.State.energySharing[engine:EntIndex()] = {
-        timestamp = CurTime(),
-        required = energyRequired,
-        consumed = energyRequired - remainingRequired,
-        sources = consumedSources
-    }
-
-    return remainingRequired <= 0, energyRequired - remainingRequired
-end
-
--- Advanced Stargate address resolution
-function HYPERDRIVE.CAP.ResolveStargateAddress(address)
-    if not GetCAPConfig("UseStargateAddresses", true) then return nil end
-    if not address or address == "" then return nil end
-
-    -- Find Stargate by address
-    local allStargates = ents.FindByClass("stargate_*")
-
-    for _, stargate in ipairs(allStargates) do
-        if IsValid(stargate) and stargate.IsStargate then
-            local gateAddress = stargate.GetGateAddress and stargate:GetGateAddress() or ""
-
-            if gateAddress == address then
-                return {
-                    entity = stargate,
-                    position = stargate:GetPos(),
-                    address = address,
-                    status = StarGate.IsStargateOpen(stargate) and "open" or "closed",
-                    available = not StarGate.IsStargateDialling(stargate)
-                }
-            end
-        end
-    end
-
-    return nil
-end
-
--- CAP-aware destination validation
-function HYPERDRIVE.CAP.ValidateDestination(destination, engine)
-    if not GetCAPConfig("Enabled", true) then return true, {} end
-
-    local issues = {}
-    local warnings = {}
-
-    -- Check for shield conflicts
-    if GetCAPConfig("RespectShields", true) then
-        local isShielded = HYPERDRIVE.CAP.IsPositionShielded(destination)
-        if isShielded then
-            table.insert(issues, "Destination is protected by a shield")
-        end
-    end
-
-    -- Check for Stargate conflicts
-    if GetCAPConfig("PreventConflicts", true) then
-        local hasConflicts, conflicts = HYPERDRIVE.CAP.CheckStargateConflicts(engine, destination)
-        if hasConflicts then
-            for _, conflict in ipairs(conflicts) do
-                if conflict.type == "active_stargate" then
-                    table.insert(issues, "Active Stargate interference: " .. conflict.message)
-                else
-                    table.insert(warnings, "Potential conflict: " .. conflict.message)
-                end
-            end
-        end
-    end
-
-    -- Check for transportation system conflicts
-    local nearbyTransporters = ents.FindInSphere(destination, 200)
-    for _, ent in ipairs(nearbyTransporters) do
-        if IsValid(ent) then
-            local category = HYPERDRIVE.CAP.GetEntityCategory(ent:GetClass())
-            if category == "transportation" then
-                table.insert(warnings, "Destination near transportation system: " .. ent:GetClass())
-            end
-        end
-    end
-
-    local isValid = #issues == 0
-    local allIssues = {}
-
-    for _, issue in ipairs(issues) do
-        table.insert(allIssues, {type = "error", message = issue})
-    end
-    for _, warning in ipairs(warnings) do
-        table.insert(allIssues, {type = "warning", message = warning})
-    end
-
-    return isValid, allIssues
-end
-
-print("[Hyperdrive] CAP (Carter Addon Pack) integration loaded successfully")
+print("[Hyperdrive] Comprehensive CAP Integration v2.1.0 loaded successfully!")

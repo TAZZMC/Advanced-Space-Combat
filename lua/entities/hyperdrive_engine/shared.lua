@@ -27,13 +27,19 @@ if WireLib then
     ENT.Inputs = {
         "Jump [NORMAL]",
         "SetDestinationX [NORMAL]",
-        "SetDestinationY [NORMAL]", 
+        "SetDestinationY [NORMAL]",
         "SetDestinationZ [NORMAL]",
         "SetDestination [VECTOR]",
         "Abort [NORMAL]",
-        "SetEnergy [NORMAL]"
+        "SetEnergy [NORMAL]",
+        "ShowFrontIndicator [NORMAL]",
+        "HideFrontIndicator [NORMAL]",
+        "SetFrontDirection [VECTOR]",
+        "AutoDetectFront [NORMAL]",
+        "ActivateShield [NORMAL]",
+        "DeactivateShield [NORMAL]"
     }
-    
+
     ENT.Outputs = {
         "Energy [NORMAL]",
         "EnergyPercent [NORMAL]",
@@ -41,6 +47,41 @@ if WireLib then
         "Cooldown [NORMAL]",
         "JumpReady [NORMAL]",
         "Destination [VECTOR]",
-        "Status [STRING]"
+        "Status [STRING]",
+        "FrontIndicatorVisible [NORMAL]",
+        "ShipFrontDirection [VECTOR]",
+        "ShieldActive [NORMAL]",
+        "ShieldStrength [NORMAL]",
+        "ShieldPercent [NORMAL]",
+        "ShieldRecharging [NORMAL]",
+        "ShieldOverloaded [NORMAL]",
+        "CAPIntegrated [NORMAL]",
+
+        -- Hull damage outputs
+        "HullIntegrity [NORMAL]",
+        "HullIntegrityPercent [NORMAL]",
+        "HullCriticalMode [NORMAL]",
+        "HullEmergencyMode [NORMAL]",
+        "HullBreaches [NORMAL]",
+        "HullSystemFailures [NORMAL]",
+        "HullAutoRepairActive [NORMAL]",
+        "HullRepairProgress [NORMAL]",
+        "HullTotalDamage [NORMAL]",
+        "HullDamagedSections [NORMAL]",
+
+        -- Ship core validation
+        "ShipCoreValid [NORMAL]",
+        "ShipCoreStatus [STRING]",
+
+        -- Resource system outputs
+        "ResourceSystemActive [NORMAL]",
+        "ResourceEnergyLevel [NORMAL]",
+        "ResourceOxygenLevel [NORMAL]",
+        "ResourceCoolantLevel [NORMAL]",
+        "ResourceFuelLevel [NORMAL]",
+        "ResourceWaterLevel [NORMAL]",
+        "ResourceNitrogenLevel [NORMAL]",
+        "ResourceEmergencyMode [NORMAL]",
+        "ResourcesReady [NORMAL]"
     }
 end

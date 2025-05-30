@@ -27,3 +27,14 @@ function ENT:GetModeString()
     elseif mode == 3 then return "Status"
     else return "Navigation" end
 end
+
+-- Network strings
+if SERVER then
+    util.AddNetworkString("hyperdrive_computer")
+    util.AddNetworkString("hyperdrive_fleet_jump")
+    util.AddNetworkString("hyperdrive_fleet_shields")
+    util.AddNetworkString("hyperdrive_scan_planets")
+    util.AddNetworkString("hyperdrive_quick_jump_planet")
+    util.AddNetworkString("hyperdrive_toggle_front_indicator")
+    util.AddNetworkString("hyperdrive_auto_detect_front")
+end

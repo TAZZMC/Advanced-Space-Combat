@@ -68,10 +68,18 @@ function ENT:Use(activator, caller)
     if not IsValid(activator) or not activator:IsPlayer() then return end
     if CurTime() - self.LastUse < 0.5 then return end
 
+    -- Check distance
+    if self:GetPos():Distance(activator:GetPos()) > 200 then
+        activator:ChatPrint("[Hyperdrive Beacon] Too far away to access interface")
+        return
+    end
+
     self.LastUse = CurTime()
     self.Owner = activator
 
-    -- Open beacon configuration
+    -- Open beacon configuration interface
+    activator:ChatPrint("[Hyperdrive Beacon] Opening beacon configuration interface...")
+
     net.Start("hyperdrive_beacon_config")
     net.WriteEntity(self)
     net.WriteString(self:GetBeaconName())

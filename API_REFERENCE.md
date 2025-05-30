@@ -1,523 +1,414 @@
-# Hyperdrive System - API Reference
+# Enhanced Hyperdrive System - API Reference
 
-## Table of Contents
-1. [Core API](#core-api)
-2. [Entity API](#entity-api)
-3. [Integration API](#integration-api)
-4. [Effects API](#effects-api)
-5. [Security API](#security-api)
-6. [Configuration API](#configuration-api)
-7. [Event Hooks](#event-hooks)
-8. [Wiremod API](#wiremod-api)
-9. [Network API](#network-api)
-10. [Utility Functions](#utility-functions)
+This document provides comprehensive API documentation for developers working with the Enhanced Hyperdrive System.
 
-## Core API
+## 🏗️ Core Architecture
 
-### HYPERDRIVE.Core
+### Global Namespace
+All hyperdrive functionality is contained within the `HYPERDRIVE` global table:
 
-#### `HYPERDRIVE.Core.CalculateDistance(pos1, pos2, velocity)`
-Calculates distance between two points with optional relativistic effects.
-
-**Parameters:**
-- `pos1` (Vector): Starting position
-- `pos2` (Vector): Ending position  
-- `velocity` (Number, optional): Relative velocity for relativistic calculation
-
-**Returns:**
-- `Number`: Calculated distance
-
-**Example:**
 ```lua
-local distance = HYPERDRIVE.Core.CalculateDistance(Vector(0,0,0), Vector(1000,0,0))
+HYPERDRIVE = {
+    Version = "2.1.0",
+    Core = {},           -- Core hyperdrive functionality
+    ShipCore = {},       -- Ship core management
+    CAP = {},           -- CAP integration
+    Shields = {},       -- Shield systems
+    HullDamage = {},    -- Hull damage system
+    SB3Resources = {}, -- Spacebuild 3 integration
+    Wire = {},          -- Wiremod integration
+    Config = {},        -- Configuration system
+    Effects = {}        -- Visual effects
+}
 ```
 
-#### `HYPERDRIVE.Core.CalculateEnergyCost(distance)`
-Calculates energy cost for a given distance.
+## 🚢 Ship Core API
 
-**Parameters:**
-- `distance` (Number): Travel distance
+### Core Management Functions
 
-**Returns:**
-- `Number`: Energy cost
+#### `HYPERDRIVE.ShipCore.RegisterCore(core)`
+Registers a ship core entity with the system.
+- **Parameters**: `core` (Entity) - Ship core entity
+- **Returns**: `boolean` - Success status
 
-#### `HYPERDRIVE.Core.ValidateDestination(pos)`
-Validates if a destination is safe for travel.
+#### `HYPERDRIVE.ShipCore.GetShipByCore(core)`
+Retrieves ship object associated with a core.
+- **Parameters**: `core` (Entity) - Ship core entity
+- **Returns**: `table` - Ship object or nil
 
-**Parameters:**
-- `pos` (Vector): Destination position
+#### `HYPERDRIVE.ShipCore.GetShipByEntity(entity)`
+Finds ship containing the specified entity.
+- **Parameters**: `entity` (Entity) - Any entity on the ship
+- **Returns**: `table` - Ship object or nil
 
-**Returns:**
-- `Boolean`: Is destination valid
-- `String`: Validation message
+#### `HYPERDRIVE.ShipCore.ValidateShipCoreUniqueness(core)`
+Ensures only one core exists per ship.
+- **Parameters**: `core` (Entity) - Ship core to validate
+- **Returns**: `boolean, string` - Valid status and message
 
-### HYPERDRIVE.Master
+### Ship Object Methods
 
-#### `HYPERDRIVE.Master.ClassifyEntity(ent)`
-Classifies an entity and determines its capabilities.
+#### `ship:GetEntities()`
+Returns all entities belonging to the ship.
+- **Returns**: `table` - Array of entities
 
-**Parameters:**
-- `ent` (Entity): Entity to classify
+#### `ship:GetPlayers()`
+Returns all players currently on the ship.
+- **Returns**: `table` - Array of player entities
 
-**Returns:**
-- `Table`: Classification data including type, efficiency, integrations
+#### `ship:GetCenter()`
+Calculates the geometric center of the ship.
+- **Returns**: `Vector` - Center position
 
-**Example:**
-```lua
-local classification = HYPERDRIVE.Master.ClassifyEntity(engine)
-print("Ship type:", classification.shipType.name)
-print("Energy multiplier:", classification.shipType.energyMultiplier)
-```
+#### `ship:GetMass()`
+Calculates total mass of all ship entities.
+- **Returns**: `number` - Total mass
 
-#### `HYPERDRIVE.Master.GetSystemStatus()`
-Gets overall system status and health.
+#### `ship:GetShipType()`
+Determines ship classification based on size and composition.
+- **Returns**: `string` - Ship type ("Small", "Medium", "Large", "Capital")
 
-**Returns:**
-- `Table`: System status including core, integrations, performance
+## 🚀 Hyperdrive Engine API
 
-## Entity API
+### Engine Control Functions
 
-### Engine Entities
-
-#### `engine:SetDestinationPos(pos)`
-Sets the destination for the hyperdrive engine.
-
-**Parameters:**
-- `pos` (Vector): Destination coordinates
-
-**Returns:**
-- `Boolean`: Success status
-- `String`: Status message
+#### `engine:StartCharging()`
+Initiates hyperdrive charging sequence.
+- **Returns**: `boolean, string` - Success status and message
 
 #### `engine:StartJump()`
-Initiates a hyperdrive jump.
+Begins hyperdrive jump to destination.
+- **Returns**: `boolean, string` - Success status and message
 
-**Returns:**
-- `Boolean`: Jump initiated successfully
-- `String`: Status message
+#### `engine:AbortJump(reason)`
+Cancels current hyperdrive operation.
+- **Parameters**: `reason` (string) - Reason for abort
+- **Returns**: `boolean` - Success status
+
+#### `engine:SetDestinationPos(pos)`
+Sets jump destination coordinates.
+- **Parameters**: `pos` (Vector) - Destination position
+- **Returns**: `boolean` - Success status
+
+#### `engine:CanJump()`
+Checks if engine is ready for hyperdrive jump.
+- **Returns**: `boolean` - Ready status
+
+### Engine State Functions
 
 #### `engine:GetEnergy()`
-Gets current energy level.
+Returns current energy level.
+- **Returns**: `number` - Energy amount
 
-**Returns:**
-- `Number`: Current energy (0-1000)
-
-#### `engine:SetEnergy(amount)`
-Sets energy level.
-
-**Parameters:**
-- `amount` (Number): Energy amount
+#### `engine:GetEnergyPercent()`
+Returns energy as percentage of maximum.
+- **Returns**: `number` - Percentage (0-100)
 
 #### `engine:GetCharging()`
-Gets charging status.
+Returns charging status.
+- **Returns**: `boolean` - Is charging
 
-**Returns:**
-- `Boolean`: Is charging
+#### `engine:GetJumpReady()`
+Returns jump ready status.
+- **Returns**: `boolean` - Ready to jump
 
-#### `engine:GetCooldown()`
-Gets cooldown timer.
+#### `engine:GetCooldownRemaining()`
+Returns remaining cooldown time.
+- **Returns**: `number` - Seconds remaining
 
-**Returns:**
-- `Number`: Cooldown time remaining
+## 🛡️ CAP Integration API
 
-### Computer Entities
+### CAP Detection Functions
 
-#### `computer:LinkEngine(engine)`
-Links an engine to the computer.
+#### `HYPERDRIVE.CAP.Available`
+Boolean indicating if CAP is installed and available.
 
-**Parameters:**
-- `engine` (Entity): Engine to link
+#### `HYPERDRIVE.CAP.Detection.version`
+String containing detected CAP version.
 
-**Returns:**
-- `Boolean`: Link successful
+#### `HYPERDRIVE.CAP.GetEntityCategory(class)`
+Determines if entity class belongs to CAP.
+- **Parameters**: `class` (string) - Entity class name
+- **Returns**: `string` - CAP category or nil
 
-#### `computer:ExecuteFleetJump(destination)`
-Executes a coordinated fleet jump.
+### CAP Shield Integration
 
-**Parameters:**
-- `destination` (Vector): Jump destination
+#### `HYPERDRIVE.CAP.Shields.FindShields(ship)`
+Locates all CAP shields on a ship.
+- **Parameters**: `ship` (table) - Ship object
+- **Returns**: `table` - Array of shield entities
 
-**Returns:**
-- `Boolean`: Fleet jump successful
-- `String`: Status message
+#### `HYPERDRIVE.CAP.Shields.GetStatus(core, ship)`
+Retrieves comprehensive shield status.
+- **Parameters**: 
+  - `core` (Entity) - Ship core
+  - `ship` (table) - Ship object
+- **Returns**: `table` - Shield status information
 
-#### `computer:AddWaypoint(name, pos)`
-Adds a waypoint to the computer.
+#### `HYPERDRIVE.CAP.Shields.ActivateForHyperdrive(core, ship, mode)`
+Activates CAP shields for hyperdrive operation.
+- **Parameters**:
+  - `core` (Entity) - Ship core
+  - `ship` (table) - Ship object
+  - `mode` (string) - Activation mode
+- **Returns**: `boolean` - Success status
 
-**Parameters:**
-- `name` (String): Waypoint name
-- `pos` (Vector): Waypoint position
+### CAP Energy Integration
 
-#### `computer:GetWaypoints()`
-Gets all stored waypoints.
+#### `HYPERDRIVE.CAP.Resources.FindEnergySources(ship)`
+Locates all CAP energy sources on ship.
+- **Parameters**: `ship` (table) - Ship object
+- **Returns**: `table` - Array of energy entities
 
-**Returns:**
-- `Table`: Array of waypoint data
+#### `HYPERDRIVE.CAP.Resources.GetTotalEnergy(ship)`
+Calculates total available CAP energy.
+- **Parameters**: `ship` (table) - Ship object
+- **Returns**: `number` - Total energy amount
 
-## Integration API
+#### `HYPERDRIVE.CAP.Resources.ConsumeEnergy(ship, amount)`
+Consumes energy from CAP sources.
+- **Parameters**:
+  - `ship` (table) - Ship object
+  - `amount` (number) - Energy to consume
+- **Returns**: `boolean` - Success status
 
-### SpaceCombat2 Integration
+## 🛡️ Shield System API
 
-#### `HYPERDRIVE.SpaceCombat2.GetAttachedEntities(engine)`
-Gets entities attached via ship core.
+### Shield Management
 
-**Parameters:**
-- `engine` (Entity): Engine entity
+#### `HYPERDRIVE.Shields.CreateShield(core, ship)`
+Creates shield system for ship.
+- **Parameters**:
+  - `core` (Entity) - Ship core
+  - `ship` (table) - Ship object
+- **Returns**: `table, string` - Shield object and message
 
-**Returns:**
-- `Table`: Array of attached entities
+#### `HYPERDRIVE.Shields.GetShieldStatus(core)`
+Retrieves current shield status.
+- **Parameters**: `core` (Entity) - Ship core
+- **Returns**: `table` - Shield status data
 
-#### `HYPERDRIVE.SpaceCombat2.OverrideGravity(player, override)`
-Overrides gravity for SC2 players.
+#### `HYPERDRIVE.Shields.ActivateShield(core, ship)`
+Activates ship shields.
+- **Parameters**:
+  - `core` (Entity) - Ship core
+  - `ship` (table) - Ship object
+- **Returns**: `boolean` - Success status
 
-**Parameters:**
-- `player` (Player): Player entity
-- `override` (Boolean): Enable/disable override
+#### `HYPERDRIVE.Shields.DeactivateShield(core)`
+Deactivates ship shields.
+- **Parameters**: `core` (Entity) - Ship core
+- **Returns**: `boolean` - Success status
 
-### Spacebuild Integration
+## 🔧 Hull Damage API
 
-#### `HYPERDRIVE.Spacebuild.CheckResources(engine, requirements)`
-Checks if required resources are available.
+### Hull Management
 
-**Parameters:**
-- `engine` (Entity): Engine entity
-- `requirements` (Table): Resource requirements
+#### `HYPERDRIVE.HullDamage.CreateHullSystem(ship, core)`
+Initializes hull damage system for ship.
+- **Parameters**:
+  - `ship` (table) - Ship object
+  - `core` (Entity) - Ship core
+- **Returns**: `table, string` - Hull system and message
 
-**Returns:**
-- `Boolean`: Resources available
-- `Table`: Resource status
+#### `HYPERDRIVE.HullDamage.GetHullStatus(core)`
+Retrieves current hull status.
+- **Parameters**: `core` (Entity) - Ship core
+- **Returns**: `table` - Hull status data
 
-#### `HYPERDRIVE.Spacebuild.ConsumeResources(engine, requirements)`
-Consumes resources for operation.
+#### `HYPERDRIVE.HullDamage.DamageHull(core, amount, source)`
+Applies damage to ship hull.
+- **Parameters**:
+  - `core` (Entity) - Ship core
+  - `amount` (number) - Damage amount
+  - `source` (string) - Damage source
+- **Returns**: `boolean` - Success status
 
-**Parameters:**
-- `engine` (Entity): Engine entity
-- `requirements` (Table): Resources to consume
+#### `HYPERDRIVE.HullDamage.RepairHull(core, amount)`
+Repairs ship hull damage.
+- **Parameters**:
+  - `core` (Entity) - Ship core
+  - `amount` (number) - Repair amount
+- **Returns**: `boolean` - Success status
 
-**Returns:**
-- `Boolean`: Consumption successful
+## 📦 Resource System API
 
-### CAP Integration
+### Spacebuild 3 Integration
 
-#### `HYPERDRIVE.CAP.DetectCAPEntities(engine, radius)`
-Detects CAP entities in radius.
+#### `HYPERDRIVE.SB3Resources.InitializeCoreStorage(core)`
+Sets up resource storage for ship core.
+- **Parameters**: `core` (Entity) - Ship core
+- **Returns**: `boolean` - Success status
 
-**Parameters:**
-- `engine` (Entity): Engine entity
-- `radius` (Number): Search radius
+#### `HYPERDRIVE.SB3Resources.GetCoreStorage(core)`
+Retrieves core resource storage data.
+- **Parameters**: `core` (Entity) - Ship core
+- **Returns**: `table` - Storage information
 
-**Returns:**
-- `Table`: Categorized CAP entities
+#### `HYPERDRIVE.SB3Resources.GetResourceAmount(core, type)`
+Gets amount of specific resource.
+- **Parameters**:
+  - `core` (Entity) - Ship core
+  - `type` (string) - Resource type
+- **Returns**: `number` - Resource amount
 
-#### `HYPERDRIVE.CAP.IsCAP_Loaded()`
-Checks if CAP is loaded and functional.
+#### `HYPERDRIVE.SB3Resources.ConsumeResource(core, type, amount)`
+Consumes specified amount of resource.
+- **Parameters**:
+  - `core` (Entity) - Ship core
+  - `type` (string) - Resource type
+  - `amount` (number) - Amount to consume
+- **Returns**: `boolean` - Success status
 
-**Returns:**
-- `Boolean`: CAP available
-- `String`: Status message
-- `Table`: CAP capabilities
+#### `HYPERDRIVE.SB3Resources.DistributeResources(core)`
+Distributes resources to ship entities.
+- **Parameters**: `core` (Entity) - Ship core
+- **Returns**: `boolean` - Success status
 
-## Effects API
+## 🔌 Wiremod Integration API
 
-### HYPERDRIVE.Effects
+### Wire Functions
 
-#### `HYPERDRIVE.Effects.CreateEffect(pos, effectType, intensity, data)`
-Creates a visual effect at position.
+#### `HYPERDRIVE.Wire.Initialize(entity)`
+Sets up Wiremod support for entity.
+- **Parameters**: `entity` (Entity) - Entity to initialize
+- **Returns**: `boolean` - Success status
 
-**Parameters:**
-- `pos` (Vector): Effect position
-- `effectType` (String): Type of effect
-- `intensity` (Number): Effect intensity (0-1)
-- `data` (Table, optional): Additional effect data
+#### `HYPERDRIVE.Wire.TriggerInput(entity, name, value)`
+Handles wire input trigger.
+- **Parameters**:
+  - `entity` (Entity) - Target entity
+  - `name` (string) - Input name
+  - `value` (any) - Input value
 
-**Example:**
+#### `HYPERDRIVE.Wire.UpdateOutputs(entity)`
+Updates all wire outputs for entity.
+- **Parameters**: `entity` (Entity) - Entity to update
+
+### Wire Definitions
+
+Wire input/output definitions are stored in `HYPERDRIVE.Wire.Definitions[class]`:
+
 ```lua
-HYPERDRIVE.Effects.CreateEffect(engine:GetPos(), "hyperdrive_charge", 1.0, {
-    color = Color(0, 100, 255),
-    duration = 3.0
-})
+HYPERDRIVE.Wire.Definitions = {
+    hyperdrive_engine = {
+        inputs = {"Jump [NORMAL]", "SetDestination [VECTOR]", ...},
+        outputs = {"Energy [NORMAL]", "Charging [NORMAL]", ...}
+    },
+    ship_core = {
+        inputs = {"SetShipName [STRING]", "RepairHull [NORMAL]", ...},
+        outputs = {"CoreState [NORMAL]", "HullIntegrity [NORMAL]", ...}
+    }
+}
 ```
 
-#### `HYPERDRIVE.Effects.RegisterEffect(id, pos, effectType, duration)`
-Registers an ongoing effect.
+## ⚙️ Configuration API
 
-**Parameters:**
-- `id` (String): Unique effect ID
-- `pos` (Vector): Effect position
-- `effectType` (String): Effect type
-- `duration` (Number): Effect duration
+### Configuration Management
 
-#### `HYPERDRIVE.Effects.CreateAdvancedParticles(pos, effectType, intensity, data)`
-Creates advanced particle effects.
-
-**Parameters:**
-- `pos` (Vector): Particle position
-- `effectType` (String): Particle type
-- `intensity` (Number): Particle intensity
-- `data` (Table, optional): Particle configuration
-
-### Stargate Effects
-
-#### `HYPERDRIVE.Stargate.StartFourStageTravel(engine, destination, entities)`
-Initiates 4-stage Stargate travel.
-
-**Parameters:**
-- `engine` (Entity): Engine entity
-- `destination` (Vector): Travel destination
-- `entities` (Table): Entities to transport
-
-**Returns:**
-- `Boolean`: Travel initiated
-- `String`: Status message
-
-## Security API
-
-### HYPERDRIVE.Security
-
-#### `HYPERDRIVE.Security.CheckAccess(player, entity, action)`
-Checks if player has access to perform action.
-
-**Parameters:**
-- `player` (Player): Player entity
-- `entity` (Entity): Target entity
-- `action` (String): Action to perform
-
-**Returns:**
-- `Boolean`: Access granted
-- `String`: Access level or denial reason
-
-#### `HYPERDRIVE.Security.LogAction(player, action, details)`
-Logs a security-relevant action.
-
-**Parameters:**
-- `player` (Player): Player performing action
-- `action` (String): Action performed
-- `details` (Table): Additional details
-
-#### `HYPERDRIVE.Security.SetOwner(entity, player)`
-Sets entity owner.
-
-**Parameters:**
-- `entity` (Entity): Entity to set owner for
-- `player` (Player): New owner
-
-## Configuration API
-
-### HYPERDRIVE.EnhancedConfig
-
-#### `HYPERDRIVE.EnhancedConfig.Get(category, key, default)`
-Gets configuration value.
-
-**Parameters:**
-- `category` (String): Configuration category
-- `key` (String): Configuration key
-- `default` (Any): Default value if not found
-
-**Returns:**
-- `Any`: Configuration value
+#### `HYPERDRIVE.EnhancedConfig.Get(category, key)`
+Retrieves configuration value.
+- **Parameters**:
+  - `category` (string) - Configuration category
+  - `key` (string) - Configuration key
+- **Returns**: `any` - Configuration value
 
 #### `HYPERDRIVE.EnhancedConfig.Set(category, key, value)`
 Sets configuration value.
+- **Parameters**:
+  - `category` (string) - Configuration category
+  - `key` (string) - Configuration key
+  - `value` (any) - New value
 
-**Parameters:**
-- `category` (String): Configuration category
-- `key` (String): Configuration key
-- `value` (Any): Value to set
+#### `HYPERDRIVE.EnhancedConfig.RegisterIntegration(name, data)`
+Registers addon integration.
+- **Parameters**:
+  - `name` (string) - Integration name
+  - `data` (table) - Integration data
 
-#### `HYPERDRIVE.EnhancedConfig.RegisterIntegration(name, config)`
-Registers a new integration.
+## 🎨 Effects API
 
-**Parameters:**
-- `name` (String): Integration name
-- `config` (Table): Integration configuration
+### Visual Effects
 
-**Example:**
-```lua
-HYPERDRIVE.EnhancedConfig.RegisterIntegration("MyAddon", {
-    name = "My Custom Addon",
-    description = "Custom integration",
-    version = "1.0.0",
-    checkFunction = function() return MyAddon ~= nil end,
-    validateFunction = function(ship) return true end,
-    configCategories = {"EnableFeature", "FeaturePower"}
-})
-```
+#### `HYPERDRIVE.Effects.CreateJumpEffect(entity, destination)`
+Creates hyperdrive jump visual effect.
+- **Parameters**:
+  - `entity` (Entity) - Source entity
+  - `destination` (Vector) - Jump destination
 
-## Event Hooks
+#### `HYPERDRIVE.Effects.CreateChargeEffect(entity)`
+Creates hyperdrive charging effect.
+- **Parameters**: `entity` (Entity) - Charging entity
 
-### Core Events
+#### `HYPERDRIVE.Effects.CreateStargateEffect(entity, stage)`
+Creates Stargate-style hyperdrive effect.
+- **Parameters**:
+  - `entity` (Entity) - Source entity
+  - `stage` (string) - Effect stage ("charge", "window", "travel", "exit")
+
+## 🔍 Event Hooks
+
+### Custom Hooks
+
+The system provides several custom hooks for integration:
 
 #### `HyperdriveJumpStart`
-Called when a hyperdrive jump begins.
-
-**Parameters:**
-- `engine` (Entity): Engine performing jump
-- `destination` (Vector): Jump destination
-- `entities` (Table): Entities being transported
+Called when hyperdrive jump begins.
+- **Parameters**: `entity, destination, ship`
 
 #### `HyperdriveJumpComplete`
-Called when a hyperdrive jump completes.
+Called when hyperdrive jump completes.
+- **Parameters**: `entity, destination, ship`
 
-**Parameters:**
-- `engine` (Entity): Engine that performed jump
-- `success` (Boolean): Jump success status
-- `message` (String): Status message
+#### `HyperdriveChargeStart`
+Called when hyperdrive charging begins.
+- **Parameters**: `entity, ship`
 
-#### `HyperdriveEntityDetected`
-Called when ship detection finds an entity.
+#### `ShipCoreRegistered`
+Called when ship core is registered.
+- **Parameters**: `core, ship`
 
-**Parameters:**
-- `engine` (Entity): Detecting engine
-- `entity` (Entity): Detected entity
-- `classification` (Table): Entity classification
+#### `CAPIntegrationEnabled`
+Called when CAP integration activates.
+- **Parameters**: `core, capData`
 
-### Integration Events
+## 📝 Usage Examples
 
-#### `HyperdriveIntegrationLoaded`
-Called when an integration is loaded.
-
-**Parameters:**
-- `integration` (String): Integration name
-- `config` (Table): Integration configuration
-
-#### `HyperdriveConfigChanged`
-Called when configuration changes.
-
-**Parameters:**
-- `category` (String): Configuration category
-- `key` (String): Configuration key
-- `value` (Any): New value
-
-### Security Events
-
-#### `HyperdriveAccessDenied`
-Called when access is denied.
-
-**Parameters:**
-- `player` (Player): Player denied access
-- `entity` (Entity): Target entity
-- `reason` (String): Denial reason
-
-## Wiremod API
-
-### Wire Inputs
-
-#### Engine Inputs
-- `Jump` - Trigger jump (1 = jump, 0 = no action)
-- `SetDestinationX/Y/Z` - Set destination coordinates
-- `SetDestination` - Set destination vector
-- `Abort` - Abort current operation
-- `SetEnergy` - Set energy level
-- `AttachVehicle` - Attach vehicle entity
-
-#### Computer Inputs
-- `FleetJump` - Execute fleet jump
-- `SetMode` - Set computer mode (1=Navigation, 2=Planets, 3=Status)
-- `PowerToggle` - Toggle power state
-- `ScanEngines` - Scan for nearby engines
-
-### Wire Outputs
-
-#### Engine Outputs
-- `Energy` - Current energy level
-- `EnergyPercent` - Energy as percentage
-- `Charging` - Charging state
-- `Cooldown` - Cooldown timer
-- `JumpReady` - Ready to jump
-- `Destination` - Current destination
-- `Status` - Status string
-
-#### Computer Outputs
-- `Powered` - Power state
-- `LinkedEngines` - Number of linked engines
-- `OnlineEngines` - Number of online engines
-- `FleetStatus` - Fleet status string
-
-## Network API
-
-### Network Messages
-
-#### `hyperdrive_jump_start`
-Sent when jump starts.
-
-**Data:**
-- Vector: Engine position
-- Vector: Destination
-- Float: Jump duration
-
-#### `hyperdrive_effect`
-Sent for visual effects.
-
-**Data:**
-- Vector: Effect position
-- String: Effect type
-- Float: Intensity
-- Table: Effect data
-
-#### `hyperdrive_status_update`
-Sent for status updates.
-
-**Data:**
-- Entity: Target entity
-- Table: Status data
-
-## Utility Functions
-
-### HYPERDRIVE Utilities
-
-#### `HYPERDRIVE.GetDistance(pos1, pos2)`
-Simple distance calculation.
-
-#### `HYPERDRIVE.IsValidEntity(ent)`
-Checks if entity is valid for hyperdrive operations.
-
-#### `HYPERDRIVE.GetNearbyEntities(pos, radius, filter)`
-Gets entities near position with optional filter.
-
-#### `HYPERDRIVE.FormatTime(seconds)`
-Formats time for display.
-
-#### `HYPERDRIVE.FormatEnergy(energy)`
-Formats energy for display.
-
-#### `HYPERDRIVE.GenerateUniqueID()`
-Generates unique identifier.
-
-### Example Usage
-
+### Basic Hyperdrive Control
 ```lua
--- Basic engine control
-local engine = ents.Create("hyperdrive_engine")
-engine:Spawn()
+-- Get hyperdrive engine
+local engine = ents.FindByClass("hyperdrive_engine")[1]
+
+-- Set destination and jump
 engine:SetDestinationPos(Vector(1000, 0, 0))
-engine:SetEnergy(1000)
-engine:StartJump()
-
--- Computer fleet management
-local computer = ents.Create("hyperdrive_computer")
-computer:Spawn()
-computer:LinkEngine(engine)
-computer:AddWaypoint("Home Base", Vector(0, 0, 0))
-computer:ExecuteFleetJump(Vector(1000, 0, 0))
-
--- Custom integration
-HYPERDRIVE.EnhancedConfig.RegisterIntegration("MyMod", {
-    name = "My Mod Integration",
-    checkFunction = function() return MyMod ~= nil end,
-    entityHandler = function(entity)
-        -- Handle entity detection
-        if entity:GetClass() == "my_ship" then
-            return {type = "custom", efficiency = 1.5}
-        end
-    end
-})
-
--- Event handling
-hook.Add("HyperdriveJumpStart", "MyHook", function(engine, destination)
-    print("Jump started from", engine:GetPos(), "to", destination)
-end)
+if engine:CanJump() then
+    engine:StartJump()
+end
 ```
 
----
+### Ship Core Management
+```lua
+-- Get ship core
+local core = ents.FindByClass("ship_core")[1]
 
-This API reference provides comprehensive documentation for developers integrating with or extending the Hyperdrive System.
+-- Get ship information
+local ship = HYPERDRIVE.ShipCore.GetShipByCore(core)
+if ship then
+    print("Ship has " .. #ship:GetEntities() .. " entities")
+    print("Ship center: " .. tostring(ship:GetCenter()))
+end
+```
+
+### CAP Integration Check
+```lua
+-- Check if CAP is available
+if HYPERDRIVE.CAP.Available then
+    print("CAP version: " .. HYPERDRIVE.CAP.Detection.version)
+    
+    -- Find CAP shields on ship
+    local shields = HYPERDRIVE.CAP.Shields.FindShields(ship)
+    print("Found " .. #shields .. " CAP shields")
+end
+```
+
+This API reference provides the foundation for developing with the Enhanced Hyperdrive System. For additional examples and advanced usage, refer to the source code and community resources.

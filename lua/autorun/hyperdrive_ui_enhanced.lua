@@ -251,14 +251,14 @@ timer.Create("HyperdriveUIUpdate", GetUIConfig("AutoRefreshInterval", 2), 0, fun
     HYPERDRIVE.UI.UpdateActiveUIs()
 end)
 
--- Hook into engine use to open UI
+-- Hook into engine use to open UI (removed SHIFT requirement)
 hook.Add("PlayerUse", "HyperdriveUIOpen", function(ply, ent)
     if not IsValid(ply) or not IsValid(ent) then return end
     if not string.find(ent:GetClass(), "hyperdrive") then return end
     if not string.find(ent:GetClass(), "engine") then return end
 
-    -- Check if player is holding a key for advanced UI
-    if ply:KeyDown(IN_WALK) then -- Shift key
+    -- Check if enhanced UI is enabled and player is holding ALT for advanced UI
+    if GetUIConfig("EnableAdvancedUI", true) and ply:KeyDown(IN_WALK) then -- ALT key for advanced UI
         HYPERDRIVE.UI.OpenUI(ply, ent)
         return false -- Prevent normal use
     end

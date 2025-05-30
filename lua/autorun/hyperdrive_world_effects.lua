@@ -53,6 +53,22 @@ function HYPERDRIVE.WorldEffects.CreateChargingEffects(engine, ship)
     local shipCenter = ship:GetCenter()
     local shipBounds = {ship:GetBounds()}
     local shipSize = (shipBounds[2] - shipBounds[1]):Length()
+    local frontDirection = Vector(1, 0, 0) -- Default front
+
+    -- Get ship front direction if available
+    if ship.GetFrontDirection then
+        frontDirection = ship:GetFrontDirection()
+    elseif ship.frontDirection then
+        frontDirection = ship.frontDirection
+    end
+
+    -- Activate shields during charging if available
+    if HYPERDRIVE.Shields and HYPERDRIVE.Shields.Config.AutoActivateOnCharge then
+        local shield = HYPERDRIVE.Shields.GetShield(engine)
+        if not shield then
+            HYPERDRIVE.Shields.ActivateShield(engine, ship)
+        end
+    end
 
     -- Store effect data
     HYPERDRIVE.WorldEffects.ActiveEffects[effectId] = {
@@ -98,11 +114,21 @@ function HYPERDRIVE.WorldEffects.CreateHyperspaceWindow(engine, ship, stage)
     local shipBounds = {ship:GetBounds()}
     local shipSize = (shipBounds[2] - shipBounds[1]):Length()
     local windowSize = math.max(shipSize * 1.5, HYPERDRIVE.WorldEffects.Config.WindowSize)
+    local frontDirection = Vector(1, 0, 0) -- Default front
+
+    -- Get ship front direction if available
+    if ship.GetFrontDirection then
+        frontDirection = ship:GetFrontDirection()
+    elseif ship.frontDirection then
+        frontDirection = ship.frontDirection
+    end
 
     -- Create swirling energy portal
     local portalEffect = ents.Create("env_sprite")
     if IsValid(portalEffect) then
-        portalEffect:SetPos(shipCenter + Vector(0, 0, shipSize * 0.3))
+        -- Position portal in front of ship
+        local portalPos = shipCenter + frontDirection * (shipSize * 0.6) + Vector(0, 0, shipSize * 0.1)
+        portalEffect:SetPos(portalPos)
         portalEffect:SetKeyValue("model", "sprites/blueglow2.vmt")
         portalEffect:SetKeyValue("scale", tostring(windowSize / 100))
         portalEffect:SetKeyValue("rendermode", "5")
@@ -151,6 +177,14 @@ function HYPERDRIVE.WorldEffects.CreateStarlinesEffect(engine, ship)
     local shipCenter = ship:GetCenter()
     local shipVelocity = ship:GetVelocity()
     local shipOrientation = ship:GetOrientation()
+    local frontDirection = Vector(1, 0, 0) -- Default front
+
+    -- Get ship front direction if available
+    if ship.GetFrontDirection then
+        frontDirection = ship:GetFrontDirection()
+    elseif ship.frontDirection then
+        frontDirection = ship.frontDirection
+    end
 
     -- Create starlines around ship
     for i = 1, HYPERDRIVE.WorldEffects.Config.StarlinesCount do
@@ -164,7 +198,7 @@ function HYPERDRIVE.WorldEffects.CreateStarlinesEffect(engine, ship)
             height
         )
 
-        local endPos = startPos + shipOrientation:Forward() * HYPERDRIVE.WorldEffects.Config.StarlinesLength
+        local endPos = startPos + frontDirection * HYPERDRIVE.WorldEffects.Config.StarlinesLength
 
         -- Create starline effect
         local starline = ents.Create("env_beam")
@@ -429,6 +463,14 @@ function HYPERDRIVE.WorldEffects.CreateStargateEffects(engine, ship, stage)
     local shipCenter = ship:GetCenter()
     local shipBounds = {ship:GetBounds()}
     local shipSize = (shipBounds[2] - shipBounds[1]):Length()
+    local frontDirection = Vector(1, 0, 0) -- Default front
+
+    -- Get ship front direction if available
+    if ship.GetFrontDirection then
+        frontDirection = ship:GetFrontDirection()
+    elseif ship.frontDirection then
+        frontDirection = ship.frontDirection
+    end
 
     if stage == "initiation" then
         -- Stage 1: Energy buildup and coordinate calculation
@@ -469,7 +511,9 @@ function HYPERDRIVE.WorldEffects.CreateStargateEffects(engine, ship, stage)
         -- Stage 2: Blue/purple swirling energy tunnel
         local portal = ents.Create("env_sprite")
         if IsValid(portal) then
-            portal:SetPos(shipCenter + Vector(0, 0, shipSize * 0.4))
+            -- Position portal in front of ship
+            local portalPos = shipCenter + frontDirection * (shipSize * 0.8) + Vector(0, 0, shipSize * 0.2)
+            portal:SetPos(portalPos)
             portal:SetKeyValue("model", "sprites/blueglow2.vmt")
             portal:SetKeyValue("scale", tostring(shipSize / 80))
             portal:SetKeyValue("rendermode", "5")

@@ -26,7 +26,32 @@ HYPERDRIVE.Wire.Definitions = {
             "JumpReady [NORMAL]",
             "Destination [VECTOR]",
             "AttachedVehicle [ENTITY]",
-            "Status [STRING]"
+            "Status [STRING]",
+            "ShipDetected [NORMAL]",
+            "ShipType [STRING]",
+            "ShipEntityCount [NORMAL]",
+            "ShipPlayerCount [NORMAL]",
+            "ShipMass [NORMAL]",
+            "ShipCoreValid [NORMAL]",
+            "ShipCoreStatus [STRING]",
+            "ShipName [STRING]",
+            "ShipNameValid [NORMAL]",
+            "ShieldActive [NORMAL]",
+            "ShieldStrength [NORMAL]",
+            "ShieldPercent [NORMAL]",
+            "ShieldRecharging [NORMAL]",
+            "ShieldOverloaded [NORMAL]",
+            "CAPIntegrated [NORMAL]",
+            "HullIntegrity [NORMAL]",
+            "HullIntegrityPercent [NORMAL]",
+            "HullCriticalMode [NORMAL]",
+            "HullEmergencyMode [NORMAL]",
+            "HullBreaches [NORMAL]",
+            "HullSystemFailures [NORMAL]",
+            "HullAutoRepairActive [NORMAL]",
+            "HullRepairProgress [NORMAL]",
+            "HullTotalDamage [NORMAL]",
+            "HullDamagedSections [NORMAL]"
         }
     },
 
@@ -64,6 +89,61 @@ HYPERDRIVE.Wire.Definitions = {
             "BeaconName [STRING]",
             "BeaconID [NORMAL]",
             "NearbyEngines [NORMAL]"
+        }
+    },
+
+    ship_core = {
+        inputs = {
+            "SetShipName [STRING]",
+            "RepairHull [NORMAL]",
+            "EmergencyRepair [NORMAL]",
+            "ActivateShields [NORMAL]",
+            "DeactivateShields [NORMAL]",
+            "ToggleFrontIndicator [NORMAL]",
+            "DistributeResources [NORMAL]",
+            "CollectResources [NORMAL]",
+            "BalanceResources [NORMAL]",
+            "SetEnergyCapacity [NORMAL]",
+            "SetOxygenCapacity [NORMAL]",
+            "SetCoolantCapacity [NORMAL]",
+            "SetFuelCapacity [NORMAL]"
+        },
+        outputs = {
+            "CoreState [NORMAL]",
+            "CoreValid [NORMAL]",
+            "ShipDetected [NORMAL]",
+            "ShipType [STRING]",
+            "ShipName [STRING]",
+            "ShipNameValid [NORMAL]",
+            "EntityCount [NORMAL]",
+            "PlayerCount [NORMAL]",
+            "ShipMass [NORMAL]",
+            "HullIntegrity [NORMAL]",
+            "HullSystemActive [NORMAL]",
+            "ShieldStrength [NORMAL]",
+            "ShieldSystemActive [NORMAL]",
+            "StatusMessage [STRING]",
+            "EnergyLevel [NORMAL]",
+            "OxygenLevel [NORMAL]",
+            "CoolantLevel [NORMAL]",
+            "FuelLevel [NORMAL]",
+            "WaterLevel [NORMAL]",
+            "NitrogenLevel [NORMAL]",
+            "ResourceEmergency [NORMAL]",
+            "ResourceSystemActive [NORMAL]",
+            "TotalResourceCapacity [NORMAL]",
+            "TotalResourceAmount [NORMAL]",
+
+            -- CAP Integration Outputs
+            "CAPIntegrationActive [NORMAL]",
+            "CAPShieldsDetected [NORMAL]",
+            "CAPEnergyDetected [NORMAL]",
+            "CAPResourcesDetected [NORMAL]",
+            "CAPEnergyLevel [NORMAL]",
+            "CAPShieldCount [NORMAL]",
+            "CAPEntityCount [NORMAL]",
+            "CAPVersion [STRING]",
+            "CAPStatus [STRING]"
         }
     }
 }
@@ -105,6 +185,8 @@ function HYPERDRIVE.Wire.TriggerInput(ent, iname, value)
         HYPERDRIVE.Wire.HandleComputerInput(ent, iname, value)
     elseif class == "hyperdrive_beacon" then
         HYPERDRIVE.Wire.HandleBeaconInput(ent, iname, value)
+    elseif class == "ship_core" then
+        HYPERDRIVE.Wire.HandleShipCoreInput(ent, iname, value)
     end
 end
 
@@ -185,6 +267,84 @@ function HYPERDRIVE.Wire.HandleBeaconInput(ent, iname, value)
     end
 end
 
+-- Ship Core wire input handlers
+function HYPERDRIVE.Wire.HandleShipCoreInput(ent, iname, value)
+    if iname == "SetShipName" and isstring(value) then
+        local success, result = ent:SetShipNameSafe(value)
+        WireLib.TriggerOutput(ent, "ShipNameValid", success and 1 or 0)
+        if success then
+            WireLib.TriggerOutput(ent, "ShipName", result)
+        end
+
+    elseif iname == "RepairHull" and value > 0 then
+        if HYPERDRIVE.HullDamage then
+            local amount = math.Clamp(value, 1, 100)
+            HYPERDRIVE.HullDamage.RepairHull(ent, amount)
+        end
+
+    elseif iname == "EmergencyRepair" and value > 0 then
+        if HYPERDRIVE.HullDamage then
+            HYPERDRIVE.HullDamage.RepairHull(ent, 50)
+        end
+
+    elseif iname == "ActivateShields" and value > 0 then
+        if HYPERDRIVE.Shields and ent.ship then
+            HYPERDRIVE.Shields.ActivateShield(ent, ent.ship)
+        end
+
+    elseif iname == "DeactivateShields" and value > 0 then
+        if HYPERDRIVE.Shields then
+            HYPERDRIVE.Shields.DeactivateShield(ent)
+        end
+
+    elseif iname == "ToggleFrontIndicator" and value > 0 then
+        if ent.ship then
+            local visible = ent.ship:IsFrontIndicatorVisible()
+            if visible then
+                ent.ship:HideFrontIndicator()
+            else
+                ent.ship:ShowFrontIndicator()
+            end
+        end
+
+    -- Resource management inputs
+    elseif iname == "DistributeResources" and value > 0 then
+        if HYPERDRIVE.SB3Resources then
+            HYPERDRIVE.SB3Resources.DistributeResources(ent)
+        end
+
+    elseif iname == "CollectResources" and value > 0 then
+        if HYPERDRIVE.SB3Resources then
+            HYPERDRIVE.SB3Resources.CollectResources(ent)
+        end
+
+    elseif iname == "BalanceResources" and value > 0 then
+        if HYPERDRIVE.SB3Resources then
+            HYPERDRIVE.SB3Resources.AutoBalanceResources(ent)
+        end
+
+    elseif iname == "SetEnergyCapacity" and value > 0 then
+        if HYPERDRIVE.SB3Resources then
+            HYPERDRIVE.SB3Resources.SetResourceCapacity(ent, "energy", value)
+        end
+
+    elseif iname == "SetOxygenCapacity" and value > 0 then
+        if HYPERDRIVE.SB3Resources then
+            HYPERDRIVE.SB3Resources.SetResourceCapacity(ent, "oxygen", value)
+        end
+
+    elseif iname == "SetCoolantCapacity" and value > 0 then
+        if HYPERDRIVE.SB3Resources then
+            HYPERDRIVE.SB3Resources.SetResourceCapacity(ent, "coolant", value)
+        end
+
+    elseif iname == "SetFuelCapacity" and value > 0 then
+        if HYPERDRIVE.SB3Resources then
+            HYPERDRIVE.SB3Resources.SetResourceCapacity(ent, "fuel", value)
+        end
+    end
+end
+
 -- Update wire outputs for an entity
 function HYPERDRIVE.Wire.UpdateOutputs(ent)
     if not IsValid(ent) or not WireLib then return end
@@ -197,6 +357,8 @@ function HYPERDRIVE.Wire.UpdateOutputs(ent)
         HYPERDRIVE.Wire.UpdateComputerOutputs(ent)
     elseif class == "hyperdrive_beacon" then
         HYPERDRIVE.Wire.UpdateBeaconOutputs(ent)
+    elseif class == "ship_core" then
+        HYPERDRIVE.Wire.UpdateShipCoreOutputs(ent)
     end
 end
 
@@ -256,6 +418,94 @@ function HYPERDRIVE.Wire.UpdateBeaconOutputs(ent)
         end
     end
     WireLib.TriggerOutput(ent, "NearbyEngines", nearbyEngines)
+end
+
+-- Update ship core outputs
+function HYPERDRIVE.Wire.UpdateShipCoreOutputs(ent)
+    WireLib.TriggerOutput(ent, "CoreState", ent:GetState())
+    WireLib.TriggerOutput(ent, "CoreValid", ent:GetCoreValid() and 1 or 0)
+    WireLib.TriggerOutput(ent, "ShipDetected", ent:GetShipDetected() and 1 or 0)
+    WireLib.TriggerOutput(ent, "ShipType", ent:GetShipType())
+    WireLib.TriggerOutput(ent, "ShipName", ent:GetShipName())
+    WireLib.TriggerOutput(ent, "HullIntegrity", ent:GetHullIntegrity())
+    WireLib.TriggerOutput(ent, "HullSystemActive", ent:GetHullSystemActive() and 1 or 0)
+    WireLib.TriggerOutput(ent, "ShieldStrength", ent:GetShieldStrength())
+    WireLib.TriggerOutput(ent, "ShieldSystemActive", ent:GetShieldSystemActive() and 1 or 0)
+    WireLib.TriggerOutput(ent, "StatusMessage", ent:GetStatusMessage())
+
+    -- Validate ship name
+    local shipName = ent:GetShipName()
+    local valid, _ = ent:ValidateShipName(shipName)
+    WireLib.TriggerOutput(ent, "ShipNameValid", valid and 1 or 0)
+
+    -- Get ship data if available
+    if ent.ship then
+        WireLib.TriggerOutput(ent, "EntityCount", #ent.ship:GetEntities())
+        WireLib.TriggerOutput(ent, "PlayerCount", #ent.ship:GetPlayers())
+        WireLib.TriggerOutput(ent, "ShipMass", ent.ship:GetMass())
+    else
+        WireLib.TriggerOutput(ent, "EntityCount", 0)
+        WireLib.TriggerOutput(ent, "PlayerCount", 0)
+        WireLib.TriggerOutput(ent, "ShipMass", 0)
+    end
+
+    -- Resource system outputs
+    if HYPERDRIVE.SB3Resources then
+        local storage = HYPERDRIVE.SB3Resources.GetCoreStorage(ent)
+        if storage then
+            WireLib.TriggerOutput(ent, "ResourceSystemActive", 1)
+            WireLib.TriggerOutput(ent, "EnergyLevel", HYPERDRIVE.SB3Resources.GetResourcePercentage(ent, "energy"))
+            WireLib.TriggerOutput(ent, "OxygenLevel", HYPERDRIVE.SB3Resources.GetResourcePercentage(ent, "oxygen"))
+            WireLib.TriggerOutput(ent, "CoolantLevel", HYPERDRIVE.SB3Resources.GetResourcePercentage(ent, "coolant"))
+            WireLib.TriggerOutput(ent, "FuelLevel", HYPERDRIVE.SB3Resources.GetResourcePercentage(ent, "fuel"))
+            WireLib.TriggerOutput(ent, "WaterLevel", HYPERDRIVE.SB3Resources.GetResourcePercentage(ent, "water"))
+            WireLib.TriggerOutput(ent, "NitrogenLevel", HYPERDRIVE.SB3Resources.GetResourcePercentage(ent, "nitrogen"))
+            WireLib.TriggerOutput(ent, "ResourceEmergency", storage.emergencyMode and 1 or 0)
+
+            -- Calculate total resource capacity and amount
+            local totalCapacity = 0
+            local totalAmount = 0
+            for resourceType, capacity in pairs(storage.capacity) do
+                totalCapacity = totalCapacity + capacity
+                totalAmount = totalAmount + storage.resources[resourceType]
+            end
+            WireLib.TriggerOutput(ent, "TotalResourceCapacity", totalCapacity)
+            WireLib.TriggerOutput(ent, "TotalResourceAmount", totalAmount)
+        else
+            WireLib.TriggerOutput(ent, "ResourceSystemActive", 0)
+            WireLib.TriggerOutput(ent, "EnergyLevel", 0)
+            WireLib.TriggerOutput(ent, "OxygenLevel", 0)
+            WireLib.TriggerOutput(ent, "CoolantLevel", 0)
+            WireLib.TriggerOutput(ent, "FuelLevel", 0)
+            WireLib.TriggerOutput(ent, "WaterLevel", 0)
+            WireLib.TriggerOutput(ent, "NitrogenLevel", 0)
+            WireLib.TriggerOutput(ent, "ResourceEmergency", 0)
+            WireLib.TriggerOutput(ent, "TotalResourceCapacity", 0)
+            WireLib.TriggerOutput(ent, "TotalResourceAmount", 0)
+        end
+    else
+        WireLib.TriggerOutput(ent, "ResourceSystemActive", 0)
+        WireLib.TriggerOutput(ent, "EnergyLevel", 0)
+        WireLib.TriggerOutput(ent, "OxygenLevel", 0)
+        WireLib.TriggerOutput(ent, "CoolantLevel", 0)
+        WireLib.TriggerOutput(ent, "FuelLevel", 0)
+        WireLib.TriggerOutput(ent, "WaterLevel", 0)
+        WireLib.TriggerOutput(ent, "NitrogenLevel", 0)
+        WireLib.TriggerOutput(ent, "ResourceEmergency", 0)
+        WireLib.TriggerOutput(ent, "TotalResourceCapacity", 0)
+        WireLib.TriggerOutput(ent, "TotalResourceAmount", 0)
+    end
+
+    -- CAP integration outputs
+    WireLib.TriggerOutput(ent, "CAPIntegrationActive", ent:GetNWBool("CAPIntegrationActive", false) and 1 or 0)
+    WireLib.TriggerOutput(ent, "CAPShieldsDetected", ent:GetNWBool("CAPShieldsDetected", false) and 1 or 0)
+    WireLib.TriggerOutput(ent, "CAPEnergyDetected", ent:GetNWBool("CAPEnergyDetected", false) and 1 or 0)
+    WireLib.TriggerOutput(ent, "CAPResourcesDetected", ent:GetNWBool("CAPResourcesDetected", false) and 1 or 0)
+    WireLib.TriggerOutput(ent, "CAPEnergyLevel", ent:GetNWFloat("CAPEnergyLevel", 0))
+    WireLib.TriggerOutput(ent, "CAPShieldCount", ent:GetNWInt("CAPShieldCount", 0))
+    WireLib.TriggerOutput(ent, "CAPEntityCount", ent:GetNWInt("CAPEntityCount", 0))
+    WireLib.TriggerOutput(ent, "CAPVersion", ent:GetNWString("CAPVersion", "Unknown"))
+    WireLib.TriggerOutput(ent, "CAPStatus", ent:GetNWString("CAPStatus", "Unknown"))
 end
 
 -- Hook into entity initialization

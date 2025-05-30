@@ -28,6 +28,7 @@ util.AddNetworkString("hyperdrive_hyperspace_window")
 -- Computer network strings
 util.AddNetworkString("hyperdrive_computer")
 util.AddNetworkString("hyperdrive_computer_mode")
+util.AddNetworkString("hyperdrive_computer_command")
 util.AddNetworkString("hyperdrive_fleet_jump")
 util.AddNetworkString("hyperdrive_manual_jump")
 util.AddNetworkString("hyperdrive_save_waypoint")
@@ -40,6 +41,7 @@ util.AddNetworkString("hyperdrive_clear_planets")
 util.AddNetworkString("hyperdrive_auto_link_planets")
 util.AddNetworkString("hyperdrive_toggle_auto_link")
 util.AddNetworkString("hyperdrive_quick_jump_planet")
+util.AddNetworkString("hyperdrive_fleet_shields")
 
 -- Master engine network strings
 util.AddNetworkString("hyperdrive_master_interface")

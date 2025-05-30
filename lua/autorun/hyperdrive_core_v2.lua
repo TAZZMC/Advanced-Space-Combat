@@ -43,7 +43,36 @@ HYPERDRIVE.Core.Config = {
     -- Network features
     CrossServerJumps = false, -- Future feature
     CloudSave = false, -- Future feature
-    Telemetry = true
+    Telemetry = true,
+
+    -- Ship Core Integration (REQUIRED)
+    EnableShipCore = true,
+    AutoDetectShips = true,
+    RequireShipForJump = true,
+    RequireShipCore = true,
+    EnforceOneCorePerShip = true,
+    ShowFrontIndicator = true,
+    AutoFrontDetection = true,
+    MinimumShipSize = 5,
+
+    -- Shield Integration
+    EnableShields = true,
+    AutoActivateShields = true,
+    ShieldEnergyConsumption = 10,
+    ShieldAutoDeactivate = false,
+    ShieldProtectionLevel = 0.8,
+
+    -- CAP Integration
+    EnableCAPIntegration = true,
+    PreferCAPShields = true,
+    CAPFallbackEnabled = true,
+    CAPAutoDetection = true,
+
+    -- Hull Damage System
+    EnableHullDamage = true,
+    AutoCreateHullSystem = true,
+    HullDamageWireIntegration = true,
+    HullAutoRepair = true
 }
 
 -- Enhanced distance calculation with relativistic effects
@@ -338,14 +367,196 @@ function HYPERDRIVE.Core.Log(level, message, category, data)
     end
 end
 
+-- Ship Core Integration Functions
+function HYPERDRIVE.Core.GetShipFromEngine(engine)
+    if not IsValid(engine) then return nil end
+
+    if HYPERDRIVE.Core.Config.EnableShipCore and HYPERDRIVE.ShipCore then
+        return HYPERDRIVE.ShipCore.GetShipByEntity(engine)
+    end
+
+    return nil
+end
+
+function HYPERDRIVE.Core.ValidateShipForJump(engine)
+    -- Ship core is now REQUIRED for all hyperdrive operations
+    if not HYPERDRIVE.Core.Config.EnableShipCore then
+        return false, "Ship core system is required but disabled"
+    end
+
+    if not HYPERDRIVE.ShipCore then
+        return false, "Ship core system not loaded - hyperdrive requires ship core"
+    end
+
+    local ship = HYPERDRIVE.Core.GetShipFromEngine(engine)
+    if not ship then
+        return false, "No ship detected - hyperdrive requires a proper ship with ship core"
+    end
+
+    local entities = ship:GetEntities()
+    local minSize = HYPERDRIVE.Core.Config.MinimumShipSize or 5
+    if #entities < minSize then
+        return false, "Ship too small - minimum " .. minSize .. " entities required for hyperdrive operation"
+    end
+
+    -- Verify ship core is present and functional
+    if not ship.core or not IsValid(ship.core) then
+        return false, "Ship core missing or invalid - hyperdrive requires functional ship core"
+    end
+
+    -- ENFORCE: One core per ship validation
+    if HYPERDRIVE.Core.Config.EnforceOneCorePerShip and HYPERDRIVE.ShipCore.ValidateShipCoreUniqueness then
+        local valid, message = HYPERDRIVE.ShipCore.ValidateShipCoreUniqueness(ship.core)
+        if not valid then
+            return false, "Ship core conflict: " .. message
+        end
+    end
+
+    return true, "Ship validation passed - ship core detected and functional"
+end
+
+-- Shield Integration Functions
+function HYPERDRIVE.Core.GetShieldStatus(engine)
+    if not HYPERDRIVE.Core.Config.EnableShields or not HYPERDRIVE.Shields then
+        return { active = false, available = false }
+    end
+
+    return HYPERDRIVE.Shields.GetShieldStatus(engine)
+end
+
+function HYPERDRIVE.Core.ActivateShieldsForJump(engine)
+    if not HYPERDRIVE.Core.Config.AutoActivateShields then return false end
+    if not HYPERDRIVE.Shields then return false end
+
+    local ship = HYPERDRIVE.Core.GetShipFromEngine(engine)
+    if not ship then return false end
+
+    local success, message = HYPERDRIVE.Shields.ActivateShield(engine, ship)
+    if success then
+        HYPERDRIVE.Core.Log(3, "Auto-activated shields for jump", "SHIELDS")
+    end
+
+    return success
+end
+
+function HYPERDRIVE.Core.DeactivateShieldsAfterJump(engine)
+    if not HYPERDRIVE.Core.Config.ShieldAutoDeactivate then return false end
+    if not HYPERDRIVE.Shields then return false end
+
+    local success = HYPERDRIVE.Shields.DeactivateShield(engine)
+    if success then
+        HYPERDRIVE.Core.Log(3, "Auto-deactivated shields after jump", "SHIELDS")
+    end
+
+    return success
+end
+
+-- Hull Damage Integration Functions
+function HYPERDRIVE.Core.GetHullStatus(engine)
+    if not HYPERDRIVE.Core.Config.EnableHullDamage or not HYPERDRIVE.HullDamage then
+        return { integrity = 100, available = false }
+    end
+
+    local ship = HYPERDRIVE.Core.GetShipFromEngine(engine)
+    if not ship or not ship.core then return { integrity = 100, available = false } end
+
+    return HYPERDRIVE.HullDamage.GetHullStatus(ship.core)
+end
+
+function HYPERDRIVE.Core.CreateHullSystemForShip(engine)
+    if not HYPERDRIVE.Core.Config.AutoCreateHullSystem then return false end
+    if not HYPERDRIVE.HullDamage then return false end
+
+    local ship = HYPERDRIVE.Core.GetShipFromEngine(engine)
+    if not ship or not ship.core then return false end
+
+    local hull, message = HYPERDRIVE.HullDamage.CreateHullSystem(ship, ship.core)
+    if hull then
+        HYPERDRIVE.Core.Log(3, "Auto-created hull damage system for ship", "HULL")
+    end
+
+    return hull ~= nil
+end
+
+function HYPERDRIVE.Core.CheckHullIntegrityForJump(engine)
+    if not HYPERDRIVE.Core.Config.EnableHullDamage then return true end
+
+    local hullStatus = HYPERDRIVE.Core.GetHullStatus(engine)
+    if not hullStatus or not hullStatus.available then return true end
+
+    -- Prevent jump if hull integrity is too low
+    if hullStatus.integrityPercent and hullStatus.integrityPercent < 25 then
+        return false, "Hull integrity too low for hyperdrive operation (" .. string.format("%.1f", hullStatus.integrityPercent) .. "%)"
+    end
+
+    return true
+end
+
+-- Enhanced jump preparation with ship, shield, and hull integration
+function HYPERDRIVE.Core.PrepareForJump(engine, destination)
+    local issues = {}
+    local warnings = {}
+
+    -- Validate ship
+    local shipValid, shipMessage = HYPERDRIVE.Core.ValidateShipForJump(engine)
+    if not shipValid then
+        table.insert(issues, shipMessage)
+    end
+
+    -- Check shields
+    if HYPERDRIVE.Core.Config.EnableShields then
+        local shieldStatus = HYPERDRIVE.Core.GetShieldStatus(engine)
+        if shieldStatus.available and not shieldStatus.active then
+            if HYPERDRIVE.Core.Config.AutoActivateShields then
+                HYPERDRIVE.Core.ActivateShieldsForJump(engine)
+            else
+                table.insert(warnings, "Shields available but not active")
+            end
+        end
+    end
+
+    -- Check hull integrity
+    if HYPERDRIVE.Core.Config.EnableHullDamage then
+        local hullValid, hullMessage = HYPERDRIVE.Core.CheckHullIntegrityForJump(engine)
+        if not hullValid then
+            table.insert(issues, hullMessage)
+        end
+
+        local hullStatus = HYPERDRIVE.Core.GetHullStatus(engine)
+        if hullStatus.available then
+            if hullStatus.integrityPercent and hullStatus.integrityPercent < 50 then
+                table.insert(warnings, "Hull integrity low (" .. string.format("%.1f", hullStatus.integrityPercent) .. "%)")
+            end
+            if hullStatus.breaches and hullStatus.breaches > 0 then
+                table.insert(warnings, "Hull breaches detected (" .. hullStatus.breaches .. ")")
+            end
+            if hullStatus.systemFailures and hullStatus.systemFailures > 0 then
+                table.insert(warnings, "System failures detected (" .. hullStatus.systemFailures .. ")")
+            end
+        end
+    end
+
+    -- Standard safety checks
+    local safetyIssues, safetyWarnings = HYPERDRIVE.Core.SafetyCheck(engine, destination)
+    for _, issue in ipairs(safetyIssues) do
+        table.insert(issues, issue)
+    end
+    for _, warning in ipairs(safetyWarnings) do
+        table.insert(warnings, warning)
+    end
+
+    return issues, warnings
+end
+
 -- Initialize enhanced core system
 function HYPERDRIVE.Core.Initialize()
-    HYPERDRIVE.Core.Log(3, "Initializing Hyperdrive Core V2", "CORE")
+    HYPERDRIVE.Core.Log(3, "Initializing Hyperdrive Core V2 with Ship Core and Shield Integration", "CORE")
 
     -- Override base functions with enhanced versions
     HYPERDRIVE.GetDistance = HYPERDRIVE.Core.CalculateDistance
     HYPERDRIVE.CalculateEnergyCost = HYPERDRIVE.Core.CalculateEnergyCost
     HYPERDRIVE.IsValidDestination = HYPERDRIVE.Core.IsValidDestination
+    HYPERDRIVE.PrepareForJump = HYPERDRIVE.Core.PrepareForJump
 
     -- Set up performance monitoring
     timer.Create("HyperdrivePerformanceMonitor", 60, 0, function()
@@ -357,7 +568,19 @@ function HYPERDRIVE.Core.Initialize()
         end
     end)
 
-    HYPERDRIVE.Core.Log(3, "Hyperdrive Core V2 initialized successfully", "CORE")
+    -- Integration status
+    local integrations = {}
+    if HYPERDRIVE.Core.Config.EnableShipCore then
+        table.insert(integrations, "Ship Core")
+    end
+    if HYPERDRIVE.Core.Config.EnableShields then
+        table.insert(integrations, "Shields")
+    end
+    if HYPERDRIVE.Core.Config.EnableCAPIntegration then
+        table.insert(integrations, "CAP")
+    end
+
+    HYPERDRIVE.Core.Log(3, "Hyperdrive Core V2 initialized with integrations: " .. table.concat(integrations, ", "), "CORE")
 end
 
 -- Auto-initialize

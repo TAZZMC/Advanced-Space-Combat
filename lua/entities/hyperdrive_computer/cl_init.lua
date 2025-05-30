@@ -117,10 +117,44 @@ net.Receive("hyperdrive_computer", function()
                 energy = net.ReadFloat(),
                 cooldown = net.ReadFloat(),
                 charging = net.ReadBool(),
-                destination = net.ReadVector()
+                destination = net.ReadVector(),
+                shieldActive = net.ReadBool(),
+                shieldStrength = net.ReadFloat(),
+                shieldPercent = net.ReadFloat(),
+                shieldRecharging = net.ReadBool(),
+                shieldOverloaded = net.ReadBool(),
+                capIntegrated = net.ReadBool()
             }
         end
     end
+
+    -- Read ship information with core validation and hull damage
+    local shipDetected = net.ReadBool()
+    local shipInfo = {}
+    if shipDetected then
+        shipInfo = {
+            shipType = net.ReadString(),
+            entityCount = net.ReadInt(16),
+            playerCount = net.ReadInt(8),
+            mass = net.ReadFloat(),
+            center = net.ReadVector(),
+            frontDirection = net.ReadVector(),
+            frontIndicatorVisible = net.ReadBool(),
+            coreValid = net.ReadBool(),
+            coreMessage = net.ReadString(),
+            hullAvailable = net.ReadBool(),
+            hullIntegrity = net.ReadFloat(),
+            hullCritical = net.ReadBool(),
+            hullEmergency = net.ReadBool(),
+            hullBreaches = net.ReadInt(8),
+            hullSystemFailures = net.ReadInt(8),
+            hullAutoRepair = net.ReadBool(),
+            shipCoreUIAvailable = net.ReadBool()
+        }
+    end
+
+    computerInterface.shipInfo = shipInfo
+    computerInterface.shipDetected = shipDetected
 
     if IsValid(computer) then
         computer:OpenInterface(mode, engines)
@@ -209,22 +243,245 @@ end)
 
 -- Simple Navigation Mode
 function DrawSimpleNavigationMode(x, y, w, h)
-    draw.SimpleText("EASY NAVIGATION", "DermaDefaultBold", x, y, Color(100, 255, 100))
+    draw.SimpleText("NAVIGATION & SHIP STATUS", "DermaDefaultBold", x, y, Color(100, 255, 100))
 
     local engines = computerInterface.engines
-    local yOffset = 40
+    local yOffset = 30
 
-    -- Simple status
+    -- Ship Information Panel
+    if computerInterface.shipDetected and computerInterface.shipInfo then
+        local shipInfo = computerInterface.shipInfo
+
+        -- Check core validation status
+        local coreValid = shipInfo.coreValid ~= false -- Default to true if not specified
+        local panelColor = coreValid and Color(20, 40, 60, 150) or Color(60, 40, 20, 150)
+        local titleColor = coreValid and Color(0, 255, 0) or Color(255, 200, 0)
+        local titleText = coreValid and "SHIP DETECTED (SHIP CORE ACTIVE)" or "SHIP DETECTED (CORE CONFLICT)"
+
+        draw.RoundedBox(4, x, y + yOffset, w - 20, coreValid and 80 or 100, panelColor)
+        draw.SimpleText(titleText, "DermaDefaultBold", x + 10, y + yOffset + 5, titleColor)
+
+        draw.SimpleText("Type: " .. shipInfo.shipType, "DermaDefault", x + 10, y + yOffset + 25, Color(255, 255, 255))
+        draw.SimpleText("Entities: " .. shipInfo.entityCount, "DermaDefault", x + 200, y + yOffset + 25, Color(200, 200, 255))
+        draw.SimpleText("Players: " .. shipInfo.playerCount, "DermaDefault", x + 320, y + yOffset + 25, Color(200, 255, 200))
+
+        draw.SimpleText("Mass: " .. string.format("%.1f", shipInfo.mass), "DermaDefault", x + 10, y + yOffset + 45, Color(255, 200, 100))
+        draw.SimpleText("Front Indicator: " .. (shipInfo.frontIndicatorVisible and "VISIBLE" or "HIDDEN"), "DermaDefault", x + 200, y + yOffset + 45, shipInfo.frontIndicatorVisible and Color(0, 255, 0) or Color(200, 200, 200))
+
+        -- Show core validation message if there's an issue
+        if not coreValid and shipInfo.coreMessage then
+            draw.SimpleText("Core Status: " .. shipInfo.coreMessage, "DermaDefault", x + 10, y + yOffset + 65, Color(255, 150, 150))
+            draw.SimpleText("Remove duplicate ship cores to resolve", "DermaDefault", x + 10, y + yOffset + 80, Color(255, 200, 100))
+        end
+
+        -- Hull damage information
+        if shipInfo.hullAvailable then
+            yOffset = yOffset + (coreValid and 90 or 110)
+
+            local hullColor = Color(20, 60, 20, 150)
+            local hullTextColor = Color(0, 255, 0)
+            local hullHeight = 80
+
+            if shipInfo.hullEmergency then
+                hullColor = Color(80, 20, 20, 150)
+                hullTextColor = Color(255, 100, 100)
+                hullHeight = 100
+            elseif shipInfo.hullCritical then
+                hullColor = Color(60, 40, 20, 150)
+                hullTextColor = Color(255, 200, 100)
+                hullHeight = 90
+            elseif shipInfo.hullIntegrity < 75 then
+                hullColor = Color(40, 40, 20, 150)
+                hullTextColor = Color(255, 255, 100)
+            end
+
+            draw.RoundedBox(4, x, y + yOffset, w - 20, hullHeight, hullColor)
+
+            local hullTitle = "HULL INTEGRITY: " .. string.format("%.1f", shipInfo.hullIntegrity) .. "%"
+            if shipInfo.hullEmergency then
+                hullTitle = "HULL EMERGENCY: " .. string.format("%.1f", shipInfo.hullIntegrity) .. "%"
+            elseif shipInfo.hullCritical then
+                hullTitle = "HULL CRITICAL: " .. string.format("%.1f", shipInfo.hullIntegrity) .. "%"
+            end
+
+            draw.SimpleText(hullTitle, "DermaDefaultBold", x + 10, y + yOffset + 5, hullTextColor)
+
+            local statusLine1 = "Breaches: " .. shipInfo.hullBreaches .. " | System Failures: " .. shipInfo.hullSystemFailures
+            draw.SimpleText(statusLine1, "DermaDefault", x + 10, y + yOffset + 25, Color(255, 255, 255))
+
+            local statusLine2 = "Auto-Repair: " .. (shipInfo.hullAutoRepair and "ACTIVE" or "INACTIVE")
+            draw.SimpleText(statusLine2, "DermaDefault", x + 10, y + yOffset + 45, shipInfo.hullAutoRepair and Color(0, 255, 0) or Color(255, 100, 100))
+
+            if shipInfo.hullEmergency then
+                draw.SimpleText("EMERGENCY PROTOCOLS ACTIVE", "DermaDefault", x + 10, y + yOffset + 65, Color(255, 150, 150))
+                draw.SimpleText("Immediate repair required!", "DermaDefault", x + 10, y + yOffset + 80, Color(255, 200, 100))
+            elseif shipInfo.hullCritical then
+                draw.SimpleText("Critical hull damage detected", "DermaDefault", x + 10, y + yOffset + 65, Color(255, 200, 100))
+            end
+        end
+
+        -- Ship Core UI Button
+        if shipInfo.shipCoreUIAvailable then
+            yOffset = yOffset + (shipInfo.hullAvailable and 120 or 100)
+
+            local buttonColor = Color(50, 100, 150, 150)
+            local buttonHeight = 40
+
+            draw.RoundedBox(4, x, y + yOffset, w - 20, buttonHeight, buttonColor)
+            draw.SimpleText("OPEN SHIP CORE MANAGEMENT", "DermaDefaultBold", x + (w - 20)/2, y + yOffset + 20, Color(255, 255, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+            draw.SimpleText("Advanced ship systems control", "DermaDefault", x + (w - 20)/2, y + yOffset + 30, Color(200, 200, 200), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+
+            -- Handle click
+            local mouseX, mouseY = gui.MouseX(), gui.MouseY()
+            if mouseX >= x and mouseX <= x + w - 20 and mouseY >= y + yOffset and mouseY <= y + yOffset + buttonHeight then
+                if input.IsMouseDown(MOUSE_LEFT) and CurTime() - computerInterface.lastClick > 0.5 then
+                    computerInterface.lastClick = CurTime()
+                    -- Send request to open ship core UI
+                    net.Start("hyperdrive_computer_command")
+                    net.WriteEntity(computerInterface.entity)
+                    net.WriteString("open_ship_core_ui")
+                    net.SendToServer()
+                end
+            end
+        end
+
+        yOffset = yOffset + 90
+    else
+        draw.RoundedBox(4, x, y + yOffset, w - 20, 80, Color(60, 20, 20, 150))
+        draw.SimpleText("SHIP CORE REQUIRED", "DermaDefaultBold", x + 10, y + yOffset + 5, Color(255, 100, 100))
+        draw.SimpleText("Build a ship with ship core around the computer or engines", "DermaDefault", x + 10, y + yOffset + 20, Color(200, 200, 200))
+        draw.SimpleText("Ship core is MANDATORY for hyperdrive operation", "DermaDefault", x + 10, y + yOffset + 35, Color(255, 150, 150))
+        draw.SimpleText("Only ONE ship core per ship is allowed", "DermaDefault", x + 10, y + yOffset + 50, Color(255, 200, 100))
+        yOffset = yOffset + 50
+    end
+
+    -- Engine status with enhanced shield info
     local readyEngines = 0
+    local shieldedEngines = 0
+    local rechargingShields = 0
+    local overloadedShields = 0
+
     for _, engineData in ipairs(engines) do
         if IsValid(engineData.entity) and not engineData.charging and engineData.cooldown <= CurTime() then
             readyEngines = readyEngines + 1
+        end
+        if engineData.shieldActive then
+            shieldedEngines = shieldedEngines + 1
+            if engineData.shieldRecharging then
+                rechargingShields = rechargingShields + 1
+            end
+            if engineData.shieldOverloaded then
+                overloadedShields = overloadedShields + 1
+            end
         end
     end
 
     draw.SimpleText(string.format("Master Engines Ready: %d", readyEngines),
                    "DermaLarge", x, y + yOffset, Color(255, 255, 255))
-    yOffset = yOffset + 60
+    yOffset = yOffset + 25
+
+    -- Enhanced shield status
+    local shieldColor = Color(200, 200, 200)
+    if overloadedShields > 0 then
+        shieldColor = Color(255, 100, 100)
+    elseif rechargingShields > 0 then
+        shieldColor = Color(255, 255, 100)
+    elseif shieldedEngines > 0 then
+        shieldColor = Color(0, 255, 255)
+    end
+
+    draw.SimpleText(string.format("Shields Active: %d", shieldedEngines), "DermaDefault", x, y + yOffset, shieldColor)
+    if rechargingShields > 0 then
+        draw.SimpleText(string.format("(%d recharging)", rechargingShields), "DermaDefault", x + 150, y + yOffset, Color(255, 255, 100))
+    end
+    if overloadedShields > 0 then
+        draw.SimpleText(string.format("(%d overloaded)", overloadedShields), "DermaDefault", x + 250, y + yOffset, Color(255, 100, 100))
+    end
+    yOffset = yOffset + 30
+
+    -- Shield control buttons
+    local shieldActivateColor = Color(0, 120, 120)
+    local shieldActivateX, shieldActivateY = x, y + yOffset
+
+    if input.IsMouseDown(MOUSE_LEFT) and
+       gui.MouseX() >= shieldActivateX and gui.MouseX() <= shieldActivateX + 120 and
+       gui.MouseY() >= shieldActivateY and gui.MouseY() <= shieldActivateY + 25 then
+        shieldActivateColor = Color(0, 180, 180)
+
+        if CurTime() - computerInterface.lastUpdate > 0.2 then
+            computerInterface.lastUpdate = CurTime()
+            net.Start("hyperdrive_fleet_shields")
+            net.WriteEntity(computerInterface.entity)
+            net.WriteBool(true)
+            net.SendToServer()
+        end
+    end
+
+    draw.RoundedBox(4, shieldActivateX, shieldActivateY, 120, 25, shieldActivateColor)
+    draw.SimpleText("SHIELDS UP", "DermaDefault", shieldActivateX + 60, shieldActivateY + 12, Color(255, 255, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+
+    local shieldDeactivateColor = Color(120, 0, 0)
+    local shieldDeactivateX, shieldDeactivateY = x + 140, y + yOffset
+
+    if input.IsMouseDown(MOUSE_LEFT) and
+       gui.MouseX() >= shieldDeactivateX and gui.MouseX() <= shieldDeactivateX + 120 and
+       gui.MouseY() >= shieldDeactivateY and gui.MouseY() <= shieldDeactivateY + 25 then
+        shieldDeactivateColor = Color(180, 0, 0)
+
+        if CurTime() - computerInterface.lastUpdate > 0.2 then
+            computerInterface.lastUpdate = CurTime()
+            net.Start("hyperdrive_fleet_shields")
+            net.WriteEntity(computerInterface.entity)
+            net.WriteBool(false)
+            net.SendToServer()
+        end
+    end
+
+    draw.RoundedBox(4, shieldDeactivateX, shieldDeactivateY, 120, 25, shieldDeactivateColor)
+    draw.SimpleText("SHIELDS DOWN", "DermaDefault", shieldDeactivateX + 60, shieldDeactivateY + 12, Color(255, 255, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+
+    -- Ship control buttons
+    if computerInterface.shipDetected then
+        local frontIndicatorColor = Color(100, 100, 0)
+        local frontIndicatorX, frontIndicatorY = x + 280, y + yOffset
+
+        if input.IsMouseDown(MOUSE_LEFT) and
+           gui.MouseX() >= frontIndicatorX and gui.MouseX() <= frontIndicatorX + 120 and
+           gui.MouseY() >= frontIndicatorY and gui.MouseY() <= frontIndicatorY + 25 then
+            frontIndicatorColor = Color(150, 150, 0)
+
+            if CurTime() - computerInterface.lastUpdate > 0.2 then
+                computerInterface.lastUpdate = CurTime()
+                net.Start("hyperdrive_toggle_front_indicator")
+                net.WriteEntity(computerInterface.entity)
+                net.SendToServer()
+            end
+        end
+
+        draw.RoundedBox(4, frontIndicatorX, frontIndicatorY, 120, 25, frontIndicatorColor)
+        draw.SimpleText("FRONT ARROW", "DermaDefault", frontIndicatorX + 60, frontIndicatorY + 12, Color(255, 255, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+
+        local autoDetectColor = Color(0, 100, 100)
+        local autoDetectX, autoDetectY = x + 420, y + yOffset
+
+        if input.IsMouseDown(MOUSE_LEFT) and
+           gui.MouseX() >= autoDetectX and gui.MouseX() <= autoDetectX + 120 and
+           gui.MouseY() >= autoDetectY and gui.MouseY() <= autoDetectY + 25 then
+            autoDetectColor = Color(0, 150, 150)
+
+            if CurTime() - computerInterface.lastUpdate > 0.2 then
+                computerInterface.lastUpdate = CurTime()
+                net.Start("hyperdrive_auto_detect_front")
+                net.WriteEntity(computerInterface.entity)
+                net.SendToServer()
+            end
+        end
+
+        draw.RoundedBox(4, autoDetectX, autoDetectY, 120, 25, autoDetectColor)
+        draw.SimpleText("AUTO FRONT", "DermaDefault", autoDetectX + 60, autoDetectY + 12, Color(255, 255, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+    end
+
+    yOffset = yOffset + 40
 
     -- Simple instructions
     draw.SimpleText("How to Jump:", "DermaDefault", x, y + yOffset, Color(255, 255, 100))
@@ -380,17 +637,48 @@ function DrawSimplePlanetsMode(x, y, w, h)
     end
 end
 
--- Simple Status Mode (combines engineering + diagnostics)
+-- Simple Status Mode (combines engineering + diagnostics + shields)
 function DrawSimpleStatusMode(x, y, w, h)
-    draw.SimpleText("SYSTEM STATUS", "DermaDefaultBold", x, y, Color(255, 200, 100))
+    draw.SimpleText("SYSTEM & SHIELD STATUS", "DermaDefaultBold", x, y, Color(255, 200, 100))
 
     local engines = computerInterface.engines
-    local yOffset = 40
+    local yOffset = 30
 
-    -- Simple engine status
+    -- Ship status panel
+    if computerInterface.shipDetected and computerInterface.shipInfo then
+        local shipInfo = computerInterface.shipInfo
+
+        draw.RoundedBox(4, x, y + yOffset, w - 20, 100, Color(20, 40, 60, 150))
+        draw.SimpleText("SHIP ANALYSIS", "DermaDefaultBold", x + 10, y + yOffset + 5, Color(100, 255, 100))
+
+        draw.SimpleText("Ship Type: " .. shipInfo.shipType, "DermaDefault", x + 10, y + yOffset + 25, Color(255, 255, 255))
+        draw.SimpleText("Total Entities: " .. shipInfo.entityCount, "DermaDefault", x + 250, y + yOffset + 25, Color(200, 200, 255))
+        draw.SimpleText("Players Aboard: " .. shipInfo.playerCount, "DermaDefault", x + 400, y + yOffset + 25, Color(200, 255, 200))
+
+        draw.SimpleText("Ship Mass: " .. string.format("%.1f", shipInfo.mass), "DermaDefault", x + 10, y + yOffset + 45, Color(255, 200, 100))
+        draw.SimpleText("Front Indicator: " .. (shipInfo.frontIndicatorVisible and "VISIBLE" or "HIDDEN"), "DermaDefault", x + 250, y + yOffset + 45, shipInfo.frontIndicatorVisible and Color(0, 255, 0) or Color(200, 200, 200))
+
+        local frontDir = shipInfo.frontDirection
+        draw.SimpleText(string.format("Front Vector: %.2f, %.2f, %.2f", frontDir.x, frontDir.y, frontDir.z), "DermaDefault", x + 10, y + yOffset + 65, Color(200, 200, 255))
+
+        yOffset = yOffset + 110
+    else
+        draw.RoundedBox(4, x, y + yOffset, w - 20, 80, Color(60, 20, 20, 150))
+        draw.SimpleText("SHIP CORE REQUIRED", "DermaDefaultBold", x + 10, y + yOffset + 5, Color(255, 100, 100))
+        draw.SimpleText("Build a ship with ship core around the computer or engines", "DermaDefault", x + 10, y + yOffset + 20, Color(200, 200, 200))
+        draw.SimpleText("Ship core is MANDATORY for hyperdrive operation", "DermaDefault", x + 10, y + yOffset + 35, Color(255, 150, 150))
+        draw.SimpleText("Only ONE ship core per ship is allowed", "DermaDefault", x + 10, y + yOffset + 50, Color(255, 200, 100))
+        yOffset = yOffset + 50
+    end
+
+    -- Enhanced engine status
     local totalEngines = #engines
     local readyEngines = 0
     local chargingEngines = 0
+    local shieldedEngines = 0
+    local rechargingShields = 0
+    local overloadedShields = 0
+    local capShields = 0
 
     for _, engineData in ipairs(engines) do
         if IsValid(engineData.entity) then
@@ -399,19 +687,119 @@ function DrawSimpleStatusMode(x, y, w, h)
             elseif engineData.cooldown <= CurTime() then
                 readyEngines = readyEngines + 1
             end
+
+            -- Enhanced shield status tracking
+            if engineData.shieldActive then
+                shieldedEngines = shieldedEngines + 1
+                if engineData.shieldRecharging then
+                    rechargingShields = rechargingShields + 1
+                end
+                if engineData.shieldOverloaded then
+                    overloadedShields = overloadedShields + 1
+                end
+                if engineData.capIntegrated then
+                    capShields = capShields + 1
+                end
+            end
         end
     end
 
     draw.SimpleText("Master Engine Status:", "DermaDefault", x, y + yOffset, Color(255, 255, 255))
+    yOffset = yOffset + 25
+
+    draw.SimpleText("• Total Engines: " .. totalEngines, "DermaDefault", x + 20, y + yOffset, Color(200, 200, 200))
+    yOffset = yOffset + 20
+    draw.SimpleText("• Ready to Jump: " .. readyEngines, "DermaDefault", x + 20, y + yOffset, readyEngines > 0 and Color(0, 255, 0) or Color(255, 100, 100))
+    yOffset = yOffset + 20
+    draw.SimpleText("• Currently Charging: " .. chargingEngines, "DermaDefault", x + 20, y + yOffset, chargingEngines > 0 and Color(255, 255, 0) or Color(200, 200, 200))
+    yOffset = yOffset + 25
+
+    -- Enhanced shield status display
+    draw.SimpleText("Shield System Status:", "DermaDefault", x, y + yOffset, Color(100, 255, 255))
+    yOffset = yOffset + 25
+
+    local shieldStatusColor = Color(200, 200, 200)
+    if overloadedShields > 0 then
+        shieldStatusColor = Color(255, 100, 100)
+    elseif rechargingShields > 0 then
+        shieldStatusColor = Color(255, 255, 100)
+    elseif shieldedEngines > 0 then
+        shieldStatusColor = Color(0, 255, 255)
+    end
+
+    draw.SimpleText("• Shields Active: " .. shieldedEngines .. "/" .. totalEngines, "DermaDefault", x + 20, y + yOffset, shieldStatusColor)
+    yOffset = yOffset + 20
+
+    if rechargingShields > 0 then
+        draw.SimpleText("• Recharging: " .. rechargingShields, "DermaDefault", x + 20, y + yOffset, Color(255, 255, 100))
+        yOffset = yOffset + 20
+    end
+
+    if overloadedShields > 0 then
+        draw.SimpleText("• Overloaded: " .. overloadedShields, "DermaDefault", x + 20, y + yOffset, Color(255, 100, 100))
+        yOffset = yOffset + 20
+    end
+
+    if capShields > 0 then
+        draw.SimpleText("• CAP Integration: " .. capShields .. " shields", "DermaDefault", x + 20, y + yOffset, Color(100, 255, 100))
+        yOffset = yOffset + 20
+    end
+
+    local customShields = shieldedEngines - capShields
+    if customShields > 0 then
+        draw.SimpleText("• Custom Shields: " .. customShields .. " shields", "DermaDefault", x + 20, y + yOffset, Color(200, 200, 100))
+        yOffset = yOffset + 20
+    end
+
+    yOffset = yOffset + 50
+
+    -- Shield Control Panel
+    draw.SimpleText("Shield Control:", "DermaDefault", x, y + yOffset, Color(100, 255, 255))
     yOffset = yOffset + 30
 
-    draw.SimpleText("• Total Engines: " .. totalEngines, "DermaLarge", x + 20, y + yOffset, Color(200, 200, 200))
-    yOffset = yOffset + 30
-    draw.SimpleText("• Ready to Jump: " .. readyEngines, "DermaLarge", x + 20, y + yOffset, readyEngines > 0 and Color(0, 255, 0) or Color(255, 100, 100))
-    yOffset = yOffset + 30
-    draw.SimpleText("• Currently Charging: " .. chargingEngines, "DermaLarge", x + 20, y + yOffset, chargingEngines > 0 and Color(255, 255, 0) or Color(200, 200, 200))
+    -- Fleet Shield Activate Button
+    local activateColor = Color(0, 150, 0)
+    local activateX, activateY = x + 20, y + yOffset
 
-    yOffset = yOffset + 60
+    if input.IsMouseDown(MOUSE_LEFT) and
+       gui.MouseX() >= activateX and gui.MouseX() <= activateX + 150 and
+       gui.MouseY() >= activateY and gui.MouseY() <= activateY + 25 then
+        activateColor = Color(0, 200, 0)
+
+        if CurTime() - computerInterface.lastUpdate > 0.2 then
+            computerInterface.lastUpdate = CurTime()
+            net.Start("hyperdrive_fleet_shields")
+            net.WriteEntity(computerInterface.entity)
+            net.WriteBool(true) -- Activate
+            net.SendToServer()
+        end
+    end
+
+    draw.RoundedBox(4, activateX, activateY, 150, 25, activateColor)
+    draw.SimpleText("ACTIVATE FLEET", "DermaDefault", activateX + 75, activateY + 12, Color(255, 255, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+
+    -- Fleet Shield Deactivate Button
+    local deactivateColor = Color(150, 0, 0)
+    local deactivateX, deactivateY = x + 190, y + yOffset
+
+    if input.IsMouseDown(MOUSE_LEFT) and
+       gui.MouseX() >= deactivateX and gui.MouseX() <= deactivateX + 150 and
+       gui.MouseY() >= deactivateY and gui.MouseY() <= deactivateY + 25 then
+        deactivateColor = Color(200, 0, 0)
+
+        if CurTime() - computerInterface.lastUpdate > 0.2 then
+            computerInterface.lastUpdate = CurTime()
+            net.Start("hyperdrive_fleet_shields")
+            net.WriteEntity(computerInterface.entity)
+            net.WriteBool(false) -- Deactivate
+            net.SendToServer()
+        end
+    end
+
+    draw.RoundedBox(4, deactivateX, deactivateY, 150, 25, deactivateColor)
+    draw.SimpleText("DEACTIVATE FLEET", "DermaDefault", deactivateX + 75, deactivateY + 12, Color(255, 255, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+
+    yOffset = yOffset + 40
 
     -- Simple system status
     draw.SimpleText("Computer Status:", "DermaDefault", x, y + yOffset, Color(255, 255, 255))
@@ -422,8 +810,10 @@ function DrawSimpleStatusMode(x, y, w, h)
     draw.SimpleText("• Planet Detection: AUTO", "DermaDefault", x + 20, y + yOffset, Color(0, 255, 0))
     yOffset = yOffset + 25
     draw.SimpleText("• Auto-Link: ENABLED", "DermaDefault", x + 20, y + yOffset, Color(0, 255, 0))
+    yOffset = yOffset + 25
+    draw.SimpleText("• Shield System: " .. (shieldedEngines > 0 and "ACTIVE" or "STANDBY"), "DermaDefault", x + 20, y + yOffset, shieldedEngines > 0 and Color(0, 255, 255) or Color(200, 200, 200))
 
-    yOffset = yOffset + 50
+    yOffset = yOffset + 40
 
     -- Performance info
     local fps = math.floor(1 / FrameTime())
