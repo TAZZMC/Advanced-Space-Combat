@@ -1,9 +1,12 @@
--- Enhanced Hyperdrive System v2.1 - Spacebuild 3 Resource Core Integration
+-- Enhanced Hyperdrive System v2.2.1 - Spacebuild 3 Resource Core Integration
+-- COMPLETE CODE UPDATE v2.2.1 - ALL SYSTEMS INTEGRATED WITH STEAM WORKSHOP
 -- Ship core as central resource storage and distribution hub using official SB3 RD system
+-- Steam Workshop SB3 v3.2.0 Support: https://steamcommunity.com/sharedfiles/filedetails/?id=693838486
 
 if CLIENT then return end
 
-print("[Hyperdrive] Loading Spacebuild 3 Resource Core Integration...")
+print("[Hyperdrive SB3] COMPLETE CODE UPDATE v2.2.1 - SB3 Resource Core being updated")
+print("[Hyperdrive] Loading Spacebuild 3 Resource Core Integration with Steam Workshop support...")
 
 -- Initialize resource core system
 HYPERDRIVE.SB3Resources = HYPERDRIVE.SB3Resources or {}
@@ -926,9 +929,23 @@ end)
 function HYPERDRIVE.SB3Resources.HandleConstraintCreated(constraint)
     if not IsValid(constraint) then return end
 
-    -- Get entities connected by this constraint
-    local ent1 = constraint:GetConstrainedEntity(1)
-    local ent2 = constraint:GetConstrainedEntity(2)
+    -- Get entities connected by this constraint using the correct method
+    local ent1, ent2 = nil, nil
+
+    -- Try different methods to get constrained entities
+    if constraint.Ent1 and constraint.Ent2 then
+        ent1 = constraint.Ent1
+        ent2 = constraint.Ent2
+    elseif constraint.Entity1 and constraint.Entity2 then
+        ent1 = constraint.Entity1
+        ent2 = constraint.Entity2
+    elseif constraint.GetTable then
+        local constraintTable = constraint:GetTable()
+        if constraintTable then
+            ent1 = constraintTable.Ent1 or constraintTable.Entity1
+            ent2 = constraintTable.Ent2 or constraintTable.Entity2
+        end
+    end
 
     if not IsValid(ent1) or not IsValid(ent2) then return end
 

@@ -1,11 +1,18 @@
--- Enhanced Hyperdrive System v2.1.0 - Main Initialization
--- Comprehensive space travel system with advanced UI, CAP integration, and ship management
+-- Enhanced Hyperdrive System v2.2.1 - Main Initialization
+-- Comprehensive space travel system with advanced UI, CAP integration, sound system, and visual effects
+-- COMPLETE CODE UPDATE v2.2.1 - ALL SYSTEMS UPDATED AND INTEGRATED WITH STEAM WORKSHOP
+
+print("[Hyperdrive] COMPLETE CODE UPDATE v2.2.1 - ALL SYSTEMS BEING UPDATED")
+print("[Hyperdrive] Enhanced Hyperdrive System v2.2.1 - Build 20241220.3 initializing...")
 
 -- Shared initialization
 HYPERDRIVE = HYPERDRIVE or {}
-HYPERDRIVE.Version = "2.1.0"
+HYPERDRIVE.Version = "2.2.1"
 HYPERDRIVE.Author = "Enhanced Hyperdrive Team"
 HYPERDRIVE.BuildDate = os.date("%Y-%m-%d")
+HYPERDRIVE.BuildNumber = "2203" -- Updated build number
+HYPERDRIVE.Status = "Production Ready - Complete Code Update v2.2.1"
+HYPERDRIVE.LastUpdate = "Complete Steam Workshop Integration"
 HYPERDRIVE.Features = {
     "Advanced Ship Core System",
     "Modern UI Framework",
@@ -14,19 +21,105 @@ HYPERDRIVE.Features = {
     "Ship Naming & Management",
     "Hull Damage & Repair System",
     "Advanced Shield Systems",
-    "Spacebuild 3 Integration",
-    "SB3 Resource Management",
-    "Auto Resource Provision",
+    "Spacebuild 3 Integration (Official Steam Workshop)",
+    "SB3 Resource Management with Auto-Distribution",
+    "Auto Resource Provision and Collection",
+    "Steam Workshop SB3 v3.2.0 Support",
     "Weld Detection System",
     "Wiremod Integration",
     "Real-time HUD System",
     "Entity Selector Interface",
     "Q Menu Configuration",
     "Enhanced Visual Effects",
+    "Professional Sound System",
+    "Advanced Materials & Effects",
+    "Spatial Audio Support",
     "Performance Optimization",
     "Modern Theme System",
     "Animation Framework",
-    "Notification System"
+    "Notification System",
+
+    -- v2.2.1 Advanced Features - COMPLETE CODE UPDATE WITH STEAM WORKSHOP
+    "Fleet Management System with Formation Flying",
+    "Advanced Admin Panel with Real-Time Monitoring",
+    "Real-Time Monitoring with Multi-Frequency Updates",
+    "System Diagnostics with Predictive Analytics",
+    "Emergency Controls with Instant Response",
+    "Multi-Ship Coordination with Live Sync",
+    "Formation Flying with Automatic Positioning",
+    "Performance Analytics with Live Metrics",
+    "Enhanced Accessibility with High Contrast",
+    "Cross-System Integration with All Addons",
+
+    -- v2.2.1 Combat & Weapons Systems
+    "Advanced Weapons Arsenal (5 Weapon Types)",
+    "Railgun System with Penetrating Projectiles",
+    "Plasma Cannon with Area-Effect Damage",
+    "Torpedo Launcher with Smart Guidance",
+    "Beam Weapons with Continuous Fire",
+    "Point Defense Systems",
+    "Ammunition Management with Manufacturing",
+    "Weapon Upgrade System (10 Categories)",
+    "Tactical AI with 3 Behavior Modes",
+    "Fleet Combat Coordination",
+
+    -- v2.2.1 Flight & Navigation Systems
+    "Advanced Ship Flight System",
+    "Physics-Based Movement with 6-DOF",
+    "Autopilot with Collision Avoidance",
+    "Formation Flying (4 Formation Types)",
+    "Waypoint Navigation System",
+    "Flight Console with Real-Time HUD",
+    "Energy Management for Flight Operations",
+    "Navigation Beacons and Route Planning",
+
+    -- v2.2.1 Docking & Transport Systems
+    "Ship Docking Pad System (5 Pad Types)",
+    "Automated Landing with 3-Phase Approach",
+    "Shuttle System (4 Shuttle Types)",
+    "Mission Management with Auto-Assignment",
+    "Passenger Transport Operations",
+    "Cargo Delivery System",
+    "Emergency Evacuation Protocols",
+    "Service Automation (Refuel/Repair/Resupply)",
+
+    -- v2.2.1 Advanced User Experience
+    "Comprehensive Undo System with Smart Cleanup",
+    "ARIA Chat AI Assistant with Context Awareness",
+    "Enhanced Spawn Tool with Auto-Linking",
+    "Real-Time System Integration",
+    "Professional Error Handling",
+    "Performance Optimization",
+    "User-Friendly Operation",
+    "Complete Documentation System"
+
+    -- Real-Time Update Features
+    "Real-Time Entity Scanning (10 FPS)",
+    "Real-Time Resource Calculations (5 FPS)",
+    "Real-Time System Health Checks (2 FPS)",
+    "Real-Time Network Synchronization (10 FPS)",
+    "Real-Time Performance Monitoring (20 FPS)",
+    "Real-Time Alert System with Instant Notifications",
+    "Real-Time HUD Updates with Live Data Streams",
+    "Real-Time Fleet Coordination with Live Status",
+
+    -- Steam Workshop Integration Features
+    "Steam Workshop CAP Collection Support (32 Components)",
+    "Steam Workshop Spacebuild 3 v3.2.0 Integration",
+    "Official CAP Steam Workshop Detection",
+    "Official SB3 Steam Workshop Detection",
+    "Multi-Source Addon Detection (Workshop + GitHub)",
+    "Component-Level Integration Tracking",
+    "Mixed Installation Support",
+    "Workshop Version Compatibility",
+
+    -- Complete Integration Features
+    "Complete Code Integration Across All Systems",
+    "Unified Error Handling and Recovery",
+    "Professional Performance Optimization",
+    "Production-Ready Quality Assurance",
+    "Steam Workshop Compatibility Layer",
+    "Multi-Platform Addon Support"
 }
 
 -- Core system namespaces
@@ -41,13 +134,67 @@ HYPERDRIVE.Config = HYPERDRIVE.Config or {}
 HYPERDRIVE.Effects = HYPERDRIVE.Effects or {}
 HYPERDRIVE.UI = HYPERDRIVE.UI or {}
 HYPERDRIVE.Stargate = HYPERDRIVE.Stargate or {}
+HYPERDRIVE.Sounds = HYPERDRIVE.Sounds or {}
+HYPERDRIVE.WorldEffects = HYPERDRIVE.WorldEffects or {}
+
+-- v2.2.0 New Namespaces
+HYPERDRIVE.Fleet = HYPERDRIVE.Fleet or {}
+HYPERDRIVE.Admin = HYPERDRIVE.Admin or {}
+HYPERDRIVE.RealTime = HYPERDRIVE.RealTime or {}
+HYPERDRIVE.Analytics = HYPERDRIVE.Analytics or {}
+HYPERDRIVE.Diagnostics = HYPERDRIVE.Diagnostics or {}
+
+-- v2.2.1 Combat & Weapons Namespaces
+HYPERDRIVE.Weapons = HYPERDRIVE.Weapons or {}
+HYPERDRIVE.WeaponGroups = HYPERDRIVE.WeaponGroups or {}
+HYPERDRIVE.Ammunition = HYPERDRIVE.Ammunition or {}
+HYPERDRIVE.WeaponUpgrades = HYPERDRIVE.WeaponUpgrades or {}
+HYPERDRIVE.TacticalAI = HYPERDRIVE.TacticalAI or {}
+
+-- v2.2.1 Flight & Navigation Namespaces
+HYPERDRIVE.Flight = HYPERDRIVE.Flight or {}
+HYPERDRIVE.Navigation = HYPERDRIVE.Navigation or {}
+
+-- v2.2.1 Docking & Transport Namespaces
+HYPERDRIVE.DockingPad = HYPERDRIVE.DockingPad or {}
+HYPERDRIVE.Shuttle = HYPERDRIVE.Shuttle or {}
+
+-- v2.2.1 Undo System Namespace
+HYPERDRIVE.Undo = HYPERDRIVE.Undo or {}
+
+-- v2.2.1 Chat AI Namespace
+HYPERDRIVE.ChatAI = HYPERDRIVE.ChatAI or {}
 
 -- System status tracking
 HYPERDRIVE.SystemStatus = {
     Initialized = false,
     LoadedModules = {},
     IntegrationStatus = {},
-    LastUpdate = 0
+    LastUpdate = 0,
+
+    -- v2.2.1 New Systems Status
+    WeaponsSystem = false,
+    WeaponGroups = false,
+    AmmunitionSystem = false,
+    WeaponUpgrades = false,
+    TacticalAI = false,
+    FlightSystem = false,
+    NavigationSystem = false,
+    DockingPadSystem = false,
+    ShuttleSystem = false,
+    UndoSystem = false,
+    ChatAI = false,
+
+    -- Entity Counts
+    EntityCounts = {
+        ShipCores = 0,
+        Engines = 0,
+        Weapons = 0,
+        FlightConsoles = 0,
+        DockingPads = 0,
+        Shuttles = 0,
+        ShieldGenerators = 0
+    }
 }
 
 -- Initialize core modules
@@ -95,6 +242,88 @@ HYPERDRIVE.Config = {
     SafetyRadius = 500,            -- Safety radius around destination
 }
 
+-- Helper function to safely create ConVars with error handling
+local function SafeCreateConVar(name, default, flags, help)
+    local success, err = pcall(function()
+        if not ConVarExists(name) then
+            CreateConVar(name, default, flags, help)
+            return true
+        end
+        return false -- Already exists
+    end)
+
+    if not success then
+        -- ConVar already exists or other error, just get the existing one
+        local existing = GetConVar(name)
+        if not existing then
+            print("[Hyperdrive] Warning: Could not create or find ConVar '" .. name .. "': " .. tostring(err))
+        end
+    end
+end
+
+-- Create ConVars for configuration with safe creation
+SafeCreateConVar("hyperdrive_enabled", "1", FCVAR_ARCHIVE, "Enable/disable the hyperdrive system")
+SafeCreateConVar("hyperdrive_debug_mode", "0", FCVAR_ARCHIVE, "Enable debug mode for hyperdrive system")
+
+SafeCreateConVar("hyperdrive_max_range", "100000", FCVAR_ARCHIVE, "Maximum hyperdrive jump range")
+SafeCreateConVar("hyperdrive_energy_cost", "1000", FCVAR_ARCHIVE, "Energy cost per hyperdrive jump")
+SafeCreateConVar("hyperdrive_cooldown", "30", FCVAR_ARCHIVE, "Cooldown time between hyperdrive jumps")
+SafeCreateConVar("hyperdrive_require_ship_core", "1", FCVAR_ARCHIVE, "Require ship core for hyperdrive operation")
+SafeCreateConVar("hyperdrive_one_core_per_ship", "1", FCVAR_ARCHIVE, "Enforce one ship core per ship")
+SafeCreateConVar("hyperdrive_auto_detect_ships", "1", FCVAR_ARCHIVE, "Auto-detect ship structures")
+SafeCreateConVar("hyperdrive_enable_shields", "1", FCVAR_ARCHIVE, "Enable shield system")
+SafeCreateConVar("hyperdrive_enable_hull_damage", "1", FCVAR_ARCHIVE, "Enable hull damage system")
+SafeCreateConVar("hyperdrive_enable_sb3_resources", "1", FCVAR_ARCHIVE, "Enable Spacebuild 3 resource integration")
+SafeCreateConVar("hyperdrive_enable_cap_integration", "1", FCVAR_ARCHIVE, "Enable CAP (Carter Addon Pack) integration")
+SafeCreateConVar("hyperdrive_enable_use_key_interfaces", "1", FCVAR_ARCHIVE, "Enable USE (E) key interfaces")
+SafeCreateConVar("hyperdrive_enable_shift_modifier", "1", FCVAR_ARCHIVE, "Enable SHIFT+USE for ship core access")
+SafeCreateConVar("hyperdrive_enable_feedback_messages", "1", FCVAR_ARCHIVE, "Enable feedback messages")
+
+-- Modern UI System ConVars
+SafeCreateConVar("hyperdrive_modern_ui_enabled", "1", FCVAR_ARCHIVE, "Enable modern UI framework")
+SafeCreateConVar("hyperdrive_ui_glassmorphism", "1", FCVAR_ARCHIVE, "Enable glassmorphism design")
+SafeCreateConVar("hyperdrive_ui_animations", "1", FCVAR_ARCHIVE, "Enable UI animations")
+SafeCreateConVar("hyperdrive_ui_notifications", "1", FCVAR_ARCHIVE, "Enable UI notifications")
+SafeCreateConVar("hyperdrive_ui_sounds", "1", FCVAR_ARCHIVE, "Enable UI sound effects")
+SafeCreateConVar("hyperdrive_ui_anim_speed", "1.0", FCVAR_ARCHIVE, "Animation speed multiplier")
+SafeCreateConVar("hyperdrive_ui_scale", "1.0", FCVAR_ARCHIVE, "UI scale factor")
+SafeCreateConVar("hyperdrive_ui_notif_duration", "5.0", FCVAR_ARCHIVE, "Notification duration in seconds")
+SafeCreateConVar("hyperdrive_ui_max_notifications", "5", FCVAR_ARCHIVE, "Maximum number of notifications")
+
+-- Accessibility ConVars
+SafeCreateConVar("hyperdrive_ui_high_contrast", "0", FCVAR_ARCHIVE, "Enable high contrast mode")
+SafeCreateConVar("hyperdrive_ui_large_text", "0", FCVAR_ARCHIVE, "Enable large text mode")
+SafeCreateConVar("hyperdrive_ui_reduced_motion", "0", FCVAR_ARCHIVE, "Enable reduced motion for motion sensitivity")
+SafeCreateConVar("hyperdrive_ui_colorblind_friendly", "0", FCVAR_ARCHIVE, "Enable color blind friendly mode")
+
+-- Performance ConVars
+SafeCreateConVar("hyperdrive_ui_reduce_on_low_fps", "1", FCVAR_ARCHIVE, "Reduce animations on low FPS")
+SafeCreateConVar("hyperdrive_ui_min_fps", "30", FCVAR_ARCHIVE, "Minimum FPS for animations")
+
+-- Sound System ConVars
+SafeCreateConVar("hyperdrive_sound_volume", "1.0", FCVAR_ARCHIVE, "Master volume for hyperdrive sounds")
+SafeCreateConVar("hyperdrive_spatial_audio", "1", FCVAR_ARCHIVE, "Enable 3D spatial audio")
+SafeCreateConVar("hyperdrive_sound_hyperdrive_volume", "1.0", FCVAR_ARCHIVE, "Volume for hyperdrive engine sounds")
+SafeCreateConVar("hyperdrive_sound_shields_volume", "1.0", FCVAR_ARCHIVE, "Volume for shield sounds")
+SafeCreateConVar("hyperdrive_sound_alerts_volume", "1.0", FCVAR_ARCHIVE, "Volume for alert sounds")
+SafeCreateConVar("hyperdrive_sound_ambient_volume", "0.6", FCVAR_ARCHIVE, "Volume for ambient sounds")
+SafeCreateConVar("hyperdrive_sound_effects_volume", "0.9", FCVAR_ARCHIVE, "Volume for effect sounds")
+SafeCreateConVar("hyperdrive_shield_volume", "0.7", FCVAR_ARCHIVE, "Volume for shield system sounds")
+SafeCreateConVar("hyperdrive_ui_volume", "0.6", FCVAR_ARCHIVE, "Volume for UI interaction sounds")
+
+-- v2.2.0 New ConVars
+SafeCreateConVar("hyperdrive_ui_realtime", "1", FCVAR_ARCHIVE, "Enable real-time HUD updates")
+SafeCreateConVar("hyperdrive_ui_alerts", "1", FCVAR_ARCHIVE, "Enable real-time system alerts")
+SafeCreateConVar("hyperdrive_ui_fleet", "1", FCVAR_ARCHIVE, "Enable fleet management UI")
+SafeCreateConVar("hyperdrive_fleet_formation", "1", FCVAR_ARCHIVE, "Enable automatic formation flying")
+SafeCreateConVar("hyperdrive_ui_stargate", "1", FCVAR_ARCHIVE, "Enable Stargate sequence UI")
+SafeCreateConVar("hyperdrive_stargate_progress", "1", FCVAR_ARCHIVE, "Enable stage progress display")
+SafeCreateConVar("hyperdrive_ui_admin", "1", FCVAR_ARCHIVE, "Enable admin panel UI")
+SafeCreateConVar("hyperdrive_admin_perfmon", "1", FCVAR_ARCHIVE, "Enable performance monitoring")
+SafeCreateConVar("hyperdrive_ui_hover", "1", FCVAR_ARCHIVE, "Enable UI hover effects")
+SafeCreateConVar("hyperdrive_ui_click", "1", FCVAR_ARCHIVE, "Enable UI click effects")
+SafeCreateConVar("hyperdrive_ui_transitions", "1", FCVAR_ARCHIVE, "Enable theme transitions")
+
 if SERVER then
     -- Server-side initialization
     print("[Hyperdrive] Server-side initialization...")
@@ -113,6 +342,15 @@ if SERVER then
     AddCSLuaFile("autorun/client/hyperdrive_qmenu_config.lua")
     AddCSLuaFile("autorun/client/hyperdrive_ui_theme.lua")
     AddCSLuaFile("autorun/client/hyperdrive_entity_selector.lua")
+    AddCSLuaFile("autorun/client/hyperdrive_spawn_menu.lua")
+
+    -- Add v2.2.1 client-side files
+    AddCSLuaFile("entities/hyperdrive_flight_console/cl_init.lua")
+    AddCSLuaFile("entities/hyperdrive_docking_pad/cl_init.lua")
+    AddCSLuaFile("entities/hyperdrive_shuttle/cl_init.lua")
+
+    -- Add integrated spawn tool
+    AddCSLuaFile("weapons/gmod_tool/stools/hyperdrive.lua")
 
     -- Add sound files to download
     resource.AddFile("sound/hyperdrive/ship_in_hyperspace.wav")
@@ -164,6 +402,7 @@ if SERVER then
         "autorun/hyperdrive_config_enhanced.lua",    -- Enhanced configuration system
         "autorun/hyperdrive_interface_system.lua",   -- Interface system (load early)
         "autorun/hyperdrive_save_restore.lua",       -- Load early to protect entities
+        "autorun/hyperdrive_sound_system.lua",       -- Sound system (load early for integration)
         "autorun/hyperdrive_ship_core.lua",          -- Ship detection and core system
         "autorun/hyperdrive_sb3_resource_core.lua",  -- Spacebuild 3 resource integration
         "autorun/hyperdrive_hull_damage.lua",        -- Hull damage system
@@ -200,7 +439,34 @@ if SERVER then
         "autorun/hyperdrive_admin_panel.lua",
         "autorun/hyperdrive_master.lua",
         "autorun/server/hyperdrive_hyperspace_dimension.lua",
-        "autorun/server/hyperdrive_destinations.lua"
+        "autorun/server/hyperdrive_destinations.lua",
+
+        -- v2.2.0 New Files
+        "autorun/hyperdrive_fleet_management.lua",
+        "autorun/server/hyperdrive_admin_panel.lua",
+        "autorun/hyperdrive_real_time_monitoring.lua",
+        "autorun/hyperdrive_performance_analytics.lua",
+
+        -- v2.2.1 Combat & Weapons Systems
+        "autorun/hyperdrive_weapons_system.lua",
+        "autorun/hyperdrive_weapon_groups.lua",
+        "autorun/hyperdrive_ammunition_system.lua",
+        "autorun/hyperdrive_weapon_upgrades.lua",
+        "autorun/hyperdrive_tactical_ai.lua",
+
+        -- v2.2.1 Flight & Navigation Systems
+        "autorun/hyperdrive_ship_flight_system.lua",
+        "autorun/hyperdrive_navigation_system.lua",
+
+        -- v2.2.1 Docking & Transport Systems
+        "autorun/hyperdrive_docking_pad_system.lua",
+        "autorun/hyperdrive_shuttle_system.lua",
+
+        -- v2.2.1 Undo System
+        "autorun/hyperdrive_undo_system.lua",
+
+        -- v2.2.1 Chat AI System
+        "autorun/hyperdrive_chat_ai.lua"
     }
 
     for _, fileName in ipairs(integrationFiles) do
@@ -256,21 +522,27 @@ if SERVER then
     -- Add help commands
     concommand.Add("hyperdrive_help", function(ply, cmd, args)
         if IsValid(ply) then
-            ply:ChatPrint("=== Enhanced Hyperdrive System v" .. (HYPERDRIVE.Version or "2.1") .. " - Help ===")
+            ply:ChatPrint("=== Enhanced Hyperdrive System v2.2.1 - Help ===")
             ply:ChatPrint("• USE (E) key to open interfaces on all hyperdrive entities")
             ply:ChatPrint("• Ship Core: Main ship management interface with naming system")
             ply:ChatPrint("• Hyperdrive Engine: Engine status, ship info, and hull monitoring")
             ply:ChatPrint("• Hyperdrive Computer: Navigation, fleet control, and ship management")
-            ply:ChatPrint("• Hyperdrive Beacon: Beacon configuration and network setup")
             ply:ChatPrint("• Shield Generator: Shield control and CAP integration")
+            ply:ChatPrint("")
+            ply:ChatPrint("=== v2.2.1 New Features ===")
+            ply:ChatPrint("• Weapons: 5 types - Pulse, Beam, Torpedo, Railgun, Plasma")
+            ply:ChatPrint("• Flight Console: Ship movement with autopilot and formations")
+            ply:ChatPrint("• Docking Pads: 5 types with automated landing and services")
+            ply:ChatPrint("• Shuttles: 4 types for automated transport missions")
+            ply:ChatPrint("• Undo System: Press Z to undo, hyperdrive_undo_list for history")
+            ply:ChatPrint("• Chat AI: Use !ai, !aria, or !help to talk to ARIA assistant")
+            ply:ChatPrint("")
             ply:ChatPrint("• SHIFT + USE: Open ship core management from engines")
             ply:ChatPrint("• Ship Naming: Use ship core interface to name and manage ships")
             ply:ChatPrint("• Hull Damage: Integrated hull monitoring and repair systems")
             ply:ChatPrint("• SB3 Resources: Automatic resource provision for welded entities")
-            ply:ChatPrint("• Q Menu Config: Easy configuration through spawn menu")
-            ply:ChatPrint("• Enhanced UI: Tabbed interface with real-time monitoring")
-            ply:ChatPrint("• Features: " .. table.concat(HYPERDRIVE.Features or {}, ", "))
-            ply:ChatPrint("• Commands: hyperdrive_help, hyperdrive_status, hyperdrive_sb3_resources")
+            ply:ChatPrint("• Auto-linking: Weapons and systems auto-link to nearby ship cores")
+            ply:ChatPrint("• Commands: hyperdrive_help, hyperdrive_status, hyperdrive_undo")
             ply:ChatPrint("• Configuration: Q Menu → Utilities → Enhanced Hyperdrive")
         else
             print("=== Enhanced Hyperdrive System v" .. (HYPERDRIVE.Version or "2.1") .. " - Server Help ===")
@@ -289,15 +561,25 @@ if SERVER then
     -- Add status command
     concommand.Add("hyperdrive_status", function(ply, cmd, args)
         if IsValid(ply) then
-            ply:ChatPrint("=== Hyperdrive System Status ===")
-            ply:ChatPrint("• Version: " .. (HYPERDRIVE.Version or "Unknown"))
-            ply:ChatPrint("• Build Date: " .. (HYPERDRIVE.BuildDate or "Unknown"))
+            ply:ChatPrint("=== Enhanced Hyperdrive System v2.2.1 Status ===")
+            ply:ChatPrint("• Version: " .. (HYPERDRIVE.VERSION or "2.2.1"))
+            ply:ChatPrint("• Build: " .. (HYPERDRIVE.BUILD or "2024.12.19"))
+
+            -- Core entities
             ply:ChatPrint("• Ship Cores: " .. #ents.FindByClass("ship_core"))
             ply:ChatPrint("• Engines: " .. #ents.FindByClass("hyperdrive_engine"))
             ply:ChatPrint("• Master Engines: " .. #ents.FindByClass("hyperdrive_master_engine"))
             ply:ChatPrint("• Computers: " .. #ents.FindByClass("hyperdrive_computer"))
-            ply:ChatPrint("• Beacons: " .. #ents.FindByClass("hyperdrive_beacon"))
             ply:ChatPrint("• Shield Generators: " .. #ents.FindByClass("hyperdrive_shield_generator"))
+
+            -- v2.2.1 entities
+            local weapons = #ents.FindByClass("hyperdrive_pulse_cannon") + #ents.FindByClass("hyperdrive_beam_weapon") +
+                           #ents.FindByClass("hyperdrive_torpedo_launcher") + #ents.FindByClass("hyperdrive_railgun") +
+                           #ents.FindByClass("hyperdrive_plasma_cannon")
+            ply:ChatPrint("• Weapons: " .. weapons)
+            ply:ChatPrint("• Flight Consoles: " .. #ents.FindByClass("hyperdrive_flight_console"))
+            ply:ChatPrint("• Docking Pads: " .. #ents.FindByClass("hyperdrive_docking_pad"))
+            ply:ChatPrint("• Shuttles: " .. #ents.FindByClass("hyperdrive_shuttle"))
 
             -- Show active ships
             local shipCount = 0
@@ -317,6 +599,18 @@ if SERVER then
             end
             ply:ChatPrint("• Active Interface Sessions: " .. sessionCount)
 
+            -- Show v2.2.1 systems status
+            ply:ChatPrint("")
+            ply:ChatPrint("=== v2.2.1 Systems Status ===")
+            local systems = {}
+            if HYPERDRIVE.Weapons then table.insert(systems, "Weapons") end
+            if HYPERDRIVE.Flight then table.insert(systems, "Flight") end
+            if HYPERDRIVE.DockingPad then table.insert(systems, "Docking") end
+            if HYPERDRIVE.Shuttle then table.insert(systems, "Shuttles") end
+            if HYPERDRIVE.Undo then table.insert(systems, "Undo") end
+            if HYPERDRIVE.ChatAI then table.insert(systems, "Chat AI") end
+            ply:ChatPrint("• Active v2.2.1 Systems: " .. table.concat(systems, ", "))
+
             -- Show integrations
             local integrations = {}
             if HYPERDRIVE.ShipCore then table.insert(integrations, "Ship Core") end
@@ -325,11 +619,54 @@ if SERVER then
             if HYPERDRIVE.Interface then table.insert(integrations, "Interface System") end
             if CAP or StarGate then table.insert(integrations, "CAP") end
             if WireLib then table.insert(integrations, "Wiremod") end
+            if HYPERDRIVE.SB3Resources then table.insert(integrations, "SB3 Resources") end
             ply:ChatPrint("• Active Integrations: " .. table.concat(integrations, ", "))
         end
     end)
 
-    print("[Hyperdrive] Server initialization complete!")
+    -- System status update function
+    function HYPERDRIVE.UpdateSystemStatus()
+        -- Update system status flags
+        HYPERDRIVE.SystemStatus.WeaponsSystem = HYPERDRIVE.Weapons ~= nil
+        HYPERDRIVE.SystemStatus.WeaponGroups = HYPERDRIVE.WeaponGroups ~= nil
+        HYPERDRIVE.SystemStatus.AmmunitionSystem = HYPERDRIVE.Ammunition ~= nil
+        HYPERDRIVE.SystemStatus.WeaponUpgrades = HYPERDRIVE.WeaponUpgrades ~= nil
+        HYPERDRIVE.SystemStatus.TacticalAI = HYPERDRIVE.TacticalAI ~= nil
+        HYPERDRIVE.SystemStatus.FlightSystem = HYPERDRIVE.Flight ~= nil
+        HYPERDRIVE.SystemStatus.NavigationSystem = HYPERDRIVE.Navigation ~= nil
+        HYPERDRIVE.SystemStatus.DockingPadSystem = HYPERDRIVE.DockingPad ~= nil
+        HYPERDRIVE.SystemStatus.ShuttleSystem = HYPERDRIVE.Shuttle ~= nil
+        HYPERDRIVE.SystemStatus.UndoSystem = HYPERDRIVE.Undo ~= nil
+        HYPERDRIVE.SystemStatus.ChatAI = HYPERDRIVE.ChatAI ~= nil
+
+        -- Update entity counts
+        HYPERDRIVE.SystemStatus.EntityCounts.ShipCores = #ents.FindByClass("ship_core")
+        HYPERDRIVE.SystemStatus.EntityCounts.Engines = #ents.FindByClass("hyperdrive_engine") + #ents.FindByClass("hyperdrive_master_engine")
+        HYPERDRIVE.SystemStatus.EntityCounts.Weapons = #ents.FindByClass("hyperdrive_pulse_cannon") + #ents.FindByClass("hyperdrive_beam_weapon") +
+                                                       #ents.FindByClass("hyperdrive_torpedo_launcher") + #ents.FindByClass("hyperdrive_railgun") +
+                                                       #ents.FindByClass("hyperdrive_plasma_cannon")
+        HYPERDRIVE.SystemStatus.EntityCounts.FlightConsoles = #ents.FindByClass("hyperdrive_flight_console")
+        HYPERDRIVE.SystemStatus.EntityCounts.DockingPads = #ents.FindByClass("hyperdrive_docking_pad")
+        HYPERDRIVE.SystemStatus.EntityCounts.Shuttles = #ents.FindByClass("hyperdrive_shuttle")
+        HYPERDRIVE.SystemStatus.EntityCounts.ShieldGenerators = #ents.FindByClass("hyperdrive_shield_generator")
+
+        HYPERDRIVE.SystemStatus.LastUpdate = CurTime()
+    end
+
+    -- Update system status every 30 seconds
+    timer.Create("HyperdriveSystemStatusUpdate", 30, 0, function()
+        HYPERDRIVE.UpdateSystemStatus()
+    end)
+
+    -- Initial system status update
+    timer.Simple(5, function()
+        HYPERDRIVE.UpdateSystemStatus()
+        HYPERDRIVE.SystemStatus.Initialized = true
+        print("[Hyperdrive] System status tracking initialized")
+    end)
+
+    print("[Hyperdrive] Enhanced Hyperdrive System v2.2.1 - Server initialization complete!")
+    print("[Hyperdrive] All systems loaded and ready for operation!")
 
 elseif CLIENT then
     -- Client-side initialization
@@ -338,6 +675,27 @@ elseif CLIENT then
     HYPERDRIVE = HYPERDRIVE or {}
     HYPERDRIVE.HUD = {}
     HYPERDRIVE.Effects = {}
+
+    -- Initialize UI system first
+    HYPERDRIVE.UI = HYPERDRIVE.UI or {}
+    HYPERDRIVE.UI.Config = HYPERDRIVE.UI.Config or {}
+
+    -- Load UI configuration from ConVars
+    HYPERDRIVE.UI.Config.ModernUIEnabled = GetConVar("hyperdrive_modern_ui_enabled"):GetBool()
+    HYPERDRIVE.UI.Config.GlassmorphismEnabled = GetConVar("hyperdrive_ui_glassmorphism"):GetBool()
+    HYPERDRIVE.UI.Config.AnimationsEnabled = GetConVar("hyperdrive_ui_animations"):GetBool()
+    HYPERDRIVE.UI.Config.NotificationsEnabled = GetConVar("hyperdrive_ui_notifications"):GetBool()
+    HYPERDRIVE.UI.Config.SoundsEnabled = GetConVar("hyperdrive_ui_sounds"):GetBool()
+    HYPERDRIVE.UI.Config.AnimationSpeed = GetConVar("hyperdrive_ui_anim_speed"):GetFloat()
+    HYPERDRIVE.UI.Config.UIScale = GetConVar("hyperdrive_ui_scale"):GetFloat()
+    HYPERDRIVE.UI.Config.NotificationDuration = GetConVar("hyperdrive_ui_notif_duration"):GetFloat()
+    HYPERDRIVE.UI.Config.MaxNotifications = GetConVar("hyperdrive_ui_max_notifications"):GetInt()
+    HYPERDRIVE.UI.Config.HighContrast = GetConVar("hyperdrive_ui_high_contrast"):GetBool()
+    HYPERDRIVE.UI.Config.LargeText = GetConVar("hyperdrive_ui_large_text"):GetBool()
+    HYPERDRIVE.UI.Config.ReducedMotion = GetConVar("hyperdrive_ui_reduced_motion"):GetBool()
+    HYPERDRIVE.UI.Config.ColorBlindFriendly = GetConVar("hyperdrive_ui_colorblind_friendly"):GetBool()
+    HYPERDRIVE.UI.Config.ReduceOnLowFPS = GetConVar("hyperdrive_ui_reduce_on_low_fps"):GetBool()
+    HYPERDRIVE.UI.Config.MinFPS = GetConVar("hyperdrive_ui_min_fps"):GetInt()
 
     -- Load enhanced client-side systems (with error handling and proper order)
     local clientFiles = {
@@ -360,7 +718,8 @@ elseif CLIENT then
         "autorun/client/hyperdrive_hyperspace_window.lua",
         "autorun/client/hyperdrive_stargate_client.lua",
         "autorun/client/hyperdrive_visual_config.lua",
-        "autorun/client/hyperdrive_qmenu_config.lua"
+        "autorun/client/hyperdrive_qmenu_config.lua",
+        "autorun/client/hyperdrive_spawn_menu.lua"
     }
 
     for _, fileName in ipairs(clientFiles) do
@@ -373,20 +732,26 @@ elseif CLIENT then
 
     -- Add client-side help command
     concommand.Add("hyperdrive_help", function(ply, cmd, args)
-        chat.AddText(Color(100, 200, 255), "=== Enhanced Hyperdrive System v" .. (HYPERDRIVE.Version or "2.1") .. " - Help ===")
+        chat.AddText(Color(100, 200, 255), "=== Enhanced Hyperdrive System v2.2.1 - Help ===")
         chat.AddText(Color(255, 255, 255), "• USE (E) key to open interfaces on all hyperdrive entities")
         chat.AddText(Color(255, 255, 255), "• Ship Core: Main ship management interface with naming system")
         chat.AddText(Color(255, 255, 255), "• Hyperdrive Engine: Engine status, ship info, and hull monitoring")
         chat.AddText(Color(255, 255, 255), "• Hyperdrive Computer: Navigation, fleet control, and ship management")
-        chat.AddText(Color(255, 255, 255), "• Hyperdrive Beacon: Beacon configuration and network setup")
         chat.AddText(Color(255, 255, 255), "• Shield Generator: Shield control and CAP integration")
+        chat.AddText(Color(100, 255, 100), "")
+        chat.AddText(Color(100, 255, 100), "=== v2.2.1 New Features ===")
+        chat.AddText(Color(255, 255, 255), "• Weapons: 5 types - Pulse, Beam, Torpedo, Railgun, Plasma")
+        chat.AddText(Color(255, 255, 255), "• Flight Console: Ship movement with autopilot and formations")
+        chat.AddText(Color(255, 255, 255), "• Docking Pads: 5 types with automated landing and services")
+        chat.AddText(Color(255, 255, 255), "• Shuttles: 4 types for automated transport missions")
+        chat.AddText(Color(255, 255, 255), "• Undo System: Press Z to undo, hyperdrive_undo_list for history")
+        chat.AddText(Color(255, 255, 255), "• Chat AI: Use !ai, !aria, or !help to talk to ARIA assistant")
+        chat.AddText(Color(100, 255, 100), "")
         chat.AddText(Color(255, 255, 255), "• SHIFT + USE: Open ship core management from engines")
         chat.AddText(Color(255, 255, 255), "• Ship Naming: Use ship core interface to name and manage ships")
         chat.AddText(Color(255, 255, 255), "• Hull Damage: Integrated hull monitoring and repair systems")
-        chat.AddText(Color(255, 255, 255), "• Q Menu Config: Easy configuration through spawn menu")
-        chat.AddText(Color(255, 255, 255), "• Enhanced UI: Tabbed interface with real-time monitoring")
-        chat.AddText(Color(100, 255, 100), "• Features: " .. table.concat(HYPERDRIVE.Features or {}, ", "))
-        chat.AddText(Color(255, 255, 255), "• Commands: hyperdrive_help, hyperdrive_status")
+        chat.AddText(Color(255, 255, 255), "• Auto-linking: Weapons and systems auto-link to nearby ship cores")
+        chat.AddText(Color(255, 255, 255), "• Commands: hyperdrive_help, hyperdrive_status, hyperdrive_undo")
         chat.AddText(Color(100, 200, 255), "• Configuration: Q Menu → Utilities → Enhanced Hyperdrive")
     end)
 

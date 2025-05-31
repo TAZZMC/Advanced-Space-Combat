@@ -1,0 +1,263 @@
+// Advanced Space Combat - Sound Definitions
+// Sound files for weapons, engines, and effects
+
+// Ancient Technology Sounds
+"asc.weapons.ancient_drone_fire"
+{
+	"channel"		"CHAN_WEAPON"
+	"volume"		"0.8"
+	"pitch"			"100"
+	"soundlevel"	"SNDLVL_GUNFIRE"
+	"wave"			"asc/weapons/ancient_drone_fire.wav"
+}
+
+"asc.weapons.ancient_drone_impact"
+{
+	"channel"		"CHAN_STATIC"
+	"volume"		"0.7"
+	"pitch"			"100"
+	"soundlevel"	"SNDLVL_NORM"
+	"wave"			"asc/weapons/ancient_drone_impact.wav"
+}
+
+"asc.weapons.ancient_drone_explode"
+{
+	"channel"		"CHAN_STATIC"
+	"volume"		"0.6"
+	"pitch"			"100"
+	"soundlevel"	"SNDLVL_NORM"
+	"wave"			"asc/weapons/ancient_drone_explode.wav"
+}
+
+"asc.weapons.ancient_explosion"
+{
+	"channel"		"CHAN_STATIC"
+	"volume"		"1.0"
+	"pitch"			"100"
+	"soundlevel"	"SNDLVL_120dB"
+	"wave"			"asc/weapons/ancient_explosion.wav"
+}
+
+// Asgard Technology Sounds
+"asc.weapons.asgard_ion_fire"
+{
+	"channel"		"CHAN_WEAPON"
+	"volume"		"0.9"
+	"pitch"			"100"
+	"soundlevel"	"SNDLVL_GUNFIRE"
+	"wave"			"asc/weapons/asgard_ion_fire.wav"
+}
+
+"asc.weapons.asgard_plasma_fire"
+{
+	"channel"		"CHAN_WEAPON"
+	"volume"		"0.8"
+	"pitch"			"100"
+	"soundlevel"	"SNDLVL_GUNFIRE"
+	"wave"			"asc/weapons/asgard_plasma_fire.wav"
+}
+
+"asc.weapons.asgard_beam"
+{
+	"channel"		"CHAN_WEAPON"
+	"volume"		"0.7"
+	"pitch"			"100"
+	"soundlevel"	"SNDLVL_GUNFIRE"
+	"wave"			"asc/weapons/asgard_beam.wav"
+}
+
+// Goa'uld Technology Sounds
+"asc.weapons.goauld_staff_fire"
+{
+	"channel"		"CHAN_WEAPON"
+	"volume"		"0.8"
+	"pitch"			"100"
+	"soundlevel"	"SNDLVL_GUNFIRE"
+	"wave"			"asc/weapons/goauld_staff_fire.wav"
+}
+
+"asc.weapons.goauld_ribbon_fire"
+{
+	"channel"		"CHAN_WEAPON"
+	"volume"		"0.6"
+	"pitch"			"100"
+	"soundlevel"	"SNDLVL_TALKING"
+	"wave"			"asc/weapons/goauld_ribbon_fire.wav"
+}
+
+"asc.weapons.goauld_hand_device"
+{
+	"channel"		"CHAN_WEAPON"
+	"volume"		"0.7"
+	"pitch"			"100"
+	"soundlevel"	"SNDLVL_TALKING"
+	"wave"			"asc/weapons/goauld_hand_device.wav"
+}
+
+// Wraith Technology Sounds
+"asc.weapons.wraith_dart_fire"
+{
+	"channel"		"CHAN_WEAPON"
+	"volume"		"0.8"
+	"pitch"			"100"
+	"soundlevel"	"SNDLVL_GUNFIRE"
+	"wave"			"asc/weapons/wraith_dart_fire.wav"
+}
+
+"asc.weapons.wraith_culling_beam"
+{
+	"channel"		"CHAN_WEAPON"
+	"volume"		"0.9"
+	"pitch"			"100"
+	"soundlevel"	"SNDLVL_GUNFIRE"
+	"wave"			"asc/weapons/wraith_culling_beam.wav"
+}
+
+// Ori Technology Sounds
+"asc.weapons.ori_pulse_fire"
+{
+	"channel"		"CHAN_WEAPON"
+	"volume"		"0.9"
+	"pitch"			"100"
+	"soundlevel"	"SNDLVL_GUNFIRE"
+	"wave"			"asc/weapons/ori_pulse_fire.wav"
+}
+
+"asc.weapons.ori_beam_fire"
+{
+	"channel"		"CHAN_WEAPON"
+	"volume"		"0.8"
+	"pitch"			"100"
+	"soundlevel"	"SNDLVL_GUNFIRE"
+	"wave"			"asc/weapons/ori_beam_fire.wav"
+}
+
+"asc.weapons.ori_satellite_fire"
+{
+	"channel"		"CHAN_WEAPON"
+	"volume"		"1.0"
+	"pitch"			"100"
+	"soundlevel"	"SNDLVL_120dB"
+	"wave"			"asc/weapons/ori_satellite_fire.wav"
+}
+
+// Tau'ri Technology Sounds
+"asc.weapons.tauri_railgun_fire"
+{
+	"channel"		"CHAN_WEAPON"
+	"volume"		"0.9"
+	"pitch"			"100"
+	"soundlevel"	"SNDLVL_GUNFIRE"
+	"wave"			"asc/weapons/tauri_railgun_fire.wav"
+}
+
+"asc.weapons.tauri_nuke_launch"
+{
+	"channel"		"CHAN_WEAPON"
+	"volume"		"0.8"
+	"pitch"			"100"
+	"soundlevel"	"SNDLVL_GUNFIRE"
+	"wave"			"asc/weapons/tauri_nuke_launch.wav"
+}
+
+"asc.weapons.tauri_nuke_explode"
+{
+	"channel"		"CHAN_STATIC"
+	"volume"		"1.0"
+	"pitch"			"100"
+	"soundlevel"	"SNDLVL_120dB"
+	"wave"			"asc/weapons/tauri_nuke_explode.wav"
+}
+
+// Shield Sounds
+"asc.shields.ancient_activate"
+{
+	"channel"		"CHAN_STATIC"
+	"volume"		"0.7"
+	"pitch"			"100"
+	"soundlevel"	"SNDLVL_NORM"
+	"wave"			"asc/shields/ancient_activate.wav"
+}
+
+"asc.shields.ancient_hit"
+{
+	"channel"		"CHAN_STATIC"
+	"volume"		"0.6"
+	"pitch"			"100"
+	"soundlevel"	"SNDLVL_NORM"
+	"wave"			"asc/shields/ancient_hit.wav"
+}
+
+"asc.shields.asgard_activate"
+{
+	"channel"		"CHAN_STATIC"
+	"volume"		"0.7"
+	"pitch"			"100"
+	"soundlevel"	"SNDLVL_NORM"
+	"wave"			"asc/shields/asgard_activate.wav"
+}
+
+"asc.shields.goauld_activate"
+{
+	"channel"		"CHAN_STATIC"
+	"volume"		"0.6"
+	"pitch"			"100"
+	"soundlevel"	"SNDLVL_NORM"
+	"wave"			"asc/shields/goauld_activate.wav"
+}
+
+// Engine Sounds
+"asc.engines.hyperdrive_charge"
+{
+	"channel"		"CHAN_STATIC"
+	"volume"		"0.8"
+	"pitch"			"100"
+	"soundlevel"	"SNDLVL_NORM"
+	"wave"			"asc/engines/hyperdrive_charge.wav"
+}
+
+"asc.engines.hyperdrive_jump"
+{
+	"channel"		"CHAN_STATIC"
+	"volume"		"1.0"
+	"pitch"			"100"
+	"soundlevel"	"SNDLVL_120dB"
+	"wave"			"asc/engines/hyperdrive_jump.wav"
+}
+
+"asc.engines.ancient_hyperdrive"
+{
+	"channel"		"CHAN_STATIC"
+	"volume"		"0.9"
+	"pitch"			"100"
+	"soundlevel"	"SNDLVL_NORM"
+	"wave"			"asc/engines/ancient_hyperdrive.wav"
+}
+
+// UI Sounds
+"asc.ui.button_click"
+{
+	"channel"		"CHAN_STATIC"
+	"volume"		"0.5"
+	"pitch"			"100"
+	"soundlevel"	"SNDLVL_TALKING"
+	"wave"			"asc/ui/button_click.wav"
+}
+
+"asc.ui.interface_open"
+{
+	"channel"		"CHAN_STATIC"
+	"volume"		"0.6"
+	"pitch"			"100"
+	"soundlevel"	"SNDLVL_TALKING"
+	"wave"			"asc/ui/interface_open.wav"
+}
+
+"asc.ui.notification"
+{
+	"channel"		"CHAN_STATIC"
+	"volume"		"0.4"
+	"pitch"			"100"
+	"soundlevel"	"SNDLVL_TALKING"
+	"wave"			"asc/ui/notification.wav"
+}

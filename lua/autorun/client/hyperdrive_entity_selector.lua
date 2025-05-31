@@ -1,7 +1,11 @@
--- Enhanced Hyperdrive System - Modern Entity Selector Interface
--- Provides an intuitive interface for selecting and managing hyperdrive entities
+-- Enhanced Hyperdrive System - Modern Entity Selector Interface v2.2.1
+-- COMPLETE CODE UPDATE v2.2.1 - ALL SYSTEMS INTEGRATED WITH STEAM WORKSHOP
+-- Provides an intuitive interface for selecting and managing hyperdrive entities with Steam Workshop addon support
 
 if SERVER then return end
+
+print("[Hyperdrive Selector] COMPLETE CODE UPDATE v2.2.1 - Entity Selector being updated")
+print("[Hyperdrive Selector] Steam Workshop CAP and SB3 entity detection active")
 
 -- Entity Selector System
 HYPERDRIVE.EntitySelector = HYPERDRIVE.EntitySelector or {}
@@ -540,4 +544,14 @@ hook.Add("Think", "HyperdriveEntitySelectorUpdate", function()
     end
 end)
 
-print("[Hyperdrive] Modern entity selector interface loaded")
+-- Initialize the entity selector system
+timer.Simple(0.1, function()
+    if HYPERDRIVE and HYPERDRIVE.EntitySelector then
+        HYPERDRIVE.EntitySelector.Initialized = true
+        print("[Hyperdrive] Enhanced Entity Selector v2.2.0 initialized successfully")
+    else
+        print("[Hyperdrive] Warning: Entity selector system failed to initialize - HYPERDRIVE.EntitySelector not available")
+    end
+end)
+
+print("[Hyperdrive] Enhanced Entity Selector v2.2.0 loaded")

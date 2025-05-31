@@ -1,11 +1,11 @@
 "AddonInfo"
 {
-	"name"			"Hyperdrive System"
-	"version"		"1.0"
-	"up_date"		"2024"
-	"author_name"	"avariss"
+	"name"			"Advanced Space Combat"
+	"version"		"2.2.1"
+	"up_date"		"19/12/2024"
+	"author_name"	"Advanced Space Combat Team"
 	"author_email"	""
 	"author_url"	""
-	"info"			"Advanced hyperdrive system for space travel in Garry's Mod. Includes hyperdrive engines, destination management, and spectacular jump effects."
+	"info"			"Complete space combat simulation with advanced ships, weapons, flight systems, and AI"
 	"override"		"0"
 }

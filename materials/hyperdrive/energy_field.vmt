@@ -1,0 +1,27 @@
+"UnlitGeneric"
+{
+	"$basetexture" "hyperdrive/energy_field"
+	"$additive" "1"
+	"$vertexcolor" "1"
+	"$vertexalpha" "1"
+	"$translucent" "1"
+	"$nocull" "1"
+	"$ignorez" "1"
+	
+	"Proxies"
+	{
+		"TextureScroll"
+		{
+			"texturescrollvar" "$basetexturetransform"
+			"texturescrollrate" "0.2"
+			"texturescrollangle" "45"
+		}
+		"Sine"
+		{
+			"sineperiod" "3"
+			"sinemin" "0.4"
+			"sinemax" "1.0"
+			"resultvar" "$alpha"
+		}
+	}
+}

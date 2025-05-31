@@ -1,7 +1,12 @@
--- Master Hyperdrive Engine - ALL FEATURES COMBINED
+-- Master Hyperdrive Engine v2.2.1 - ALL FEATURES COMBINED
+-- COMPLETE CODE UPDATE v2.2.1 - ALL SYSTEMS INTEGRATED WITH STEAM WORKSHOP
+-- Enhanced with fleet management, real-time monitoring, CAP Steam Workshop, and SB3 Steam Workshop integration
 AddCSLuaFile("cl_init.lua")
 AddCSLuaFile("shared.lua")
 include("shared.lua")
+
+print("[Hyperdrive Master] COMPLETE CODE UPDATE v2.2.1 - Master Engine being updated")
+print("[Hyperdrive Master] Steam Workshop CAP and SB3 integration active")
 
 function ENT:Initialize()
     self:SetModel("models/props_phx/construct/metal_plate_curve360x2.mdl")
@@ -72,7 +77,12 @@ function ENT:Initialize()
     self.LastUse = 0
     self.Owner = nil
 
-    print("[Hyperdrive Master] Engine initialized with ALL features")
+    -- v2.2.0 Initialize new systems
+    self:InitializeFleetManagement()
+    self:InitializeRealTimeMonitoring()
+    self:InitializePerformanceAnalytics()
+
+    print("[Hyperdrive Master] Engine initialized with ALL features including v2.2.0")
 end
 
 function ENT:SetupDataTables()
@@ -269,7 +279,32 @@ function ENT:UpdateSystemIntegration()
     if self.IntegrationData.stargate.active then
         integrationCount = integrationCount + 1
         if HYPERDRIVE.Stargate then
-            local techBonus = HYPERDRIVE.Stargate.GetTechBonus(self:GetTechLevel())
+            -- Calculate tech bonus based on tech level
+            local techLevel = self:GetTechLevel() or 0
+            local techBonus = 1.0
+
+            -- Use GetTechBonus if available, otherwise calculate manually
+            if HYPERDRIVE.Stargate.GetTechBonus and type(HYPERDRIVE.Stargate.GetTechBonus) == "function" then
+                local success, result = pcall(HYPERDRIVE.Stargate.GetTechBonus, techLevel)
+                if success and result then
+                    techBonus = result
+                else
+                    -- Fallback calculation
+                    techBonus = 1.0 + (techLevel * 0.1) -- 10% bonus per tech level
+                end
+            else
+                -- Manual tech bonus calculation
+                if techLevel >= 5 then
+                    techBonus = 1.5 -- Ancient tech level
+                elseif techLevel >= 3 then
+                    techBonus = 1.3 -- Advanced tech level
+                elseif techLevel >= 1 then
+                    techBonus = 1.1 -- Basic tech level
+                else
+                    techBonus = 1.0 -- No tech bonus
+                end
+            end
+
             efficiency = efficiency * techBonus
         end
     end
@@ -334,21 +369,50 @@ end
 function ENT:UpdateStargateSystems()
     if not HYPERDRIVE.Stargate then return end
 
-    local sgData = HYPERDRIVE.Stargate.HasStargateTech(self)
+    -- Safely get Stargate tech data
+    local sgData = {}
+    if HYPERDRIVE.Stargate.HasStargateTech and type(HYPERDRIVE.Stargate.HasStargateTech) == "function" then
+        local success, result = pcall(HYPERDRIVE.Stargate.HasStargateTech, self)
+        if success and result then
+            sgData = result
+        else
+            -- Fallback data structure
+            sgData = {
+                active = false,
+                techLevel = 0,
+                hasNaquadah = false,
+                powerLevel = 0,
+                hasGate = false
+            }
+        end
+    else
+        -- Manual detection fallback
+        sgData = {
+            active = StarGate ~= nil,
+            techLevel = 0,
+            hasNaquadah = false,
+            powerLevel = 0,
+            hasGate = false
+        }
+    end
+
     self.IntegrationData.stargate = sgData
 
-    self:SetTechLevel(sgData.techLevel)
+    self:SetTechLevel(sgData.techLevel or 0)
     self:SetNaquadahLevel(sgData.hasNaquadah and 100 or 0)
-    self:SetZPMPower(sgData.powerLevel)
+    self:SetZPMPower(sgData.powerLevel or 0)
 
     -- Find gate address
     if sgData.hasGate then
         local nearbyGates = ents.FindInSphere(self:GetPos(), 1000)
         for _, ent in ipairs(nearbyGates) do
             if IsValid(ent) and string.find(ent:GetClass(), "stargate") then
-                if ent.GetAddress then
-                    self:SetGateAddress(ent:GetAddress() or "")
-                    break
+                if ent.GetAddress and type(ent.GetAddress) == "function" then
+                    local success, address = pcall(ent.GetAddress, ent)
+                    if success and address then
+                        self:SetGateAddress(address)
+                        break
+                    end
                 end
             end
         end
@@ -432,7 +496,13 @@ function ENT:CanOperateMaster()
 
     -- Stargate checks
     if self.IntegrationData.stargate.active and HYPERDRIVE.Stargate then
-        if HYPERDRIVE.Stargate.Config.RequireNaquadah and self:GetNaquadahLevel() <= 0 then
+        -- Safely check Stargate configuration
+        local requireNaquadah = false
+        if HYPERDRIVE.Stargate.Config and HYPERDRIVE.Stargate.Config.RequireNaquadah then
+            requireNaquadah = HYPERDRIVE.Stargate.Config.RequireNaquadah
+        end
+
+        if requireNaquadah and self:GetNaquadahLevel() <= 0 then
             table.insert(issues, "SG: No naquadah")
         end
     end
@@ -508,6 +578,28 @@ function ENT:StartJumpMaster()
     self:SetCharging(true)
     self:SetJumpReady(false)
 
+    -- Play charging start sound
+    if HYPERDRIVE.Sounds then
+        HYPERDRIVE.Sounds.PlayHyperdrive("charge_start", self, {
+            volume = 0.8,
+            pitch = 100,
+            soundLevel = 80
+        })
+
+        -- Start charge loop sound after a brief delay
+        timer.Simple(1, function()
+            if IsValid(self) and self:GetCharging() then
+                self.chargeLoopSoundId = HYPERDRIVE.Sounds.PlayHyperdrive("charge_loop", self, {
+                    volume = 0.6,
+                    pitch = 100,
+                    loop = true,
+                    soundLevel = 75,
+                    category = "hyperdrive"
+                })
+            end
+        end)
+    end
+
     -- Auto-activate shields if available
     if HYPERDRIVE.Core and HYPERDRIVE.Core.ActivateShieldsForJump then
         HYPERDRIVE.Core.ActivateShieldsForJump(self)
@@ -520,8 +612,10 @@ function ENT:StartJumpMaster()
     if HYPERDRIVE.WorldEffects and ship then
         HYPERDRIVE.WorldEffects.CreateChargingEffects(self, ship)
     else
-        -- Fallback sound effect
-        self:EmitSound("ambient/energy/whiteflash.wav", 75, 100)
+        -- Fallback sound effect (only if sound system not available)
+        if not HYPERDRIVE.Sounds then
+            self:EmitSound("ambient/energy/whiteflash.wav", 75, 100)
+        end
     end
 
     -- Call hook for other systems
@@ -533,6 +627,20 @@ function ENT:StartJumpMaster()
 
     timer.Create("hyperdrive_master_jump_" .. self:EntIndex(), chargeTime, 1, function()
         if IsValid(self) then
+            -- Stop charge loop sound and play charge complete
+            if HYPERDRIVE.Sounds then
+                if self.chargeLoopSoundId then
+                    HYPERDRIVE.Sounds.StopSound(self.chargeLoopSoundId)
+                    self.chargeLoopSoundId = nil
+                end
+
+                HYPERDRIVE.Sounds.PlayHyperdrive("charge_complete", self, {
+                    volume = 0.9,
+                    pitch = 100,
+                    soundLevel = 85
+                })
+            end
+
             self:ExecuteJumpMaster()
         end
     end)
@@ -872,10 +980,27 @@ function ENT:ExecuteJumpMaster()
     local ship = HYPERDRIVE.Core and HYPERDRIVE.Core.GetShipFromEngine(self)
     hook.Call("HyperdriveJumpComplete", nil, self, ship)
 
-    -- Enhanced arrival sound
+    -- Enhanced arrival sound and effects
     timer.Simple(0.1, function()
         if IsValid(self) then
-            self:EmitSound("ambient/energy/zap9.wav", 85, 140)
+            if HYPERDRIVE.Sounds then
+                HYPERDRIVE.Sounds.PlayHyperdrive("jump_exit", self, {
+                    volume = 1.0,
+                    pitch = 100,
+                    soundLevel = 90
+                })
+            else
+                -- Fallback sound
+                self:EmitSound("ambient/energy/zap9.wav", 85, 140)
+            end
+
+            -- Create arrival visual effect
+            if HYPERDRIVE.WorldEffects and HYPERDRIVE.WorldEffects.CreateArrivalEffects then
+                local ship = HYPERDRIVE.Core and HYPERDRIVE.Core.GetShipFromEngine(self) or self.Ship
+                if ship then
+                    HYPERDRIVE.WorldEffects.CreateArrivalEffects(self, ship)
+                end
+            end
         end
     end)
 end
@@ -1559,3 +1684,129 @@ if SERVER then
         ply:ChatPrint("[Hyperdrive Master] " .. message)
     end)
 end
+
+-- v2.2.0 New initialization functions
+function ENT:InitializeFleetManagement()
+    -- Initialize fleet management capabilities
+    self.FleetID = 0
+    self.FleetRole = ""
+    self.FleetData = {}
+
+    -- Set up fleet network variables
+    self:SetNWInt("FleetID", 0)
+    self:SetNWString("FleetRole", "")
+    self:SetNWBool("FleetCapable", true)
+
+    print("[Hyperdrive Master] Fleet management initialized")
+end
+
+function ENT:InitializeRealTimeMonitoring()
+    -- Initialize real-time monitoring system
+    self.RealTimeMonitoring = true
+    self.LastRealTimeUpdate = 0
+    self.RealTimeUpdateRate = 0.05 -- 20 FPS
+    self.SystemAlerts = {}
+
+    -- Set up real-time network variables
+    self:SetNWBool("RealTimeMonitoring", true)
+    self:SetNWFloat("LastUpdate", CurTime())
+    self:SetNWString("SystemStatus", "Operational")
+
+    -- Start real-time monitoring timer
+    timer.Create("hyperdrive_realtime_" .. self:EntIndex(), self.RealTimeUpdateRate, 0, function()
+        if IsValid(self) then
+            self:UpdateRealTimeData()
+        else
+            timer.Remove("hyperdrive_realtime_" .. self:EntIndex())
+        end
+    end)
+
+    print("[Hyperdrive Master] Real-time monitoring initialized")
+end
+
+function ENT:InitializePerformanceAnalytics()
+    -- Initialize performance analytics
+    self.PerformanceMetrics = {
+        jumpsCompleted = 0,
+        totalEnergyUsed = 0,
+        averageJumpTime = 0,
+        systemUptime = CurTime(),
+        lastJumpTime = 0,
+        efficiency = 1.0
+    }
+
+    -- Set up performance network variables
+    self:SetNWInt("JumpsCompleted", 0)
+    self:SetNWFloat("TotalEnergyUsed", 0)
+    self:SetNWFloat("AverageJumpTime", 0)
+    self:SetNWFloat("SystemUptime", CurTime())
+
+    print("[Hyperdrive Master] Performance analytics initialized")
+end
+
+function ENT:UpdateRealTimeData()
+    -- Update real-time monitoring data
+    local currentTime = CurTime()
+
+    -- Update system status
+    local status = "Operational"
+    if self:GetCharging() then
+        status = "Charging"
+    elseif self:GetCooldown() > currentTime then
+        status = "Cooldown"
+    elseif self:GetEnergy() < 100 then
+        status = "Low Energy"
+    end
+
+    self:SetNWString("SystemStatus", status)
+    self:SetNWFloat("LastUpdate", currentTime)
+
+    -- Update performance metrics
+    local uptime = currentTime - self.PerformanceMetrics.systemUptime
+    self:SetNWFloat("SystemUptime", uptime)
+
+    -- Check for system alerts
+    self:CheckSystemAlerts()
+
+    self.LastRealTimeUpdate = currentTime
+end
+
+function ENT:CheckSystemAlerts()
+    -- Check for various system alerts
+    local alerts = {}
+
+    -- Energy alerts
+    local energyPercent = (self:GetEnergy() / 1000) * 100
+    if energyPercent < 10 then
+        table.insert(alerts, {type = "critical", message = "Energy critically low"})
+    elseif energyPercent < 25 then
+        table.insert(alerts, {type = "warning", message = "Energy low"})
+    end
+
+    -- Temperature alerts
+    if self:GetTemperature() > 90 then
+        table.insert(alerts, {type = "critical", message = "Temperature critical"})
+    elseif self:GetTemperature() > 70 then
+        table.insert(alerts, {type = "warning", message = "Temperature high"})
+    end
+
+    -- Coolant alerts
+    if self:GetCoolantLevel() < 10 then
+        table.insert(alerts, {type = "warning", message = "Coolant low"})
+    end
+
+    -- Update alerts
+    self.SystemAlerts = alerts
+    self:SetNWInt("AlertCount", #alerts)
+
+    -- Send critical alerts to admins
+    if #alerts > 0 then
+        for _, alert in ipairs(alerts) do
+            if alert.type == "critical" and HYPERDRIVE.Admin then
+                HYPERDRIVE.Admin.NotifyAdmins("Hyperdrive Engine Alert: " .. alert.message, "error")
+            end
+        end
+    end
+end
+
+print("[Hyperdrive Master] Master Engine with ALL features including v2.2.0 loaded")

@@ -28,6 +28,25 @@ HYPERDRIVE.Stargate.Config = {
         InitiationEffects = true,       -- Enable energy surge and vibration effects
         InitiationSounds = true,        -- Enable charging sound effects
         ShowCoordinateCalculation = true, -- Display coordinate calculation process
+
+        -- Stage 2: Window Opening
+        WindowDuration = 3.0,           -- Duration of window opening (seconds)
+        WindowEffects = true,           -- Enable blue/purple swirling energy tunnel
+        WindowSounds = true,            -- Enable window opening sounds
+        ShowEnergyBuildup = true,       -- Display energy buildup visualization
+
+        -- Stage 3: Hyperspace Travel
+        TravelDuration = 5.0,           -- Duration of hyperspace travel (seconds)
+        TravelEffects = true,           -- Enable stretched starlines and dimensional visuals
+        TravelSounds = true,            -- Enable hyperspace travel sounds
+        ShowStarlines = true,           -- Display stretched starline effects
+        ShowDimensionalShift = true,    -- Display dimensional shift effects
+
+        -- Stage 4: Exit and Stabilization
+        ExitDuration = 2.0,             -- Duration of exit sequence (seconds)
+        ExitEffects = true,             -- Enable flash of light and stabilization
+        ExitSounds = true,              -- Enable exit sounds
+        ShowSystemStabilization = true, -- Display system stabilization process
         EnergyBuildupSteps = 5,         -- Number of energy buildup steps
         SpatialChartCheck = true,       -- Check for gravitational anomalies
 

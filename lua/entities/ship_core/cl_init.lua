@@ -1,21 +1,31 @@
--- Ship Core Entity - Client
--- Mandatory ship core for Enhanced Hyperdrive System v2.0
+-- Ship Core Entity - Client v2.2.0
+-- Mandatory ship core for Enhanced Hyperdrive System with real-time features
 
 include("shared.lua")
 
--- Enhanced UI variables with modern design
+-- Enhanced UI variables with modern design and v2.2.0 features
 local shipCoreUI = {
     visible = false,
     entity = nil,
     data = {},
-    panelWidth = 1000,
-    panelHeight = 800,
+    panelWidth = 1200,
+    panelHeight = 900,
     lastUpdate = 0,
-    currentTab = "overview", -- overview, resources, systems, cap
+    currentTab = "overview", -- overview, resources, systems, cap, fleet, admin, stargate, realtime
     animationTime = 0,
     fadeAlpha = 0,
     targetAlpha = 0,
     tabAnimations = {},
+
+    -- v2.2.0 enhancements
+    realTimeMode = true,
+    updateRate = 0.05, -- 20 FPS real-time updates
+    lastRealTimeUpdate = 0,
+    alertSystem = {},
+    fleetData = {},
+    adminData = {},
+    stargateData = {},
+    performanceData = {},
     notifications = {},
     lastNotificationTime = 0,
     theme = {
@@ -35,26 +45,49 @@ function ENT:Initialize()
     self.nextParticle = 0
     self.glowIntensity = 0
     self.pulseTime = 0
+    self.lastEffectTime = 0
 end
 
 function ENT:Draw()
     self:DrawModel()
 
-    -- Draw glow effect based on state
+    -- Apply dynamic material based on state
     local state = self:GetState()
     local color = self:GetStateColor()
 
+    -- Set material based on state
+    if state == 4 or state == 3 then -- EMERGENCY or CRITICAL
+        self:SetMaterial("hyperdrive/ship_core_glow")
+    else
+        self:SetMaterial("hyperdrive/ship_core_base")
+    end
+
+    -- Set color based on state
+    self:SetColor(Color(color.r, color.g, color.b, 255))
+
     -- Pulse effect for critical states
-    if state == self.States.EMERGENCY or state == self.States.CRITICAL then
+    if state == 4 or state == 3 then -- EMERGENCY or CRITICAL
         self.pulseTime = self.pulseTime + FrameTime() * 3
         self.glowIntensity = math.abs(math.sin(self.pulseTime)) * 0.8 + 0.2
     else
         self.glowIntensity = 0.5
     end
 
-    -- Draw glow
+    -- Draw enhanced glow effect
     local pos = self:GetPos()
     local size = 32 * self.glowIntensity
+
+    -- Create ship core glow effect periodically
+    if CurTime() - self.lastEffectTime > 2 then
+        self.lastEffectTime = CurTime()
+
+        local effectData = EffectData()
+        effectData:SetOrigin(pos)
+        effectData:SetEntity(self)
+        effectData:SetScale(1)
+        effectData:SetMagnitude(state)
+        util.Effect("ship_core_glow", effectData)
+    end
 
     render.SetMaterial(Material("sprites/light_glow02_add"))
     render.DrawSprite(pos, size, size, color)
@@ -130,8 +163,12 @@ function shipCoreUI:Open(entity, data)
 
     gui.EnableScreenClicker(true)
 
-    -- Play opening sound
-    surface.PlaySound("buttons/button15.wav")
+    -- Play opening sound using sound system
+    if HYPERDRIVE.Sounds and HYPERDRIVE.Sounds.UI then
+        HYPERDRIVE.Sounds.UI.PlayOpen()
+    else
+        surface.PlaySound("buttons/button15.wav")
+    end
 
     -- Add opening notification
     self:AddNotification("Ship Core Interface Activated", "success")
@@ -162,8 +199,12 @@ function shipCoreUI:Close()
         end
     end)
 
-    -- Play closing sound
-    surface.PlaySound("buttons/button10.wav")
+    -- Play closing sound using sound system
+    if HYPERDRIVE.Sounds and HYPERDRIVE.Sounds.UI then
+        HYPERDRIVE.Sounds.UI.PlayClose()
+    else
+        surface.PlaySound("buttons/button10.wav")
+    end
 
     print("[Ship Core UI] Enhanced interface closed")
 end
@@ -173,7 +214,16 @@ function shipCoreUI:Update(data)
     self.lastUpdate = CurTime()
 
     -- Add update notification for critical changes
-    if data.coreState == ENT.States.EMERGENCY and self.data.coreState ~= ENT.States.EMERGENCY then
+    -- Define states locally to avoid ENT context issues
+    local States = {
+        INACTIVE = 0,
+        ACTIVE = 1,
+        INVALID = 2,
+        CRITICAL = 3,
+        EMERGENCY = 4
+    }
+
+    if data.coreState == States.EMERGENCY and self.data.coreState ~= States.EMERGENCY then
         self:AddNotification("EMERGENCY: Core System Critical!", "error")
     elseif data.resourceEmergencyMode and not self.data.resourceEmergencyMode then
         self:AddNotification("WARNING: Resource Emergency Detected", "warning")
@@ -198,13 +248,26 @@ function shipCoreUI:AddNotification(text, type)
         table.remove(self.notifications, 1)
     end
 
-    -- Play notification sound
-    if type == "error" then
-        surface.PlaySound("buttons/button11.wav")
-    elseif type == "warning" then
-        surface.PlaySound("buttons/button8.wav")
+    -- Play notification sound using sound system
+    if HYPERDRIVE.Sounds and HYPERDRIVE.Sounds.UI then
+        if type == "error" then
+            HYPERDRIVE.Sounds.UI.PlayError()
+        elseif type == "warning" then
+            HYPERDRIVE.Sounds.UI.PlayWarning()
+        elseif type == "success" then
+            HYPERDRIVE.Sounds.UI.PlaySuccess()
+        else
+            HYPERDRIVE.Sounds.UI.PlayNotification()
+        end
     else
-        surface.PlaySound("buttons/button17.wav")
+        -- Fallback to default sounds
+        if type == "error" then
+            surface.PlaySound("buttons/button11.wav")
+        elseif type == "warning" then
+            surface.PlaySound("buttons/button8.wav")
+        else
+            surface.PlaySound("buttons/button17.wav")
+        end
     end
 end
 
@@ -269,15 +332,24 @@ function shipCoreUI:Draw()
     draw.RoundedBox(12, x + 2, y + 2, self.panelWidth - 4, self.panelHeight - 4, Color(self.theme.secondary.r, self.theme.secondary.g, self.theme.secondary.b, alpha * 0.9))
 
     -- Dynamic title bar with status-based coloring
+    -- Define states locally to avoid ENT context issues
+    local States = {
+        INACTIVE = 0,
+        ACTIVE = 1,
+        INVALID = 2,
+        CRITICAL = 3,
+        EMERGENCY = 4
+    }
+
     local titleColor = Color(self.theme.accent.r, self.theme.accent.g, self.theme.accent.b, alpha)
-    if self.data.coreState == ENT.States.EMERGENCY then
+    if self.data.coreState == States.EMERGENCY then
         titleColor = Color(255, 80, 80, alpha)
         -- Add pulsing effect for emergency
         local pulse = math.abs(math.sin(CurTime() * 3)) * 0.3 + 0.7
         titleColor = Color(255 * pulse, 80 * pulse, 80 * pulse, alpha)
-    elseif self.data.coreState == ENT.States.CRITICAL then
+    elseif self.data.coreState == States.CRITICAL then
         titleColor = Color(255, 150, 80, alpha)
-    elseif self.data.coreState == ENT.States.INVALID then
+    elseif self.data.coreState == States.INVALID then
         titleColor = Color(255, 255, 80, alpha)
     end
 
@@ -364,7 +436,7 @@ function shipCoreUI:DrawTabs(x, y)
             bgColor = Color(255 * pulse, 100 * pulse, 100 * pulse, 200)
             textColor = Color(255, 255, 255, 255)
             borderColor = Color(255, 150, 150, 150)
-        elseif tab.id == "systems" and (self.data.coreState == ENT.States.EMERGENCY or self.data.coreState == ENT.States.CRITICAL) then
+        elseif tab.id == "systems" and (self.data.coreState == 4 or self.data.coreState == 3) then -- EMERGENCY or CRITICAL
             bgColor = Color(255, 150, 100, 180)
             borderColor = Color(255, 200, 150, 120)
         end
@@ -387,7 +459,11 @@ function shipCoreUI:DrawTabs(x, y)
 
             -- Change tab with sound
             if self.currentTab ~= tab.id then
-                surface.PlaySound("buttons/button14.wav")
+                if HYPERDRIVE.Sounds and HYPERDRIVE.Sounds.UI then
+                    HYPERDRIVE.Sounds.UI.PlayClick()
+                else
+                    surface.PlaySound("buttons/button14.wav")
+                end
                 self.currentTab = tab.id
 
                 -- Add notification for tab change
@@ -495,10 +571,10 @@ function shipCoreUI:DrawCoreStatus(x, y)
 
     -- Status information
     local stateColor = Color(100, 100, 100)
-    if self.data.coreState == ENT.States.ACTIVE then stateColor = Color(100, 255, 100)
-    elseif self.data.coreState == ENT.States.CRITICAL then stateColor = Color(255, 150, 100)
-    elseif self.data.coreState == ENT.States.EMERGENCY then stateColor = Color(255, 100, 100)
-    elseif self.data.coreState == ENT.States.INVALID then stateColor = Color(255, 255, 100)
+    if self.data.coreState == 1 then stateColor = Color(100, 255, 100) -- ACTIVE
+    elseif self.data.coreState == 3 then stateColor = Color(255, 150, 100) -- CRITICAL
+    elseif self.data.coreState == 4 then stateColor = Color(255, 100, 100) -- EMERGENCY
+    elseif self.data.coreState == 2 then stateColor = Color(255, 255, 100) -- INVALID
     end
 
     draw.SimpleText("State: " .. (self.data.coreStateName or "Unknown"), "DermaDefault", x, y + 20, stateColor)
@@ -662,9 +738,9 @@ function shipCoreUI:DrawQuickStatus(x, y)
 
     -- Core status
     local coreColor = Color(100, 255, 100)
-    if self.data.coreState == ENT.States.EMERGENCY then coreColor = Color(255, 100, 100)
-    elseif self.data.coreState == ENT.States.CRITICAL then coreColor = Color(255, 150, 100)
-    elseif self.data.coreState == ENT.States.INVALID then coreColor = Color(255, 255, 100)
+    if self.data.coreState == 4 then coreColor = Color(255, 100, 100) -- EMERGENCY
+    elseif self.data.coreState == 3 then coreColor = Color(255, 150, 100) -- CRITICAL
+    elseif self.data.coreState == 2 then coreColor = Color(255, 255, 100) -- INVALID
     end
     draw.SimpleText("Core: " .. (self.data.coreStateName or "Unknown"), "DermaDefault", col1X, statusY, coreColor)
 
@@ -935,9 +1011,9 @@ function shipCoreUI:DrawControlButtons(x, y)
 
     -- Core status
     local coreColor = Color(100, 255, 100)
-    if self.data.coreState == ENT.States.EMERGENCY then coreColor = Color(255, 100, 100)
-    elseif self.data.coreState == ENT.States.CRITICAL then coreColor = Color(255, 150, 100)
-    elseif self.data.coreState == ENT.States.INVALID then coreColor = Color(255, 255, 100)
+    if self.data.coreState == 4 then coreColor = Color(255, 100, 100) -- EMERGENCY
+    elseif self.data.coreState == 3 then coreColor = Color(255, 150, 100) -- CRITICAL
+    elseif self.data.coreState == 2 then coreColor = Color(255, 255, 100) -- INVALID
     end
     draw.SimpleText("Core: " .. (self.data.coreStateName or "Unknown"), "DermaDefault", x + 200, buttonY3 + 15, coreColor)
 end
@@ -982,8 +1058,12 @@ function shipCoreUI:DrawModernButton(text, x, y, w, h, color, onClick, font, ico
         -- Click animation
         draw.RoundedBox(6, x, y, w, h, Color(255, 255, 255, 50))
 
-        -- Play click sound
-        surface.PlaySound("buttons/button9.wav")
+        -- Play click sound using sound system
+        if HYPERDRIVE.Sounds and HYPERDRIVE.Sounds.UI then
+            HYPERDRIVE.Sounds.UI.PlayClick()
+        else
+            surface.PlaySound("buttons/button9.wav")
+        end
 
         if onClick then onClick() end
     end
@@ -1104,7 +1184,6 @@ local function OpenShipNameDialog(entity, currentName)
     textEntry:SetPos(20, 65)
     textEntry:SetSize(410, 25)
     textEntry:SetText(currentName or "")
-    textEntry:SetMaxLength(maxLength)
     textEntry:RequestFocus()
 
     -- Character counter
@@ -1113,9 +1192,17 @@ local function OpenShipNameDialog(entity, currentName)
     counterLabel:SetSize(410, 15)
     counterLabel:SetText("Characters: " .. string.len(currentName or "") .. "/" .. maxLength)
 
-    -- Update counter on text change
+    -- Update counter on text change with length validation
     textEntry.OnTextChanged = function()
         local text = textEntry:GetValue()
+
+        -- Enforce maximum length by truncating text
+        if string.len(text) > maxLength then
+            text = string.sub(text, 1, maxLength)
+            textEntry:SetText(text)
+            textEntry:SetCaretPos(maxLength)
+        end
+
         counterLabel:SetText("Characters: " .. string.len(text) .. "/" .. maxLength)
 
         -- Color coding
@@ -1346,4 +1433,299 @@ function shipCoreUI:DrawCAPControls(x, y)
     end)
 end
 
-print("[Ship Core] Client-side ship core UI with CAP integration loaded")
+-- v2.2.0 Enhanced tab functions
+function shipCoreUI:DrawFleetTab(x, y)
+    -- Fleet Management Header
+    draw.SimpleText("FLEET MANAGEMENT SYSTEM", "DermaDefaultBold", x, y, Color(100, 255, 150))
+
+    local yPos = y + 30
+
+    -- Fleet status
+    local fleetID = self.entity:GetNWInt("FleetID", 0)
+    local fleetName = self.entity:GetNWString("FleetName", "")
+    local fleetRole = self.entity:GetNWString("FleetRole", "")
+
+    if fleetID > 0 and fleetName ~= "" then
+        -- In a fleet
+        draw.SimpleText("Fleet: " .. fleetName, "DermaDefaultBold", x, yPos, Color(100, 255, 150))
+        yPos = yPos + 20
+
+        draw.SimpleText("Role: " .. fleetRole, "DermaDefault", x, yPos, Color(255, 255, 255))
+        yPos = yPos + 20
+
+        draw.SimpleText("Fleet ID: " .. fleetID, "DermaDefault", x, yPos, Color(200, 200, 200))
+        yPos = yPos + 30
+
+        -- Fleet commands
+        draw.SimpleText("Fleet Commands:", "DermaDefaultBold", x, yPos, Color(100, 255, 150))
+        yPos = yPos + 20
+
+        draw.SimpleText("• hyperdrive_fleet_status - View fleet status", "DermaDefault", x + 10, yPos, Color(255, 255, 255))
+        yPos = yPos + 15
+
+        draw.SimpleText("• hyperdrive_fleet_formation [type] - Change formation", "DermaDefault", x + 10, yPos, Color(255, 255, 255))
+        yPos = yPos + 15
+
+    else
+        -- Not in a fleet
+        draw.SimpleText("Not in a fleet", "DermaDefaultBold", x, yPos, Color(255, 200, 100))
+        yPos = yPos + 20
+
+        draw.SimpleText("Create a fleet:", "DermaDefault", x, yPos, Color(255, 255, 255))
+        yPos = yPos + 15
+
+        draw.SimpleText("• hyperdrive_fleet_create [name] - Create new fleet", "DermaDefault", x + 10, yPos, Color(255, 255, 255))
+        yPos = yPos + 15
+    end
+end
+
+function shipCoreUI:DrawAdminTab(x, y)
+    -- Admin Panel Header
+    draw.SimpleText("ADMIN CONTROL PANEL", "DermaDefaultBold", x, y, Color(255, 100, 100))
+
+    local yPos = y + 30
+
+    -- Check if player is admin
+    if not LocalPlayer():IsAdmin() then
+        draw.SimpleText("Access Denied - Admin Only", "DermaDefaultBold", x, yPos + 50, Color(255, 100, 100))
+        return
+    end
+
+    -- System status
+    draw.SimpleText("System Status:", "DermaDefaultBold", x, yPos, Color(255, 100, 100))
+    yPos = yPos + 20
+
+    -- Performance metrics
+    local fps = math.floor(1 / FrameTime())
+    local fpsColor = fps > 50 and Color(100, 255, 100) or (fps > 30 and Color(255, 200, 100) or Color(255, 100, 100))
+
+    draw.SimpleText("Client FPS: " .. fps, "DermaDefault", x + 10, yPos, fpsColor)
+    yPos = yPos + 15
+
+    -- Entity counts
+    local totalEnts = #ents.GetAll()
+    draw.SimpleText("Total Entities: " .. totalEnts, "DermaDefault", x + 10, yPos, Color(255, 255, 255))
+    yPos = yPos + 15
+
+    local hyperdriveEnts = #ents.FindByClass("ship_core") + #ents.FindByClass("hyperdrive_engine") + #ents.FindByClass("hyperdrive_master_engine")
+    draw.SimpleText("Hyperdrive Entities: " .. hyperdriveEnts, "DermaDefault", x + 10, yPos, Color(255, 255, 255))
+    yPos = yPos + 25
+
+    -- Admin commands
+    draw.SimpleText("Admin Commands:", "DermaDefaultBold", x, yPos, Color(255, 100, 100))
+    yPos = yPos + 20
+
+    draw.SimpleText("• hyperdrive_admin status - System status", "DermaDefault", x + 10, yPos, Color(255, 255, 255))
+    yPos = yPos + 15
+
+    draw.SimpleText("• hyperdrive_admin emergency_stop - Stop all engines", "DermaDefault", x + 10, yPos, Color(255, 255, 255))
+    yPos = yPos + 15
+
+    draw.SimpleText("• hyperdrive_admin recharge_all - Recharge all engines", "DermaDefault", x + 10, yPos, Color(255, 255, 255))
+    yPos = yPos + 15
+
+    draw.SimpleText("• hyperdrive_admin repair_all - Repair all systems", "DermaDefault", x + 10, yPos, Color(255, 255, 255))
+    yPos = yPos + 15
+
+    draw.SimpleText("• hyperdrive_admin diagnostics - Run diagnostics", "DermaDefault", x + 10, yPos, Color(255, 255, 255))
+    yPos = yPos + 15
+end
+
+function shipCoreUI:DrawStargateTab(x, y)
+    -- Stargate System Header
+    draw.SimpleText("4-STAGE STARGATE SYSTEM", "DermaDefaultBold", x, y, Color(255, 200, 100))
+
+    local yPos = y + 30
+
+    -- Find nearby hyperdrive engine
+    local nearbyEngine = nil
+    local engines = {}
+    table.Add(engines, ents.FindByClass("hyperdrive_engine"))
+    table.Add(engines, ents.FindByClass("hyperdrive_master_engine"))
+
+    for _, engine in ipairs(engines) do
+        if IsValid(engine) and engine:GetPos():Distance(self.entity:GetPos()) < 500 then
+            nearbyEngine = engine
+            break
+        end
+    end
+
+    if nearbyEngine then
+        local stage = nearbyEngine:GetNWString("HyperdriveStage", "")
+        local stageProgress = nearbyEngine:GetNWFloat("StageProgress", 0)
+        local stageDescription = nearbyEngine:GetNWString("StageDescription", "")
+
+        if stage ~= "" then
+            -- Active sequence
+            draw.SimpleText("Current Stage: " .. stage, "DermaDefaultBold", x, yPos, Color(255, 200, 100))
+            yPos = yPos + 20
+
+            if stageDescription ~= "" then
+                draw.SimpleText(stageDescription, "DermaDefault", x, yPos, Color(255, 255, 255))
+                yPos = yPos + 20
+            end
+
+            -- Progress bar
+            local barW = 400
+            local barH = 20
+            draw.RoundedBox(4, x, yPos, barW, barH, Color(50, 50, 50, 200))
+            draw.RoundedBox(4, x, yPos, barW * stageProgress, barH, Color(255, 200, 100, 200))
+
+            draw.SimpleText(math.floor(stageProgress * 100) .. "%", "DermaDefault", x + barW/2, yPos + barH/2, Color(255, 255, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+            yPos = yPos + 35
+
+            -- Stage indicators
+            local stages = {"Initiation", "Window Opening", "Hyperspace Travel", "Exit"}
+            local currentStageIndex = 1
+
+            for i, stageName in ipairs(stages) do
+                if stageName == stage then
+                    currentStageIndex = i
+                    break
+                end
+            end
+
+            draw.SimpleText("Sequence Progress:", "DermaDefaultBold", x, yPos, Color(255, 200, 100))
+            yPos = yPos + 20
+
+            for i, stageName in ipairs(stages) do
+                local stageColor = Color(150, 150, 150)
+                local prefix = "○"
+
+                if i < currentStageIndex then
+                    stageColor = Color(100, 255, 100)
+                    prefix = "●"
+                elseif i == currentStageIndex then
+                    stageColor = Color(255, 200, 100)
+                    prefix = "●"
+                end
+
+                draw.SimpleText(prefix .. " " .. stageName, "DermaDefault", x + 10, yPos, stageColor)
+                yPos = yPos + 15
+            end
+        else
+            -- No active sequence
+            draw.SimpleText("No active sequence", "DermaDefault", x, yPos, Color(200, 200, 200))
+            yPos = yPos + 25
+
+            -- Stage descriptions
+            draw.SimpleText("4-Stage Sequence:", "DermaDefaultBold", x, yPos, Color(255, 200, 100))
+            yPos = yPos + 20
+
+            draw.SimpleText("1. Initiation - Energy buildup and coordinate calculation", "DermaDefault", x + 10, yPos, Color(255, 255, 255))
+            yPos = yPos + 15
+
+            draw.SimpleText("2. Window Opening - Blue/purple swirling energy tunnel", "DermaDefault", x + 10, yPos, Color(255, 255, 255))
+            yPos = yPos + 15
+
+            draw.SimpleText("3. Hyperspace Travel - Stretched starlines and dimensional visuals", "DermaDefault", x + 10, yPos, Color(255, 255, 255))
+            yPos = yPos + 15
+
+            draw.SimpleText("4. Exit - Flash of light and system stabilization", "DermaDefault", x + 10, yPos, Color(255, 255, 255))
+            yPos = yPos + 15
+        end
+    else
+        draw.SimpleText("No hyperdrive engine detected", "DermaDefault", x, yPos, Color(255, 200, 100))
+        yPos = yPos + 20
+
+        draw.SimpleText("Place a hyperdrive engine within 500 units", "DermaDefault", x, yPos, Color(200, 200, 200))
+    end
+end
+
+function shipCoreUI:DrawRealTimeTab(x, y)
+    -- Real-Time Status Header
+    draw.SimpleText("REAL-TIME SYSTEM STATUS", "DermaDefaultBold", x, y, Color(150, 255, 200))
+
+    local yPos = y + 30
+
+    -- Update indicator
+    local timeSinceUpdate = CurTime() - self.lastRealTimeUpdate
+    local updateColor = timeSinceUpdate < 1 and Color(100, 255, 100) or Color(255, 200, 100)
+
+    draw.SimpleText("Last Update: " .. string.format("%.2fs ago", timeSinceUpdate), "DermaDefault", x, yPos, updateColor)
+    yPos = yPos + 20
+
+    -- Real-time metrics
+    draw.SimpleText("Performance Metrics:", "DermaDefaultBold", x, yPos, Color(150, 255, 200))
+    yPos = yPos + 20
+
+    local fps = math.floor(1 / FrameTime())
+    local fpsColor = fps > 50 and Color(100, 255, 100) or (fps > 30 and Color(255, 200, 100) or Color(255, 100, 100))
+
+    draw.SimpleText("• Client FPS: " .. fps, "DermaDefault", x + 10, yPos, fpsColor)
+    yPos = yPos + 15
+
+    draw.SimpleText("• Update Rate: " .. math.floor(1 / self.updateRate) .. " FPS", "DermaDefault", x + 10, yPos, Color(255, 255, 255))
+    yPos = yPos + 25
+
+    -- System alerts
+    draw.SimpleText("System Alerts:", "DermaDefaultBold", x, yPos, Color(150, 255, 200))
+    yPos = yPos + 20
+
+    -- Check for alerts
+    local alerts = {}
+
+    -- Hull integrity alert
+    local hullIntegrity = self.entity:GetNWFloat("HullIntegrity", 100)
+    if hullIntegrity < 25 then
+        table.insert(alerts, {text = "CRITICAL: Hull integrity at " .. math.floor(hullIntegrity) .. "%", color = Color(255, 100, 100)})
+    elseif hullIntegrity < 50 then
+        table.insert(alerts, {text = "WARNING: Hull integrity at " .. math.floor(hullIntegrity) .. "%", color = Color(255, 200, 100)})
+    end
+
+    -- Energy level alert
+    local energyLevel = self.entity:GetNWFloat("EnergyLevel", 100)
+    if energyLevel < 20 then
+        table.insert(alerts, {text = "WARNING: Energy level at " .. math.floor(energyLevel) .. "%", color = Color(255, 200, 100)})
+    end
+
+    -- Display alerts
+    if #alerts > 0 then
+        for _, alert in ipairs(alerts) do
+            draw.SimpleText("• " .. alert.text, "DermaDefault", x + 10, yPos, alert.color)
+            yPos = yPos + 15
+        end
+    else
+        draw.SimpleText("• All systems nominal", "DermaDefault", x + 10, yPos, Color(100, 255, 100))
+        yPos = yPos + 15
+    end
+
+    yPos = yPos + 10
+
+    -- Real-time data
+    draw.SimpleText("Live Data Stream:", "DermaDefaultBold", x, yPos, Color(150, 255, 200))
+    yPos = yPos + 20
+
+    draw.SimpleText("• Hull: " .. math.floor(hullIntegrity) .. "%", "DermaDefault", x + 10, yPos, Color(255, 255, 255))
+    yPos = yPos + 15
+
+    draw.SimpleText("• Energy: " .. math.floor(energyLevel) .. "%", "DermaDefault", x + 10, yPos, Color(255, 255, 255))
+    yPos = yPos + 15
+
+    local state = self.entity:GetNWInt("State", 0)
+    local stateText = state == 1 and "ACTIVE" or (state == 2 and "CHARGING" or (state == 3 and "COOLDOWN" or (state == 4 and "EMERGENCY" or "OFFLINE")))
+    local stateColor = state == 1 and Color(100, 255, 100) or (state == 4 and Color(255, 100, 100) or Color(255, 200, 100))
+
+    draw.SimpleText("• Status: " .. stateText, "DermaDefault", x + 10, yPos, stateColor)
+    yPos = yPos + 15
+end
+
+-- Update real-time data
+hook.Add("Think", "ShipCoreRealTimeUpdate", function()
+    if shipCoreUI.visible and shipCoreUI.realTimeMode then
+        local currentTime = CurTime()
+        if currentTime - shipCoreUI.lastRealTimeUpdate >= shipCoreUI.updateRate then
+            shipCoreUI.lastRealTimeUpdate = currentTime
+
+            -- Update real-time data here
+            if IsValid(shipCoreUI.entity) then
+                -- Trigger UI refresh for real-time tab
+                if shipCoreUI.currentTab == "realtime" then
+                    -- Real-time updates are handled in the draw function
+                end
+            end
+        end
+    end
+end)
+
+print("[Ship Core] Enhanced client-side UI v2.2.0 with Fleet, Admin, Stargate, and Real-Time features loaded")

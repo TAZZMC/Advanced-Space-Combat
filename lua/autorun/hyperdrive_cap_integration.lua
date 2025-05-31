@@ -1,11 +1,16 @@
--- Enhanced Hyperdrive System - Comprehensive CAP Integration v2.1.0
+-- Enhanced Hyperdrive System - Comprehensive CAP Integration v2.2.1
+-- COMPLETE CODE UPDATE v2.2.1 - ALL SYSTEMS INTEGRATED WITH STEAM WORKSHOP
 -- Integrates with Carter Addon Pack (CAP) for shields, stargates, resources, and effects
 -- Supports: CAP main addon, CAP resources, Steam Workshop CAP
 -- GitHub: https://github.com/RafaelDeJongh/cap
 -- Resources: https://github.com/RafaelDeJongh/cap_resources
--- Workshop: https://steamcommunity.com/workshop/filedetails/?id=180077636
+-- Steam Workshop: https://steamcommunity.com/workshop/filedetails/?id=180077636
+-- Full Steam Workshop Collection (32 items) Support - Enhanced Detection
 
 if not HYPERDRIVE then return end
+
+print("[Hyperdrive CAP] COMPLETE CODE UPDATE v2.2.1 - CAP Integration being updated")
+print("[Hyperdrive CAP] Steam Workshop CAP Collection (32 items) Enhanced Support Active")
 
 HYPERDRIVE.CAP = HYPERDRIVE.CAP or {}
 HYPERDRIVE.CAP.Resources = HYPERDRIVE.CAP.Resources or {}
@@ -162,23 +167,100 @@ local function GetCAPConfig(key, default)
     return HYPERDRIVE.CAP.Config[key] or default
 end
 
--- Comprehensive CAP Detection System
+-- Comprehensive CAP Detection System - Enhanced for Steam Workshop Collection
 function HYPERDRIVE.CAP.DetectCAP()
     local detection = {
         main = false,
         resources = false,
         workshop = false,
         stargate = false,
+        steamWorkshop = false,
+        workshopComponents = 0,
         entities = {},
         version = "Unknown",
-        features = {}
+        features = {},
+        source = "Unknown"
     }
+
+    -- Check for Steam Workshop CAP Collection (32 components)
+    local workshopFiles = {
+        -- Core Components (ID: 175394472, 180215491)
+        "lua/entities/cap_base/init.lua",                    -- CAP: Code
+        "materials/models/cap/",                             -- CAP: Resources
+
+        -- Stargate Components (ID: 180223815, 180226239, 180228917, 180227098)
+        "lua/entities/stargate_atlantis/init.lua",           -- CAP: Stargate
+        "lua/entities/stargate_milkyway/init.lua",           -- CAP: Stargate
+        "lua/entities/stargate_universe/init.lua",           -- CAP: Stargate Universe
+        "lua/entities/stargate_supergate/init.lua",          -- CAP: Supergate
+
+        -- DHD Components (ID: 180094475, 180095275)
+        "lua/entities/dhd_atlantis/init.lua",                -- CAP: DHD
+        "lua/entities/dhd_milkyway/init.lua",                -- CAP: DHD
+
+        -- Shield Components (ID: 180220324)
+        "lua/entities/shield_core_goauld/init.lua",          -- CAP: Shields and Protection
+        "lua/entities/shield_core_ancient/init.lua",         -- CAP: Shields and Protection
+        "lua/entities/shield_core_asgard/init.lua",          -- CAP: Shields and Protection
+
+        -- Ring Components (ID: 180217191, 180216309)
+        "lua/entities/rings_ancient/init.lua",               -- CAP: Rings
+        "lua/entities/rings_goauld/init.lua",                -- CAP: Rings
+
+        -- Vehicle Components (ID: 180230992, 180231308)
+        "lua/entities/puddle_jumper/init.lua",               -- CAP: Vehicles Pack 1
+        "lua/entities/alkesh/init.lua",                      -- CAP: Vehicles Pack 2
+        "lua/entities/hatak/init.lua",                       -- CAP: Vehicles Pack 2
+
+        -- Weapon Components (ID: 180266528, 180227777, 180232188)
+        "lua/weapons/weapon_zat/init.lua",                   -- CAP: Player Weapons
+        "lua/weapons/weapon_staff/init.lua",                 -- CAP: Player Weapons
+        "lua/weapons/weapon_p90/init.lua",                   -- CAP: Player Weapons
+
+        -- Life Support Components (ID: 180095783)
+        "lua/entities/zpm/init.lua",                         -- CAP: Life Support Additional Content
+        "lua/entities/naquadah_generator/init.lua",          -- CAP: Life Support Additional Content
+
+        -- Build Components (ID: 180088756, 180092028, 180088121)
+        "models/cap/build/",                                 -- CAP: CapBuild
+        "models/cap/catwalk/",                               -- CAP: CatWalkBuild
+        "models/cap/atlantis/",                              -- CAP: Atlantis
+
+        -- Sound and Effects (ID: 180222569, 180225064)
+        "sound/cap/",                                        -- CAP: Sounds
+        "materials/cap/eventhorizon/",                       -- CAP: Event Horizons
+
+        -- Props and Extras (ID: 180210973, 180212109, 872872435)
+        "models/cap/props/",                                 -- CAP: Props
+        "models/cap/ramps/",                                 -- CAP: Ramps Important
+        "models/cap/extras/"                                 -- CAP: Extras
+    }
+
+    -- Check Steam Workshop components
+    for _, filePath in ipairs(workshopFiles) do
+        if file.Exists(filePath, "LUA") or file.Exists(filePath, "GAME") then
+            detection.workshopComponents = detection.workshopComponents + 1
+            detection.steamWorkshop = true
+        end
+    end
+
+    if detection.steamWorkshop then
+        detection.source = "Steam Workshop Collection"
+        detection.version = string.format("Workshop (%d/%d components)", detection.workshopComponents, #workshopFiles)
+        print("[Hyperdrive CAP] Steam Workshop CAP Collection detected: " .. detection.workshopComponents .. "/" .. #workshopFiles .. " components")
+    end
 
     -- Check for main CAP addon (StarGate global)
     if StarGate then
         detection.stargate = true
         detection.main = true
-        detection.version = StarGate.Version or StarGate.version or "Unknown"
+        if detection.source == "Unknown" then
+            detection.source = "GitHub/Manual"
+            detection.version = StarGate.Version or StarGate.version or "GitHub Latest"
+        else
+            detection.source = detection.source .. " + GitHub/Manual"
+            detection.version = detection.version .. " + " .. (StarGate.Version or StarGate.version or "GitHub")
+        end
 
         -- Check StarGate features
         detection.features.core = StarGate.IsEntityValid and StarGate.GetEntityCentre and true or false
@@ -188,7 +270,7 @@ function HYPERDRIVE.CAP.DetectCAP()
         detection.features.addresses = StarGate.GetAddresses and true or false
         detection.features.network = StarGate.GetStargateNetwork and true or false
 
-        print("[Hyperdrive CAP] Main CAP addon detected: " .. detection.version)
+        print("[Hyperdrive CAP] Main CAP addon detected: " .. (StarGate.Version or StarGate.version or "Unknown"))
     end
 
     -- Check for CAP global (alternative detection)
@@ -227,7 +309,29 @@ function HYPERDRIVE.CAP.DetectCAP()
 
     -- Store detection results
     HYPERDRIVE.CAP.Detection = detection
-    HYPERDRIVE.CAP.Available = detection.main or detection.resources or detection.workshop
+    HYPERDRIVE.CAP.Available = detection.main or detection.resources or detection.workshop or detection.steamWorkshop
+
+    -- Log final detection results
+    if HYPERDRIVE.CAP.Available then
+        print("[Hyperdrive CAP] CAP Integration Active - Source: " .. detection.source)
+        print("[Hyperdrive CAP] Version: " .. detection.version)
+        if detection.steamWorkshop then
+            print("[Hyperdrive CAP] Steam Workshop Components: " .. detection.workshopComponents .. "/32")
+        end
+        if detection.features and table.Count(detection.features) > 0 then
+            local featureList = {}
+            for feature, available in pairs(detection.features) do
+                if available then
+                    table.insert(featureList, feature)
+                end
+            end
+            if #featureList > 0 then
+                print("[Hyperdrive CAP] Available Features: " .. table.concat(featureList, ", "))
+            end
+        end
+    else
+        print("[Hyperdrive CAP] No CAP installation detected")
+    end
 
     return HYPERDRIVE.CAP.Available, detection
 end

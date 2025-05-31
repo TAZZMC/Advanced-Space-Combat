@@ -1,0 +1,34 @@
+"UnlitGeneric"
+{
+	"$basetexture" "hyperdrive/holographic_display"
+	"$additive" "1"
+	"$vertexcolor" "1"
+	"$vertexalpha" "1"
+	"$translucent" "1"
+	"$nocull" "1"
+	"$model" "1"
+	
+	"Proxies"
+	{
+		"TextureScroll"
+		{
+			"texturescrollvar" "$basetexturetransform"
+			"texturescrollrate" "0.05"
+			"texturescrollangle" "90"
+		}
+		"Sine"
+		{
+			"sineperiod" "2"
+			"sinemin" "0.3"
+			"sinemax" "0.9"
+			"resultvar" "$alpha"
+		}
+		"Sine"
+		{
+			"sineperiod" "1.5"
+			"sinemin" "0.8"
+			"sinemax" "1.2"
+			"resultvar" "$basetexturetransform[0][0]"
+		}
+	}
+}
