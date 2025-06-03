@@ -1,8 +1,8 @@
-# Advanced Space Combat v5.1.0 - Ultimate Edition
+# Advanced Space Combat v5.2.0 - Professional UI Edition
 
-**Professional-grade space combat simulation for Garry's Mod with enhanced Stargate hyperspace technology, ARIA-4 AI assistant, and comprehensive ship management systems.**
+**Professional-grade space combat simulation for Garry's Mod with enhanced Stargate hyperspace technology, ARIA-4 AI assistant, comprehensive ship management systems, and complete professional UI theming.**
 
-[![Version](https://img.shields.io/badge/Version-5.1.0-blue.svg)](https://github.com/your-repo/advanced-space-combat)
+[![Version](https://img.shields.io/badge/Version-5.2.0-blue.svg)](https://github.com/your-repo/advanced-space-combat)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Garry's Mod](https://img.shields.io/badge/Garry's%20Mod-Compatible-orange.svg)](https://store.steampowered.com/app/4000/Garrys_Mod/)
 [![Quality](https://img.shields.io/badge/Quality-Enterprise%20Grade-gold.svg)](README.md)
@@ -19,22 +19,25 @@ Advanced Space Combat is a comprehensive space simulation addon that transforms 
 - **🛸 Complete Ship Management** - Ship cores, flight systems, docking, and resource management
 - **🎨 Enhanced CAP Integration** - Complete Carter Addon Pack integration with 200+ models, 300+ materials, dynamic technology progression
 - **🔧 Professional Tools** - Comprehensive spawn menu organization and Q menu configuration
+- **🎭 Professional Loading Screen & Theme System** - Complete UI theming with space combat aesthetics throughout all interfaces
+- **🖥️ Advanced Interface Design** - Modern glassmorphism effects, holographic styling, and immersive visual experience
 
 ---
 
 ## 📋 Table of Contents
 
 1. [Installation & Setup](#-installation--setup)
-2. [Enhanced CAP Integration](#-enhanced-cap-integration)
-3. [Core Systems](#-core-systems)
-4. [Ship Management](#-ship-management)
-5. [Hyperspace System](#-hyperspace-system)
-6. [Combat Systems](#-combat-systems)
-7. [AI Assistant (ARIA-4)](#-ai-assistant-aria-4)
-8. [Configuration](#-configuration)
-9. [Technical Documentation](#-technical-documentation)
-10. [API Reference](#-api-reference)
-11. [Troubleshooting](#-troubleshooting)
+2. [Loading Screen & Theme System](#-loading-screen--theme-system)
+3. [Enhanced CAP Integration](#-enhanced-cap-integration)
+4. [Core Systems](#-core-systems)
+5. [Ship Management](#-ship-management)
+6. [Hyperspace System](#-hyperspace-system)
+7. [Combat Systems](#-combat-systems)
+8. [AI Assistant (ARIA-4)](#-ai-assistant-aria-4)
+9. [Configuration](#-configuration)
+10. [Technical Documentation](#-technical-documentation)
+11. [API Reference](#-api-reference)
+12. [Troubleshooting](#-troubleshooting)
 
 ---
 
@@ -76,7 +79,203 @@ Advanced Space Combat is a comprehensive space simulation addon that transforms 
 
 ---
 
-## 🎨 Enhanced CAP Integration
+## � Loading Screen & Theme System
+
+### Professional UI Experience v1.0.0
+
+Advanced Space Combat features a comprehensive loading screen and theme system that transforms every aspect of the user interface into a cohesive, professional space combat experience.
+
+#### 🌟 Key Features
+
+- **🚀 Professional Loading Screen** - Real-time progress tracking with space-themed animations
+- **🎨 Comprehensive Theme System** - Unified design across all UI elements
+- **⚔️ Weapon Interface Theming** - Professional weapon control panels with holographic effects
+- **✈️ Flight Interface Theming** - Advanced flight HUD with navigation and status displays
+- **🤖 AI Interface Theming** - ARIA-4 chat interface with glassmorphism design
+- **🔧 Automatic VGUI Theming** - Smart detection and theming of all interface elements
+- **🎯 Character Theme System** - Space suit mode and character selection
+- **📊 Enhanced HUD** - Custom health, armor, weapon, and crosshair displays
+
+### 🚀 Loading Screen System
+
+#### Professional Space Combat Loading Experience
+- **Animated Background** - Moving star particles with space atmosphere
+- **Real-time Progress Tracking** - Shows loading progress for models, materials, sounds, and effects
+- **Resource Counters** - Detailed loading information for each resource type
+- **Pulsing Logo** - Animated ASC logo with space combat colors
+- **Smooth Animations** - Professional glassmorphism design with fade effects
+- **Sound Integration** - Audio feedback during loading process
+
+#### Loading Stages
+1. **Models Loading** (0-25%) - Precaching 3D models and assets
+2. **Sounds Loading** (25-50%) - Loading audio files and effects
+3. **Materials Loading** (50-75%) - Textures and visual materials
+4. **Effects Loading** (75-100%) - Particle effects and visual systems
+
+### 🎨 Comprehensive Theme System
+
+#### Master Design Language
+- **Color Palette**: Space Blue (#2980B9), Purple Accent (#9B59B6), Dark Space Background (#17202A)
+- **Typography**: Custom font system with consistent sizing and weights
+- **Effects**: Glassmorphism, holographic styling, smooth animations
+- **Accessibility**: High contrast mode, scalable elements, reduced motion options
+
+#### Themed Components
+- **Frames & Panels** - Rounded corners, glassmorphism backgrounds, colored borders
+- **Buttons** - Hover effects, sound feedback, state-based coloring
+- **Text Entries** - Focus indicators, themed borders, consistent styling
+- **Scrollbars** - Custom styling matching space combat theme
+- **Checkboxes & Sliders** - Space-themed controls with visual feedback
+
+### ⚔️ Weapon Interface Theme
+
+#### Professional Weapon Control Panels
+- **Weapon Type Colors** - Unique colors for each weapon type (pulse, beam, torpedo, railgun, plasma)
+- **Real-time Status Display** - Live weapon status, ammo, charge, and temperature monitoring
+- **Interactive Controls** - Themed fire buttons, power toggles, and auto-target controls
+- **Targeting System** - Visual targeting display with enemy information and distance
+- **Holographic Effects** - Optional holographic styling for enhanced immersion
+
+#### Weapon Status Indicators
+```
+🟢 ONLINE    - Weapon ready to fire
+🔴 OFFLINE   - Weapon powered down
+🟠 CHARGING  - Weapon building charge
+🔵 READY     - Weapon fully charged
+🟣 COOLDOWN  - Weapon cooling down
+```
+
+### ✈️ Flight Interface Theme
+
+#### Comprehensive Flight HUD
+- **Speed Indicator** - Color-coded velocity display with danger levels
+- **Thrust Vector Display** - 3D visualization of ship movement forces
+- **Navigation System** - Compass, waypoints, coordinates, and heading display
+- **Flight Status Panel** - Engine status, fuel levels, ship integrity monitoring
+- **Waypoint Management** - Visual waypoint list with distances and navigation
+
+#### Flight HUD Elements
+- **Velocity Display** - Real-time speed with color-coded safety levels
+- **3D Thrust Visualization** - X/Y/Z thrust bars with directional indicators
+- **Navigation Compass** - Rotating compass with heading display
+- **Environmental Status** - Altitude, coordinates, and flight mode indicators
+- **System Monitoring** - Fuel, integrity, and warning systems
+
+### 🤖 AI Interface Theme
+
+#### ARIA-4 Professional Chat Interface
+- **Glassmorphism Design** - Modern transparent panels with blur effects
+- **Message Type Styling** - Different colors for user, AI, system, and error messages
+- **Status Indicators** - Pulsing AI status with online/offline/processing states
+- **Typing Animation** - Visual feedback when AI is responding
+- **Sound Integration** - Audio feedback for message sending and receiving
+
+#### AI Status Colors
+```
+🟢 ONLINE      - AI fully operational
+🔴 OFFLINE     - AI system unavailable
+🟠 PROCESSING  - AI analyzing request
+🔵 RESPONDING  - AI generating response
+🔴 ERROR       - AI system error
+```
+
+### 🎯 Character Theme System
+
+#### Space Suit Mode & Character Selection
+- **Character Selection Menu** - Professional UI with 5 space-themed roles
+- **Space Suit HUD** - Oxygen, energy, and environmental readings
+- **Enhanced Health/Armor** - Animated bars with damage flash effects
+- **Environmental Status** - Pressure, temperature, and atmosphere monitoring
+
+#### Available Character Roles
+1. **Space Marine** - Heavy combat specialist
+2. **Pilot** - Ship pilot and navigator
+3. **Engineer** - Technical specialist
+4. **Commander** - Fleet commander
+5. **Scientist** - Research specialist
+
+### 🔧 Automatic VGUI Theming
+
+#### Smart Element Detection
+- **Pattern Matching** - Automatically detects ASC-related UI elements
+- **Universal Theming** - Applies theme to all standard VGUI components
+- **Performance Optimized** - Efficient processing with queue system
+- **Backward Compatible** - Maintains original functionality while adding theming
+
+#### Supported VGUI Elements
+- **DFrame** - Window frames with glassmorphism effects
+- **DButton** - Interactive buttons with hover and sound effects
+- **DPanel** - Background panels with themed styling
+- **DTextEntry** - Input fields with focus indicators
+- **DLabel** - Text labels with themed fonts and colors
+- **DScrollPanel** - Scrollable areas with custom scrollbars
+- **DComboBox** - Dropdown menus with themed styling
+- **DCheckBox** - Checkboxes with space-themed indicators
+- **DSlider** - Sliders with custom knobs and tracks
+
+### 🎮 Console Commands
+
+#### Loading Screen Commands
+```bash
+asc_show_loading        # Show the loading screen manually
+asc_hide_loading        # Hide the loading screen
+asc_test_loading        # Test loading screen with simulated progress
+```
+
+#### Theme System Commands
+```bash
+asc_theme_test          # Test comprehensive theme with sample panel
+asc_character_menu      # Open character selection menu
+asc_weapon_interface    # Open weapon interface for targeted weapon
+asc_flight_hud_test     # Test flight HUD display
+asc_ai_chat             # Open ARIA-4 AI chat interface
+asc_vgui_rescan         # Rescan all VGUI elements for theming
+```
+
+### ⚙️ Configuration Options
+
+#### Theme System ConVars
+```lua
+-- Master Theme Controls
+asc_theme_enabled "1"             // Enable comprehensive theme system
+asc_theme_animations "1"          // Enable theme animations
+asc_theme_sounds "1"              // Enable theme sound effects
+
+-- Component-Specific Controls
+asc_weapon_theme_enabled "1"      // Enable weapon interface theming
+asc_flight_hud_enabled "1"        // Enable flight HUD
+asc_ai_chat_enabled "1"           // Enable AI chat interface
+asc_character_theme_enabled "1"   // Enable character theme system
+
+-- Visual Options
+asc_weapon_holo_style "1"         // Enable holographic weapon displays
+asc_flight_holo_style "1"         // Enable holographic flight displays
+asc_ai_holo_style "1"             // Enable holographic AI displays
+
+-- VGUI Integration
+asc_vgui_theme_enabled "1"        // Enable VGUI auto-theming
+asc_vgui_theme_all "0"            // Theme all VGUI elements (not just ASC)
+asc_vgui_performance_mode "1"     // Enable performance optimizations
+```
+
+### 🎨 Design Philosophy
+
+#### Professional Space Combat Aesthetics
+- **Immersive Experience** - Every interface element contributes to the space combat simulation
+- **Consistent Design Language** - Unified color palette, typography, and effects throughout
+- **Performance Focused** - Optimized rendering with configurable quality levels
+- **Accessibility First** - Support for different user needs and preferences
+- **Modular Architecture** - Each system can be enabled/disabled independently
+
+#### Technical Excellence
+- **Enterprise Quality** - Professional-grade code with comprehensive error handling
+- **Scalable Design** - Efficient systems that work with large ships and complex scenarios
+- **Future-Proof** - Modular architecture allows for easy expansion and updates
+- **Cross-Platform** - Consistent experience across different Garry's Mod installations
+
+---
+
+## �🎨 Enhanced CAP Integration
 
 ### Complete Carter Addon Pack Integration v2.0.0
 
@@ -1207,7 +1406,19 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Community**: Garry's Mod space simulation community
 
 ### Version History
-- **v5.1.0** - Phase 3 Enhanced (Current)
+- **v5.2.0** - Professional UI & Theme System (Current)
+  - Comprehensive loading screen with real-time progress tracking
+  - Complete theme system covering all UI elements
+  - Professional weapon interface theming with holographic effects
+  - Advanced flight HUD with navigation and status displays
+  - ARIA-4 AI chat interface with glassmorphism design
+  - Automatic VGUI theming with smart element detection
+  - Character theme system with space suit mode
+  - Enhanced HUD with custom health, armor, and weapon displays
+  - 35+ console commands for theme management
+  - 20+ ConVars for comprehensive configuration
+
+- **v5.1.0** - Phase 3 Enhanced
   - Advanced weapon targeting system
   - Enhanced UI configuration
   - Improved ship core indicators
@@ -1231,6 +1442,6 @@ For support, bug reports, or feature requests:
 
 ---
 
-**🌌 Advanced Space Combat v5.1.0 - The Ultimate Space Simulation Experience for Garry's Mod 🚀**
+**🌌 Advanced Space Combat v5.2.0 - The Ultimate Space Simulation Experience for Garry's Mod 🚀**
 
-*Professional-grade space combat • Authentic Stargate hyperspace • ARIA-4 AI assistant • Enterprise quality*
+*Professional-grade space combat • Authentic Stargate hyperspace • ARIA-4 AI assistant • Complete UI theming • Enterprise quality*
