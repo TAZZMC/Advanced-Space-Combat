@@ -362,7 +362,7 @@ function shipCoreUI:Draw()
     draw.SimpleText("SHIP CORE MANAGEMENT SYSTEM", "DermaLarge", x + self.panelWidth/2, y + 40, Color(255, 255, 255, alpha), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 
     -- Version and status info
-    local versionText = "v2.1.0 Enhanced"
+    local versionText = "v5.1.0 Enhanced"
     draw.SimpleText(versionText, "DermaDefault", x + self.panelWidth - 20, y + 55, Color(200, 200, 200, alpha * 0.8), TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
 
     -- Enhanced tab navigation

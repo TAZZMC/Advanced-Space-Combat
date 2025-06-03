@@ -279,6 +279,14 @@ if CLIENT then
     include("autorun/client/asc_spawn_menu_organization.lua")
     include("autorun/client/asc_entity_categories.lua")
     include("autorun/client/asc_ui_system.lua")
+    include("autorun/client/asc_loading_screen.lua")
+    include("autorun/client/asc_character_theme.lua")
+    include("autorun/client/asc_player_hud_theme.lua")
+    include("autorun/client/asc_comprehensive_theme.lua")
+    include("autorun/client/asc_weapon_interface_theme.lua")
+    include("autorun/client/asc_flight_interface_theme.lua")
+    include("autorun/client/asc_ai_interface_theme.lua")
+    include("autorun/client/asc_vgui_theme_integration.lua")
 end
 
 -- Add organization and UI systems to client download
@@ -286,12 +294,23 @@ if SERVER then
     AddCSLuaFile("autorun/client/asc_spawn_menu_organization.lua")
     AddCSLuaFile("autorun/client/asc_entity_categories.lua")
     AddCSLuaFile("autorun/client/asc_ui_system.lua")
+    AddCSLuaFile("autorun/client/asc_loading_screen.lua")
+    AddCSLuaFile("autorun/client/asc_character_theme.lua")
+    AddCSLuaFile("autorun/client/asc_player_hud_theme.lua")
+    AddCSLuaFile("autorun/client/asc_comprehensive_theme.lua")
+    AddCSLuaFile("autorun/client/asc_weapon_interface_theme.lua")
+    AddCSLuaFile("autorun/client/asc_flight_interface_theme.lua")
+    AddCSLuaFile("autorun/client/asc_ai_interface_theme.lua")
+    AddCSLuaFile("autorun/client/asc_vgui_theme_integration.lua")
 end
 
 -- Load debug, error recovery, and multilingual systems first
 include("autorun/asc_debug_system.lua")
 include("autorun/asc_error_recovery.lua")
 include("autorun/asc_multilingual_system.lua")
+
+-- Load resource manifest early for loading screen integration
+include("autorun/asc_resource_manifest.lua")
 
 -- Load documentation, console, Stargate technology, and resource systems (shared)
 include("autorun/asc_documentation_system.lua")
@@ -309,6 +328,14 @@ include("autorun/asc_ai_system_v2.lua")
 include("autorun/asc_sound_definitions.lua")
 include("autorun/asc_sound_system.lua")
 include("autorun/asc_entity_spawning.lua")
+
+-- Load enhanced CAP integration systems
+include("autorun/asc_cap_assets.lua")
+include("autorun/asc_cap_enhanced_integration.lua")
+include("autorun/asc_cap_entity_integration.lua")
+include("autorun/asc_cap_effects_system.lua")
+include("autorun/asc_cap_weapons_integration.lua")
+include("autorun/asc_cap_console_commands.lua")
 if SERVER then
     AddCSLuaFile("autorun/asc_debug_system.lua")
     AddCSLuaFile("autorun/asc_error_recovery.lua")
@@ -328,6 +355,14 @@ if SERVER then
     AddCSLuaFile("autorun/asc_sound_definitions.lua")
     AddCSLuaFile("autorun/asc_sound_system.lua")
     AddCSLuaFile("autorun/asc_entity_spawning.lua")
+
+    -- Add enhanced CAP integration files
+    AddCSLuaFile("autorun/asc_cap_assets.lua")
+    AddCSLuaFile("autorun/asc_cap_enhanced_integration.lua")
+    AddCSLuaFile("autorun/asc_cap_entity_integration.lua")
+    AddCSLuaFile("autorun/asc_cap_effects_system.lua")
+    AddCSLuaFile("autorun/asc_cap_weapons_integration.lua")
+    AddCSLuaFile("autorun/asc_cap_console_commands.lua")
 end
 
 -- Load client-side systems
@@ -346,7 +381,8 @@ print("[Advanced Space Combat] Version: " .. ASC.VERSION .. " Build: " .. ASC.BU
 print("[Advanced Space Combat] Features: " .. #ASC.FEATURES .. " systems loaded")
 print("[Advanced Space Combat] AI Assistant: ARIA-4 v5.1.0 - Next-Generation Intelligence - Use 'aria help'")
 print("[Advanced Space Combat] Enhanced Hyperspace: 4-stage Stargate travel with authentic mechanics")
-print("[Advanced Space Combat] Stargate Tech: 6 cultures, 60+ technologies, ZPM/Ancient bonuses")
+print("[Advanced Space Combat] CAP Integration: Enhanced integration with Steam Workshop ID 180077636")
+print("[Advanced Space Combat] Technology System: 6 cultures, 200+ models, 300+ materials, dynamic selection")
 print("[Advanced Space Combat] UI System: Ultimate edition with modern design and hyperspace HUD")
 print("[Advanced Space Combat] Last Updated: " .. ASC.LAST_UPDATED)
 print("[Advanced Space Combat] Documentation: Updated with emoji and modern formatting")

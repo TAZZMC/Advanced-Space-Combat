@@ -1,5 +1,6 @@
--- Enhanced Hyperdrive Engine v2.1.0 - Server-side code
+-- Enhanced Hyperdrive Engine v5.1.0 - Server-side code
 -- Uses the new Hyperdrive Ship Core system with comprehensive CAP integration
+-- PHASE 3 ENHANCED - Complete system update with advanced targeting and UI improvements
 
 AddCSLuaFile("cl_init.lua")
 AddCSLuaFile("shared.lua")
@@ -79,7 +80,7 @@ function ENT:Initialize()
         theme = "modern"
     }
 
-    print("[Hyperdrive] Enhanced Engine v2.1.0 with CAP integration initialized: " .. self:EntIndex())
+    print("[Hyperdrive] Enhanced Engine v5.1.0 - Phase 3 Enhanced - with CAP integration initialized: " .. self:EntIndex())
 end
 
 -- Apply CAP model based on selected technology

@@ -179,7 +179,7 @@ ASC.Weapons.Core = {
     
     -- Initialize weapon system
     Initialize = function()
-        print("[Weapon System] Initializing weapon system v3.0.0")
+        print("[Weapon System] Initializing weapon system v5.1.0 - Phase 3 Enhanced")
         
         -- Reset counters
         ASC.Weapons.Core.WeaponCounter = 0

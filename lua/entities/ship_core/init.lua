@@ -176,7 +176,7 @@ function ENT:Initialize()
     self:InitializePerformanceAnalytics()
     self:StartRealTimeUpdates()
 
-    print("[Ship Core] Enhanced Ship Core v5.0.0 with Stargate hyperspace integration and advanced features initialized at " .. tostring(self:GetPos()))
+    print("[Ship Core] Enhanced Ship Core v5.1.0 with Stargate hyperspace integration and advanced features initialized at " .. tostring(self:GetPos()))
 end
 
 -- Ambient Sound System Functions
@@ -2778,10 +2778,20 @@ function ENT:SelectTechnologyAmbientSound()
     end
 end
 
--- Play technology-specific activation sound
+-- Play technology-specific activation sound with enhanced CAP integration
 function ENT:PlayActivationSound()
-    local technology = self:GetCurrentModelData() and self:GetCurrentModelData().technology or "Standard"
+    local technology = self:GetCurrentModelData() and self:GetCurrentModelData().technology or self:GetTechnology() or "Ancient"
 
+    -- Try enhanced CAP entity integration first
+    if ASC and ASC.CAP and ASC.CAP.EntityIntegration then
+        local success = ASC.CAP.EntityIntegration.PlayCAPSound(self, technology, "activation", "buttons/button15.wav", 70, 100)
+        if success then
+            print("[Ship Core] Played enhanced CAP activation sound for " .. technology)
+            return
+        end
+    end
+
+    -- Fallback to standard CAP integration
     if ASC and ASC.CAP and ASC.CAP.Assets then
         local success = ASC.CAP.Assets.PlaySound(self, technology, "activation", "buttons/button15.wav", 70, 100)
         if success then
@@ -2790,8 +2800,31 @@ function ENT:PlayActivationSound()
         end
     end
 
-    -- Fallback sound
+    -- Final fallback sound
     self:EmitSound("buttons/button15.wav", 70, 100)
+end
+
+-- Get current technology setting
+function ENT:GetTechnology()
+    return self:GetNWString("CAPTechnology", "Ancient")
+end
+
+-- Set technology and apply CAP assets
+function ENT:SetTechnology(technology)
+    if not technology then return end
+
+    self:SetNWString("CAPTechnology", technology)
+    self.CAPTechnology = technology
+
+    -- Apply enhanced CAP integration
+    if ASC and ASC.CAP and ASC.CAP.EntityIntegration then
+        ASC.CAP.EntityIntegration.ApplyCAPAssets(self, technology, "all")
+        print("[Ship Core] Applied " .. technology .. " technology assets")
+    end
+
+    -- Refresh available models
+    self.availableModels = self:GetCAPModels()
+    self:ApplySelectedModel()
 end
 
 -- Play technology-specific power up sound

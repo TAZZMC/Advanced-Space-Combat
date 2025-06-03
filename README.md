@@ -9,7 +9,7 @@
 
 ## 🌌 Overview
 
-Advanced Space Combat is a comprehensive space simulation addon that transforms Garry's Mod into a professional-grade space combat environment. Featuring authentic 4-stage Stargate hyperspace travel, advanced weapon systems, intelligent AI assistance, and complete ship management capabilities.
+Advanced Space Combat is a comprehensive space simulation addon that transforms Garry's Mod into a professional-grade space combat environment. Featuring authentic 4-stage Stargate hyperspace travel, enhanced CAP (Carter Addon Pack) integration with 200+ models and 300+ materials, advanced weapon systems, intelligent AI assistance, and complete ship management capabilities with dynamic technology progression.
 
 ### 🎯 Key Highlights
 
@@ -17,7 +17,7 @@ Advanced Space Combat is a comprehensive space simulation addon that transforms 
 - **🤖 ARIA-4 AI Assistant** - Next-generation intelligence with web access and natural language processing
 - **⚔️ Advanced Combat Systems** - 5 weapon types with predictive targeting and tactical AI
 - **🛸 Complete Ship Management** - Ship cores, flight systems, docking, and resource management
-- **🎨 CAP Integration** - Full Carter Addon Pack asset integration with 60+ technologies
+- **🎨 Enhanced CAP Integration** - Complete Carter Addon Pack integration with 200+ models, 300+ materials, dynamic technology progression
 - **🔧 Professional Tools** - Comprehensive spawn menu organization and Q menu configuration
 
 ---
@@ -25,15 +25,16 @@ Advanced Space Combat is a comprehensive space simulation addon that transforms 
 ## 📋 Table of Contents
 
 1. [Installation & Setup](#-installation--setup)
-2. [Core Systems](#-core-systems)
-3. [Ship Management](#-ship-management)
-4. [Hyperspace System](#-hyperspace-system)
-5. [Combat Systems](#-combat-systems)
-6. [AI Assistant (ARIA-4)](#-ai-assistant-aria-4)
-7. [Configuration](#-configuration)
-8. [Technical Documentation](#-technical-documentation)
-9. [API Reference](#-api-reference)
-10. [Troubleshooting](#-troubleshooting)
+2. [Enhanced CAP Integration](#-enhanced-cap-integration)
+3. [Core Systems](#-core-systems)
+4. [Ship Management](#-ship-management)
+5. [Hyperspace System](#-hyperspace-system)
+6. [Combat Systems](#-combat-systems)
+7. [AI Assistant (ARIA-4)](#-ai-assistant-aria-4)
+8. [Configuration](#-configuration)
+9. [Technical Documentation](#-technical-documentation)
+10. [API Reference](#-api-reference)
+11. [Troubleshooting](#-troubleshooting)
 
 ---
 
@@ -43,7 +44,7 @@ Advanced Space Combat is a comprehensive space simulation addon that transforms 
 
 - **Garry's Mod** (Latest version recommended)
 - **Wiremod** (Optional but recommended for advanced features)
-- **Carter Addon Pack (CAP)** (Steam Workshop ID: 180077636) - Optional for enhanced assets
+- **Carter Addon Pack (CAP)** (Steam Workshop ID: 180077636) - **Highly Recommended** for full experience with 200+ models, 300+ materials, and authentic Stargate technology progression
 - **Spacebuild 3** (Optional for resource integration)
 
 ### Installation Steps
@@ -72,6 +73,191 @@ Advanced Space Combat is a comprehensive space simulation addon that transforms 
 2. **Configure Settings** - Use Q menu → Advanced Space Combat → Configuration
 3. **Build Your Ship** - Attach components within 2000 units of ship core
 4. **Test Systems** - Use `aria help` for AI assistance
+
+---
+
+## 🎨 Enhanced CAP Integration
+
+### Complete Carter Addon Pack Integration v2.0.0
+
+Advanced Space Combat features comprehensive integration with the Carter Addon Pack (Steam Workshop ID: 180077636), providing authentic Stargate technology assets throughout the entire addon experience.
+
+#### 🌟 Key Features
+
+- **200+ Technology-Specific Models** - Authentic Stargate assets across 6 civilizations
+- **300+ Materials and Textures** - High-quality visual effects and surfaces
+- **80+ Immersive Sounds** - Genuine CAP audio for complete immersion
+- **Dynamic Technology Progression** - Unlock technologies as you play
+- **Smart Asset Management** - Automatic validation, caching, and fallback systems
+- **Real-time Asset Switching** - Technology changes applied instantly
+
+### 🏛️ Stargate Technologies
+
+#### Ancient/Atlantis Technology (Tier 5 - Most Advanced)
+- **Models**: Atlantis consoles, ZPMs, crystals, drone weapons, city ship components
+- **Materials**: Blue/orange energy fields, crystal textures, advanced metals
+- **Sounds**: Atlantis activation, ZPM hum, drone launch, city shield
+- **Effects**: Blue energy fields, crystal glow, drone trails, shield bubbles
+- **Unlock**: Level 30+ (30 minutes playtime)
+
+#### Asgard Technology (Tier 4 - Advanced)
+- **Models**: Holographic consoles, beam weapons, mothership components
+- **Materials**: Grey metals, blue energy, holographic projections
+- **Sounds**: Computer beeps, beam weapons, hologram activation
+- **Effects**: Blue energy beams, holographic displays, transport effects
+- **Unlock**: Level 20+ (20 minutes playtime)
+
+#### Goa'uld Technology (Tier 3 - Intermediate)
+- **Models**: Golden consoles, staff weapons, sarcophagus, death gliders
+- **Materials**: Gold surfaces, red/orange energy, ornate decorations
+- **Sounds**: Staff weapon fire, sarcophagus activation, ribbon device
+- **Effects**: Golden energy beams, staff blasts, sarcophagus glow
+- **Unlock**: Level 5+ (5 minutes playtime)
+
+#### Wraith Technology (Tier 3 - Intermediate)
+- **Models**: Organic consoles, stunners, dart fighters, hive ships
+- **Materials**: Organic surfaces, green energy, bio-mechanical textures
+- **Sounds**: Organic activation, stunner fire, hive ship systems
+- **Effects**: Green energy fields, organic growth, bio-luminescence
+- **Unlock**: Level 10+ (10 minutes playtime)
+
+#### Ori Technology (Tier 5 - Most Advanced)
+- **Models**: Altar consoles, beam weapons, mothership components
+- **Materials**: White/gold energy, crystalline structures, pure light
+- **Sounds**: Ori activation, beam weapons, energy surges
+- **Effects**: White energy beams, light flashes, energy fields
+- **Unlock**: Level 40+ (40 minutes playtime)
+
+#### Tauri/Earth Technology (Tier 2 - Basic)
+- **Models**: Earth consoles, F-302 fighters, Prometheus class ships
+- **Materials**: Military metals, blue/green displays, Earth technology
+- **Sounds**: Computer startup, railgun fire, missile launch
+- **Effects**: Blue energy fields, missile trails, computer displays
+- **Unlock**: Available from start
+
+### 🔧 Dynamic Technology Selection System
+
+#### Selection Modes
+1. **Manual Mode** - Players choose their preferred technology
+2. **Automatic Mode** - System selects based on player progression
+3. **Random Mode** - Random technology selection for variety
+4. **Mixed Mode** - Combination of different technologies
+5. **Progressive Mode** - Technologies unlock over time
+
+#### Player Progression System
+```lua
+-- Technology Progression Example
+PlayerProgression = {
+    level = 25,
+    experience = 15000,
+    playTime = 1500, -- seconds
+    unlockedTechnologies = {"Tauri", "Goauld", "Asgard"},
+    preferredTechnology = "Asgard"
+}
+```
+
+### 🎯 Smart Asset Management
+
+#### Automatic Asset Application
+- **Entity Spawning** - CAP assets applied automatically when entities spawn
+- **Technology Detection** - System detects player's best available technology
+- **Real-time Updates** - Assets change when technology is switched
+- **Fallback Chains** - Graceful degradation when assets are missing
+
+#### Asset Validation System
+```lua
+-- Asset Validation Example
+function ValidateAssets(technology)
+    local validation = {
+        models = CheckModelAvailability(technology),
+        materials = CheckMaterialAvailability(technology),
+        sounds = CheckSoundAvailability(technology)
+    }
+
+    return validation.models and validation.materials and validation.sounds
+end
+```
+
+#### Performance Optimization
+- **Asset Caching** - Frequently used assets cached in memory
+- **Smart Loading** - Assets loaded on-demand to reduce memory usage
+- **Validation Caching** - Asset existence checks cached for performance
+- **Configurable Quality** - Multiple quality levels for different performance needs
+
+### 🎮 Enhanced Entity Integration
+
+#### Ship Core Integration
+- **Technology-Specific Models** - Ship cores use appropriate technology models
+- **Ambient Sounds** - Technology-appropriate background audio
+- **Visual Effects** - Energy fields and glows matching technology
+- **Material Application** - Surfaces use authentic CAP materials
+
+#### Weapon System Integration
+- **Weapon Models** - All weapons use technology-specific CAP models
+- **Firing Sounds** - Authentic weapon audio from CAP
+- **Projectile Effects** - Technology-appropriate projectile visuals
+- **Damage Multipliers** - Technology affects weapon effectiveness
+
+#### Shield System Integration
+- **Shield Bubbles** - Technology-specific shield visual effects
+- **Shield Materials** - Authentic CAP shield textures and colors
+- **Impact Effects** - Technology-appropriate shield impact visuals
+- **Audio Feedback** - CAP shield activation and impact sounds
+
+### 🎨 Visual Effects System
+
+#### Technology-Specific Effects
+```lua
+-- Ancient Technology Effects
+Ancient = {
+    colors = {
+        primary = Color(100, 200, 255),    -- Blue
+        secondary = Color(255, 150, 50),   -- Orange
+        energy = Color(150, 220, 255)      -- Light blue
+    },
+    particles = {
+        activation = "cap_ancient_activation",
+        energy_field = "cap_ancient_energy_field",
+        shield_bubble = "cap_ancient_shield_bubble"
+    }
+}
+```
+
+#### Dynamic Light Effects
+- **Technology Colors** - Lights match each civilization's color scheme
+- **Intensity Scaling** - Light intensity based on technology tier
+- **Animation Effects** - Pulsing, flickering, and energy surge effects
+- **Environmental Integration** - Lights interact with ship environment
+
+### 📋 Console Commands
+
+#### CAP Management Commands
+```bash
+# Status and Information
+asc_cap_enhanced_status          # Comprehensive CAP integration status
+asc_cap_test_assets <tech>       # Test asset availability for technology
+
+# Technology Management
+asc_cap_set_technology <tech>    # Set technology for targeted entity
+asc_cap_apply_to_all <tech>      # Apply technology to all entities
+asc_cap_unlock_technology <tech> # Unlock technology for player
+
+# Effects and Testing
+asc_cap_test_effects <tech>      # Test particle effects
+asc_cap_test_shield <tech>       # Test shield bubble effects
+
+# System Management
+asc_cap_clear_cache              # Clear asset cache
+asc_cap_help                     # Show all commands
+```
+
+#### Available Technologies
+- `Ancient` - Atlantis/Lantean technology
+- `Goauld` - Goa'uld System Lord technology
+- `Asgard` - Asgard Protected Planet technology
+- `Tauri` - Earth/Tau'ri technology
+- `Ori` - Ori Ascended Being technology
+- `Wraith` - Wraith Hive technology
 
 ---
 
@@ -196,11 +382,12 @@ end
 
 ### Audio System
 
-**Enhanced Sound Management (Phase 2)**
-- **Quieter Defaults** - 0.15 volume (was 0.2)
-- **Pleasant Sounds** - Atmospheric ambience instead of machine noise
+**Enhanced Sound Management with CAP Integration**
+- **Technology-Specific Audio** - Authentic CAP sounds based on selected technology
+- **Dynamic Sound Selection** - Sounds change with technology progression
+- **Quieter Defaults** - 0.15 volume (was 0.2) for pleasant ambience
 - **Mute Wire Input** - Wiremod integration for sound control
-- **CAP Integration** - Technology-specific ambient sounds
+- **Smart Fallback System** - Graceful audio degradation when CAP unavailable
 
 ```lua
 -- Sound Priority System

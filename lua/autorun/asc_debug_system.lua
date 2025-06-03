@@ -216,12 +216,18 @@ ASC.Debug.Core = {
     RunDiagnostics = function()
         ASC.Debug.Core.Log(3, "Running system diagnostics", "Diagnostics")
         
-        -- Check ConVars
+        -- Check ConVars (Phase 3 Enhanced)
         local convars = {
             "asc_enabled",
             "asc_debug_mode",
             "asc_max_range",
-            "asc_energy_cost"
+            "asc_energy_cost",
+            "asc_show_front_indicators",
+            "asc_auto_show_arrows",
+            "asc_indicator_distance",
+            "asc_ship_core_volume",
+            "asc_enable_ship_sounds",
+            "asc_default_ship_sound"
         }
         
         for _, cvar in ipairs(convars) do
@@ -403,5 +409,5 @@ if SERVER then
         ASC.Debug.Core.Initialize()
     end)
     
-    print("[Advanced Space Combat] Debug System v3.0.0 loaded")
+    print("[Advanced Space Combat] Debug System v5.1.0 - Phase 3 Enhanced - loaded")
 end

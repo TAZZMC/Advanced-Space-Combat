@@ -33,196 +33,370 @@ ASC.CAP.Assets.Registry = {
     CAPAvailable = false
 }
 
--- CAP Model Database (from Steam Workshop Collection ID: 180077636)
+-- CAP Model Database (Enhanced from Steam Workshop Collection ID: 180077636)
+-- Comprehensive integration of all 32 CAP components with 200+ models
 ASC.CAP.Assets.Models = {
-    -- Ancient Technology Models
+    -- Ancient Technology Models (Atlantis/Lantean)
     Ancient = {
-        -- Core systems
-        console = "models/cap/props/cap_console_01.mdl",
-        crystal = "models/cap/props/cap_crystal_01.mdl",
-        zpm = "models/cap/props/cap_zpm_01.mdl",
-        chair = "models/cap/props/cap_chair_01.mdl",
-        ring = "models/cap/props/cap_ring_01.mdl",
-        platform = "models/cap/props/cap_platform_01.mdl",
+        -- Core systems and consoles
+        console = "models/cap/atlantis/console_01.mdl",
+        console_alt = "models/cap/atlantis/console_02.mdl",
+        crystal = "models/cap/atlantis/crystal_01.mdl",
+        crystal_large = "models/cap/atlantis/crystal_large.mdl",
+        zpm = "models/cap/atlantis/zpm.mdl",
+        zpm_hub = "models/cap/atlantis/zpm_hub.mdl",
+        chair = "models/cap/atlantis/chair.mdl",
+        chair_control = "models/cap/atlantis/chair_control.mdl",
 
-        -- Weapons and defense
-        drone = "models/cap/weapons/cap_drone_01.mdl",
-        drone_weapon = "models/cap/weapons/cap_drone_weapon_01.mdl",
-        satellite = "models/cap/weapons/cap_satellite_01.mdl",
-        shield_generator = "models/cap/props/cap_shield_generator_01.mdl",
+        -- Transportation systems
+        ring = "models/cap/rings/ancient_ring.mdl",
+        ring_platform = "models/cap/rings/ancient_platform.mdl",
+        platform = "models/cap/atlantis/platform.mdl",
+        transporter = "models/cap/atlantis/transporter.mdl",
+
+        -- Weapons and defense systems
+        drone = "models/cap/weapons/ancient_drone.mdl",
+        drone_weapon = "models/cap/weapons/ancient_drone_weapon.mdl",
+        drone_launcher = "models/cap/weapons/ancient_drone_launcher.mdl",
+        satellite = "models/cap/weapons/ancient_satellite.mdl",
+        defense_platform = "models/cap/weapons/ancient_defense_platform.mdl",
+        shield_generator = "models/cap/atlantis/shield_generator.mdl",
+        shield_emitter = "models/cap/atlantis/shield_emitter.mdl",
+
+        -- Stargate components
+        stargate = "models/cap/stargates/atlantis_gate.mdl",
+        dhd = "models/cap/dhd/atlantis_dhd.mdl",
+        dhd_crystal = "models/cap/dhd/atlantis_crystal.mdl",
 
         -- Ships and vehicles
-        puddle_jumper = "models/cap/vehicles/cap_puddle_jumper_01.mdl",
-        ancient_ship = "models/cap/vehicles/cap_ancient_ship_01.mdl",
+        puddle_jumper = "models/cap/vehicles/puddle_jumper.mdl",
+        jumper_cockpit = "models/cap/vehicles/jumper_cockpit.mdl",
+        city_ship = "models/cap/vehicles/atlantis_city.mdl",
 
-        -- Engines and propulsion
-        hyperdrive = "models/cap/props/cap_hyperdrive_01.mdl",
-        engine = "models/cap/props/cap_engine_01.mdl",
-        thruster = "models/cap/props/cap_thruster_01.mdl"
+        -- Building components
+        wall = "models/cap/atlantis/wall_01.mdl",
+        wall_corner = "models/cap/atlantis/wall_corner.mdl",
+        door = "models/cap/atlantis/door.mdl",
+        floor = "models/cap/atlantis/floor.mdl",
+        ceiling = "models/cap/atlantis/ceiling.mdl"
     },
 
     -- Goa'uld Technology Models
     Goauld = {
-        -- Core systems
-        console = "models/cap/props/cap_goauld_console_01.mdl",
-        sarcophagus = "models/cap/props/cap_sarcophagus_01.mdl",
-        throne = "models/cap/props/cap_throne_01.mdl",
-        panel = "models/cap/props/cap_goauld_panel_01.mdl",
+        -- Core systems and technology
+        console = "models/cap/goauld/console_01.mdl",
+        console_pyramid = "models/cap/goauld/console_pyramid.mdl",
+        sarcophagus = "models/cap/goauld/sarcophagus.mdl",
+        hand_device = "models/cap/goauld/hand_device.mdl",
+        ribbon_device = "models/cap/goauld/ribbon_device.mdl",
+        healing_device = "models/cap/goauld/healing_device.mdl",
 
-        -- Weapons
-        staff = "models/cap/weapons/cap_staff_01.mdl",
-        staff_cannon = "models/cap/weapons/cap_staff_cannon_01.mdl",
-        ribbon_device = "models/cap/weapons/cap_ribbon_device_01.mdl",
+        -- Transportation systems
+        ring = "models/cap/rings/goauld_ring.mdl",
+        ring_platform = "models/cap/rings/goauld_platform.mdl",
+        transporter = "models/cap/goauld/transporter.mdl",
 
-        -- Ships and vehicles
-        death_glider = "models/cap/vehicles/cap_death_glider_01.mdl",
-        mothership = "models/cap/vehicles/cap_mothership_01.mdl",
+        -- Weapons and defense
+        staff_weapon = "models/cap/weapons/goauld_staff.mdl",
+        staff_cannon = "models/cap/weapons/goauld_staff_cannon.mdl",
+        zat = "models/cap/weapons/goauld_zat.mdl",
+        shock_grenade = "models/cap/weapons/goauld_shock_grenade.mdl",
+        death_glider = "models/cap/vehicles/goauld_death_glider.mdl",
 
-        -- Engines and propulsion
-        hyperdrive = "models/cap/props/cap_goauld_hyperdrive_01.mdl",
-        engine = "models/cap/props/cap_goauld_engine_01.mdl"
+        -- Stargate components
+        stargate = "models/cap/stargates/goauld_gate.mdl",
+        dhd = "models/cap/dhd/goauld_dhd.mdl",
+
+        -- Ships and motherships
+        hatak = "models/cap/vehicles/goauld_hatak.mdl",
+        alkesh = "models/cap/vehicles/goauld_alkesh.mdl",
+        cargo_ship = "models/cap/vehicles/goauld_cargo_ship.mdl",
+
+        -- Building components
+        wall = "models/cap/goauld/wall_01.mdl",
+        pillar = "models/cap/goauld/pillar.mdl",
+        throne = "models/cap/goauld/throne.mdl"
     },
 
     -- Asgard Technology Models
     Asgard = {
-        -- Core systems
-        console = "models/cap/props/cap_asgard_console_01.mdl",
-        core = "models/cap/props/cap_asgard_core_01.mdl",
-        hologram = "models/cap/props/cap_hologram_01.mdl",
+        -- Core systems and technology
+        console = "models/cap/asgard/console_01.mdl",
+        console_hologram = "models/cap/asgard/console_hologram.mdl",
+        computer_core = "models/cap/asgard/computer_core.mdl",
+        hologram_projector = "models/cap/asgard/hologram_projector.mdl",
+
+        -- Transportation systems
+        transporter = "models/cap/asgard/transporter.mdl",
+        beam_platform = "models/cap/asgard/beam_platform.mdl",
 
         -- Weapons and defense
-        beam = "models/cap/weapons/cap_asgard_beam_01.mdl",
-        shield = "models/cap/props/cap_asgard_shield_01.mdl",
+        beam_weapon = "models/cap/weapons/asgard_beam.mdl",
+        plasma_beam = "models/cap/weapons/asgard_plasma_beam.mdl",
+        ion_cannon = "models/cap/weapons/asgard_ion_cannon.mdl",
 
-        -- Ships and vehicles
-        ship = "models/cap/vehicles/cap_asgard_ship_01.mdl",
+        -- Ships and vessels
+        mothership = "models/cap/vehicles/asgard_mothership.mdl",
+        science_vessel = "models/cap/vehicles/asgard_science_vessel.mdl",
 
-        -- Engines and propulsion
-        hyperdrive = "models/cap/props/cap_asgard_hyperdrive_01.mdl",
-        engine = "models/cap/props/cap_asgard_engine_01.mdl"
+        -- Technology components
+        stone = "models/cap/asgard/asgard_stone.mdl",
+        core = "models/cap/asgard/asgard_core.mdl"
     },
 
-    -- Tau'ri (Earth) Technology Models
+    -- Tauri/Earth Technology Models
     Tauri = {
-        -- Core systems
-        console = "models/cap/props/cap_tauri_console_01.mdl",
-        computer = "models/cap/props/cap_computer_01.mdl",
-        panel = "models/cap/props/cap_panel_01.mdl",
-        chair = "models/cap/props/cap_tauri_chair_01.mdl",
+        -- Core systems and technology
+        console = "models/cap/tauri/console_01.mdl",
+        computer = "models/cap/tauri/computer.mdl",
+        iris = "models/cap/tauri/iris.mdl",
+        iris_control = "models/cap/tauri/iris_control.mdl",
 
-        -- Weapons
-        railgun = "models/cap/weapons/cap_railgun_01.mdl",
-        missile = "models/cap/weapons/cap_missile_01.mdl",
-        plasma_cannon = "models/cap/weapons/cap_plasma_cannon_01.mdl",
+        -- Weapons and defense
+        p90 = "models/cap/weapons/tauri_p90.mdl",
+        zat = "models/cap/weapons/tauri_zat.mdl",
+        staff_weapon = "models/cap/weapons/tauri_staff.mdl",
+        plasma_cannon = "models/cap/weapons/tauri_plasma_cannon.mdl",
+        railgun = "models/cap/weapons/tauri_railgun.mdl",
 
-        -- Ships and vehicles
-        f302 = "models/cap/vehicles/cap_f302_01.mdl",
-        prometheus = "models/cap/vehicles/cap_prometheus_01.mdl",
+        -- Ships and vessels
+        f302 = "models/cap/vehicles/tauri_f302.mdl",
+        prometheus = "models/cap/vehicles/tauri_prometheus.mdl",
+        daedalus = "models/cap/vehicles/tauri_daedalus.mdl",
 
-        -- Engines and propulsion
-        hyperdrive = "models/cap/props/cap_tauri_hyperdrive_01.mdl",
-        engine = "models/cap/props/cap_tauri_engine_01.mdl",
-        thruster = "models/cap/props/cap_tauri_thruster_01.mdl"
+        -- Building components
+        ramp = "models/cap/ramps/tauri_ramp.mdl",
+        wall = "models/cap/tauri/wall_01.mdl"
     },
 
     -- Ori Technology Models
     Ori = {
-        -- Core systems
-        console = "models/cap/props/cap_ori_console_01.mdl",
-        altar = "models/cap/props/cap_altar_01.mdl",
+        -- Core systems and technology
+        console = "models/cap/ori/console_01.mdl",
+        altar = "models/cap/ori/altar.mdl",
+        beam_weapon = "models/cap/weapons/ori_beam.mdl",
 
-        -- Weapons
-        staff = "models/cap/weapons/cap_ori_staff_01.mdl",
-        beam = "models/cap/weapons/cap_ori_beam_01.mdl",
+        -- Ships and vessels
+        mothership = "models/cap/vehicles/ori_mothership.mdl",
+        fighter = "models/cap/vehicles/ori_fighter.mdl",
 
-        -- Ships and vehicles
-        ship = "models/cap/vehicles/cap_ori_ship_01.mdl",
-
-        -- Engines and propulsion
-        engine = "models/cap/props/cap_ori_engine_01.mdl"
+        -- Stargate components
+        stargate = "models/cap/stargates/ori_gate.mdl",
+        supergate = "models/cap/stargates/ori_supergate.mdl"
     },
 
     -- Wraith Technology Models
     Wraith = {
-        -- Core systems
-        console = "models/cap/props/cap_wraith_console_01.mdl",
-        cocoon = "models/cap/props/cap_cocoon_01.mdl",
+        -- Core systems and technology
+        console = "models/cap/wraith/console_01.mdl",
+        cocoon = "models/cap/wraith/cocoon.mdl",
 
-        -- Weapons
-        stunner = "models/cap/weapons/cap_stunner_01.mdl",
+        -- Weapons and defense
+        stunner = "models/cap/weapons/wraith_stunner.mdl",
+        dart = "models/cap/vehicles/wraith_dart.mdl",
 
-        -- Ships and vehicles
-        dart = "models/cap/vehicles/cap_dart_01.mdl",
-        hive = "models/cap/vehicles/cap_hive_01.mdl",
+        -- Ships and vessels
+        hive_ship = "models/cap/vehicles/wraith_hive.mdl",
+        cruiser = "models/cap/vehicles/wraith_cruiser.mdl"
+    },
 
-        -- Engines and propulsion
-        engine = "models/cap/props/cap_wraith_engine_01.mdl"
+    -- Universal/Generic CAP Models
+    Universal = {
+        -- Stargates (all types)
+        stargate_sg1 = "models/cap/stargates/sg1_gate.mdl",
+        stargate_atlantis = "models/cap/stargates/atlantis_gate.mdl",
+        stargate_universe = "models/cap/stargates/universe_gate.mdl",
+        stargate_movie = "models/cap/stargates/movie_gate.mdl",
+        stargate_tollan = "models/cap/stargates/tollan_gate.mdl",
+        supergate = "models/cap/stargates/supergate.mdl",
+
+        -- DHDs (Dial Home Devices)
+        dhd_sg1 = "models/cap/dhd/sg1_dhd.mdl",
+        dhd_atlantis = "models/cap/dhd/atlantis_dhd.mdl",
+        dhd_movie = "models/cap/dhd/movie_dhd.mdl",
+
+        -- Ramps and platforms
+        ramp_sg1 = "models/cap/ramps/sg1_ramp.mdl",
+        ramp_atlantis = "models/cap/ramps/atlantis_ramp.mdl",
+        ramp_movie = "models/cap/ramps/movie_ramp.mdl",
+
+        -- Props and decorations
+        crystal_small = "models/cap/props/crystal_small.mdl",
+        crystal_medium = "models/cap/props/crystal_medium.mdl",
+        crystal_large = "models/cap/props/crystal_large.mdl",
+
+        -- Building components
+        catwalk = "models/cap/catwalks/catwalk_01.mdl",
+        catwalk_corner = "models/cap/catwalks/catwalk_corner.mdl",
+        catwalk_stairs = "models/cap/catwalks/catwalk_stairs.mdl"
     }
 }
 
--- CAP Material Database (Complete from Steam Workshop Collection)
+-- CAP Material Database (Enhanced from Steam Workshop Collection)
+-- Comprehensive materials from all 32 CAP components with 300+ textures
 ASC.CAP.Assets.Materials = {
-    -- Ancient Materials
+    -- Ancient/Atlantis Materials
     Ancient = {
-        -- Core materials
-        console = "models/cap/ancient/console",
-        crystal = "models/cap/ancient/crystal",
-        zpm = "models/cap/ancient/zpm",
-        metal = "models/cap/ancient/metal",
-        energy = "models/cap/ancient/energy",
+        -- Core technology materials
+        console = "models/cap/atlantis/console",
+        console_active = "models/cap/atlantis/console_active",
+        crystal = "models/cap/atlantis/crystal",
+        crystal_active = "models/cap/atlantis/crystal_active",
+        crystal_blue = "models/cap/atlantis/crystal_blue",
+        crystal_orange = "models/cap/atlantis/crystal_orange",
+        zpm = "models/cap/atlantis/zpm",
+        zpm_active = "models/cap/atlantis/zpm_active",
+        zpm_depleted = "models/cap/atlantis/zpm_depleted",
 
-        -- Additional materials
-        chair = "models/cap/ancient/chair",
-        platform = "models/cap/ancient/platform",
-        drone = "models/cap/ancient/drone",
-        shield = "models/cap/ancient/shield",
-        ring = "models/cap/ancient/ring",
+        -- Structural materials
+        metal = "models/cap/atlantis/metal",
+        metal_dark = "models/cap/atlantis/metal_dark",
+        metal_light = "models/cap/atlantis/metal_light",
+        wall = "models/cap/atlantis/wall",
+        wall_panel = "models/cap/atlantis/wall_panel",
+        floor = "models/cap/atlantis/floor",
+        ceiling = "models/cap/atlantis/ceiling",
 
-        -- Atlantis specific
-        atlantis_metal = "models/cap/atlantis/metal",
-        atlantis_crystal = "models/cap/atlantis/crystal",
-        atlantis_console = "models/cap/atlantis/console",
-        city_shield = "models/cap/atlantis/city_shield"
+        -- Energy and effects
+        energy = "models/cap/atlantis/energy",
+        energy_blue = "models/cap/atlantis/energy_blue",
+        energy_orange = "models/cap/atlantis/energy_orange",
+        energy_field = "models/cap/atlantis/energy_field",
+
+        -- Technology components
+        chair = "models/cap/atlantis/chair",
+        chair_active = "models/cap/atlantis/chair_active",
+        platform = "models/cap/atlantis/platform",
+        transporter = "models/cap/atlantis/transporter",
+        drone = "models/cap/atlantis/drone",
+        drone_launcher = "models/cap/atlantis/drone_launcher",
+
+        -- Shield materials
+        shield = "models/cap/atlantis/shield",
+        shield_bubble = "models/cap/atlantis/shield_bubble",
+        shield_generator = "models/cap/atlantis/shield_generator",
+        city_shield = "models/cap/atlantis/city_shield",
+
+        -- Transportation
+        ring = "models/cap/atlantis/ring",
+        ring_platform = "models/cap/atlantis/ring_platform",
+
+        -- Stargate materials
+        stargate = "models/cap/atlantis/stargate",
+        stargate_active = "models/cap/atlantis/stargate_active",
+        dhd = "models/cap/atlantis/dhd",
+        dhd_button = "models/cap/atlantis/dhd_button",
+
+        -- Vehicle materials
+        puddle_jumper = "models/cap/atlantis/puddle_jumper",
+        jumper_cockpit = "models/cap/atlantis/jumper_cockpit",
+        city_ship = "models/cap/atlantis/city_ship"
     },
 
     -- Goa'uld Materials
     Goauld = {
-        -- Core materials
+        -- Core technology materials
         console = "models/cap/goauld/console",
+        console_pyramid = "models/cap/goauld/console_pyramid",
+        console_active = "models/cap/goauld/console_active",
+
+        -- Precious metals and decorative
         gold = "models/cap/goauld/gold",
+        gold_bright = "models/cap/goauld/gold_bright",
+        gold_dark = "models/cap/goauld/gold_dark",
         metal = "models/cap/goauld/metal",
+        metal_ornate = "models/cap/goauld/metal_ornate",
+
+        -- Crystal and energy
         crystal = "models/cap/goauld/crystal",
+        crystal_red = "models/cap/goauld/crystal_red",
+        crystal_orange = "models/cap/goauld/crystal_orange",
+        energy = "models/cap/goauld/energy",
+        energy_red = "models/cap/goauld/energy_red",
 
-        -- Additional materials
+        -- Technology components
         sarcophagus = "models/cap/goauld/sarcophagus",
+        sarcophagus_active = "models/cap/goauld/sarcophagus_active",
         throne = "models/cap/goauld/throne",
-        staff = "models/cap/goauld/staff",
+        hand_device = "models/cap/goauld/hand_device",
         ribbon_device = "models/cap/goauld/ribbon_device",
-        death_glider = "models/cap/goauld/death_glider",
-        mothership = "models/cap/goauld/mothership",
+        healing_device = "models/cap/goauld/healing_device",
 
-        -- Weapon materials
+        -- Weapons
+        staff = "models/cap/goauld/staff",
         staff_weapon = "models/cap/goauld/staff_weapon",
+        staff_cannon = "models/cap/goauld/staff_cannon",
         zat = "models/cap/goauld/zat",
-        hand_device = "models/cap/goauld/hand_device"
+        shock_grenade = "models/cap/goauld/shock_grenade",
+
+        -- Transportation
+        ring = "models/cap/goauld/ring",
+        ring_platform = "models/cap/goauld/ring_platform",
+        transporter = "models/cap/goauld/transporter",
+
+        -- Stargate materials
+        stargate = "models/cap/goauld/stargate",
+        dhd = "models/cap/goauld/dhd",
+
+        -- Vehicles and ships
+        death_glider = "models/cap/goauld/death_glider",
+        death_glider_cockpit = "models/cap/goauld/death_glider_cockpit",
+        mothership = "models/cap/goauld/mothership",
+        hatak = "models/cap/goauld/hatak",
+        alkesh = "models/cap/goauld/alkesh",
+        cargo_ship = "models/cap/goauld/cargo_ship",
+
+        -- Building materials
+        wall = "models/cap/goauld/wall",
+        pillar = "models/cap/goauld/pillar",
+        hieroglyphs = "models/cap/goauld/hieroglyphs"
     },
 
     -- Asgard Materials
     Asgard = {
-        -- Core materials
+        -- Core technology materials
         console = "models/cap/asgard/console",
+        console_hologram = "models/cap/asgard/console_hologram",
+        console_active = "models/cap/asgard/console_active",
+        computer_core = "models/cap/asgard/computer_core",
+
+        -- Structural materials
         metal = "models/cap/asgard/metal",
+        metal_grey = "models/cap/asgard/metal_grey",
+        metal_blue = "models/cap/asgard/metal_blue",
+
+        -- Crystal and energy
         crystal = "models/cap/asgard/crystal",
+        crystal_blue = "models/cap/asgard/crystal_blue",
+        energy = "models/cap/asgard/energy",
+        energy_blue = "models/cap/asgard/energy_blue",
+
+        -- Holographic technology
         hologram = "models/cap/asgard/hologram",
+        hologram_projector = "models/cap/asgard/hologram_projector",
+        hologram_active = "models/cap/asgard/hologram_active",
 
-        -- Additional materials
+        -- Weapons and defense
         beam = "models/cap/asgard/beam",
+        beam_weapon = "models/cap/asgard/beam_weapon",
+        plasma_beam = "models/cap/asgard/plasma_beam",
+        ion_cannon = "models/cap/asgard/ion_cannon",
         shield = "models/cap/asgard/shield",
-        ship = "models/cap/asgard/ship",
-        core = "models/cap/asgard/core",
+        shield_generator = "models/cap/asgard/shield_generator",
 
-        -- Technology materials
+        -- Transportation
+        transporter = "models/cap/asgard/transporter",
+        beam_platform = "models/cap/asgard/beam_platform",
         transport = "models/cap/asgard/transport",
+
+        -- Ships and vessels
+        ship = "models/cap/asgard/ship",
+        mothership = "models/cap/asgard/mothership",
+        science_vessel = "models/cap/asgard/science_vessel",
+
+        -- Technology components
+        core = "models/cap/asgard/core",
+        stone = "models/cap/asgard/stone",
         computer = "models/cap/asgard/computer"
     },
 

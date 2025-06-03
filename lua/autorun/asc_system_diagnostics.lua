@@ -176,12 +176,15 @@ end
 function ASC.Diagnostics.CheckFileSystems()
     local results = {}
     
-    -- Core files
+    -- Core files (Phase 3 Enhanced)
     local coreFiles = {
         "lua/autorun/asc_ai_system_v2.lua",
-        "lua/autorun/client/asc_menu_organization.lua",
+        "lua/autorun/client/asc_spawn_menu_complete.lua",
         "lua/autorun/hyperdrive_init.lua",
-        "lua/autorun/asc_code_fixes.lua"
+        "lua/autorun/asc_code_fixes.lua",
+        "lua/autorun/asc_weapon_system.lua",
+        "lua/autorun/advanced_space_combat_init.lua",
+        "lua/autorun/hyperdrive_core_v2.lua"
     }
     
     local availableFiles = 0

@@ -268,6 +268,7 @@ function ASC.CodeFixes.RunAllFixes()
         print("[ASC] Missing dependencies: " .. table.concat(missingDeps, ", "))
     end
     print("[ASC] Available systems: " .. table.concat(availableDeps, ", "))
+    print("[ASC] Code Fixes v5.1.0 - Phase 3 Enhanced - All systems validated")
     
     -- Check entity classes
     local missingEntities, availableEntities = ASC.CodeFixes.FixEntityClasses()

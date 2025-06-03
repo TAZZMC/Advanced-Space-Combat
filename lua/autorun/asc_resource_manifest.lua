@@ -100,6 +100,11 @@ ASC.Resources.Models = {
 }
 
 ASC.Resources.Materials = {
+    -- UI Materials
+    "asc/ui/loading_background",
+    "asc/ui/loading_logo",
+    "asc/ui/loading_elements",
+
     -- Ancient Materials
     "asc/ancient/ancient_metal",
     "asc/ancient/ancient_crystal",
@@ -254,48 +259,84 @@ ASC.Resources.Effects = {
     "asc_hyperspace_tunnel"
 }
 
--- Resource loading functions
+-- Resource loading functions with loading screen integration
 function ASC.Resources.LoadModels()
     if not ASC.Resources.Config.EnableModelPrecaching then return end
-    
-    for _, model in ipairs(ASC.Resources.Models) do
+
+    local totalModels = #ASC.Resources.Models
+
+    for i, model in ipairs(ASC.Resources.Models) do
         if ASC.Resources.Config.LogResourceLoading then
             print("[Advanced Space Combat] Precaching model: " .. model)
         end
         util.PrecacheModel(model)
+
+        -- Update loading screen progress
+        if CLIENT and ASC.LoadingScreen then
+            local progress = (i / totalModels) * 25 -- Models are 25% of total loading
+            ASC.LoadingScreen.SetProgress(progress, "Loading models... (" .. i .. "/" .. totalModels .. ")",
+                "Models", {loaded = i, total = totalModels})
+        end
     end
 end
 
 function ASC.Resources.LoadSounds()
     if not ASC.Resources.Config.EnableSoundPrecaching then return end
-    
-    for _, sound in ipairs(ASC.Resources.Sounds) do
+
+    local totalSounds = #ASC.Resources.Sounds
+
+    for i, sound in ipairs(ASC.Resources.Sounds) do
         if ASC.Resources.Config.LogResourceLoading then
             print("[Advanced Space Combat] Precaching sound: " .. sound)
         end
         util.PrecacheSound(sound)
+
+        -- Update loading screen progress
+        if CLIENT and ASC.LoadingScreen then
+            local progress = 25 + (i / totalSounds) * 25 -- Sounds are 25-50% of total loading
+            ASC.LoadingScreen.SetProgress(progress, "Loading sounds... (" .. i .. "/" .. totalSounds .. ")",
+                "Sounds", {loaded = i, total = totalSounds})
+        end
     end
 end
 
 function ASC.Resources.LoadMaterials()
     if not ASC.Resources.Config.EnableMaterialPrecaching then return end
-    
-    for _, material in ipairs(ASC.Resources.Materials) do
+
+    local totalMaterials = #ASC.Resources.Materials
+
+    for i, material in ipairs(ASC.Resources.Materials) do
         if ASC.Resources.Config.LogResourceLoading then
             print("[Advanced Space Combat] Precaching material: " .. material)
         end
         Material(material)
+
+        -- Update loading screen progress
+        if CLIENT and ASC.LoadingScreen then
+            local progress = 50 + (i / totalMaterials) * 25 -- Materials are 50-75% of total loading
+            ASC.LoadingScreen.SetProgress(progress, "Loading materials... (" .. i .. "/" .. totalMaterials .. ")",
+                "Materials", {loaded = i, total = totalMaterials})
+        end
     end
 end
 
 function ASC.Resources.LoadEffects()
     if not ASC.Resources.Config.EnableEffectPrecaching then return end
-    
-    for _, effect in ipairs(ASC.Resources.Effects) do
+
+    local totalEffects = #ASC.Resources.Effects
+
+    for i, effect in ipairs(ASC.Resources.Effects) do
         if ASC.Resources.Config.LogResourceLoading then
             print("[Advanced Space Combat] Registering effect: " .. effect)
         end
         -- Effects are registered by their lua files
+
+        -- Update loading screen progress
+        if CLIENT and ASC.LoadingScreen then
+            local progress = 75 + (i / totalEffects) * 25 -- Effects are 75-100% of total loading
+            ASC.LoadingScreen.SetProgress(progress, "Loading effects... (" .. i .. "/" .. totalEffects .. ")",
+                "Effects", {loaded = i, total = totalEffects})
+        end
     end
 end
 
@@ -389,6 +430,14 @@ function ASC.Resources.Initialize()
     ASC.Resources.AddClientDownloads()
     
     print("[Advanced Space Combat] Resource loading complete!")
+
+    -- Hide loading screen when complete
+    if CLIENT and ASC.LoadingScreen then
+        ASC.LoadingScreen.SetProgress(100, "Advanced Space Combat loaded successfully!")
+        timer.Simple(2, function()
+            ASC.LoadingScreen.Hide()
+        end)
+    end
 end
 
 -- Initialize on addon load

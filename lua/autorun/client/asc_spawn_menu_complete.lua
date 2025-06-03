@@ -467,4 +467,4 @@ hook.Add("PopulateContent", "ASC_PopulateContent", function(pnlContent, tree, no
     ASC.SpawnMenu.RegisterEntities()
 end)
 
-print("[Advanced Space Combat] Complete Spawn Menu Organization v4.0.0 - ARIA-4 Ultimate Edition - Loaded!")
+print("[Advanced Space Combat] Complete Spawn Menu Organization v5.1.0 - ARIA-4 Ultimate Edition - Phase 3 Enhanced - Loaded!")

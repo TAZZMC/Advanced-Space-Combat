@@ -1,8 +1,14 @@
 --[[
-    Advanced Space Combat - Tactical AI System v3.0.0
-    
+    Advanced Space Combat - Tactical AI System v5.1.0 - PHASE 3 ENHANCED
+
     Provides intelligent combat assistance, weapon management, and tactical analysis
     for Advanced Space Combat ships and weapons systems.
+
+    PHASE 3 ENHANCEMENTS:
+    - Advanced threat assessment algorithms
+    - Enhanced predictive targeting
+    - Improved weapon coordination
+    - Smart ammunition management
     
     Features:
     - Automated target acquisition and tracking

@@ -1,5 +1,6 @@
--- Enhanced Hyperdrive System v2.1 - Enhanced Configuration
+-- Enhanced Hyperdrive System v5.1.0 - Enhanced Configuration
 -- Comprehensive configuration system with all features, integrations, and USE key interfaces
+-- PHASE 3 ENHANCED - Complete system update with advanced targeting and UI improvements
 
 if CLIENT then return end
 
@@ -8,11 +9,11 @@ HYPERDRIVE = HYPERDRIVE or {}
 HYPERDRIVE.EnhancedConfig = HYPERDRIVE.EnhancedConfig or {}
 
 -- Version and metadata
-HYPERDRIVE.EnhancedConfig.Version = "2.1.0"
+HYPERDRIVE.EnhancedConfig.Version = "5.1.0"
 HYPERDRIVE.EnhancedConfig.LastUpdate = os.time()
 HYPERDRIVE.EnhancedConfig.BuildDate = os.date("%Y-%m-%d")
 
-print("[Hyperdrive] Enhanced configuration v2.1 loading...")
+print("[Hyperdrive] Enhanced configuration v5.1.0 - Phase 3 Enhanced - loading...")
 
 -- Enhanced configuration options
 HYPERDRIVE.EnhancedConfig = {

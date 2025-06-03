@@ -476,10 +476,38 @@ function ASC.UI.SetLargeText(enabled)
     end
 end
 
+-- Loading Screen Integration
+ASC.UI.LoadingScreen = {
+    Active = false,
+    Progress = 0,
+    Stage = "Initializing",
+    StartTime = 0,
+    Resources = {
+        Loaded = 0,
+        Total = 0
+    }
+}
+
+function ASC.UI.LoadingScreen.Show()
+    ASC.UI.LoadingScreen.Active = true
+    ASC.UI.LoadingScreen.StartTime = CurTime()
+    ASC.UI.LoadingScreen.Progress = 0
+end
+
+function ASC.UI.LoadingScreen.Hide()
+    ASC.UI.LoadingScreen.Active = false
+end
+
+function ASC.UI.LoadingScreen.SetProgress(progress, stage)
+    ASC.UI.LoadingScreen.Progress = math.Clamp(progress, 0, 100)
+    ASC.UI.LoadingScreen.Stage = stage or ASC.UI.LoadingScreen.Stage
+end
+
 -- Initialize UI system
 hook.Add("Initialize", "ASC_UI_Initialize", function()
     print("[Advanced Space Combat] UI System initialized with modern design")
     print("[Advanced Space Combat] Accessibility features available")
+    print("[Advanced Space Combat] Loading screen system ready")
 end)
 
 print("[Advanced Space Combat] UI System loaded successfully!")
