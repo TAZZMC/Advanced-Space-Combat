@@ -1,7 +1,8 @@
--- Advanced Space Combat - Console Commands v2.2.1
+-- Advanced Space Combat - Console Commands v5.1.0
 -- Comprehensive console command system with help and administration
+-- COMPLETE CODE UPDATE v5.1.0 - ALL SYSTEMS UPDATED, OPTIMIZED AND INTEGRATED
 
-print("[Advanced Space Combat] Console Commands v2.2.1 - Loading...")
+print("[Advanced Space Combat] Console Commands v5.1.0 - Ultimate Edition Loading...")
 
 -- Initialize console commands namespace
 ASC = ASC or {}
@@ -87,11 +88,20 @@ ASC.Commands.Register("help", function(ply, cmd, args)
             end
         end
     else
-        -- Show all categories
-        ply:ChatPrint("[Advanced Space Combat] Available command categories:")
+        -- Show all categories and ARIA-4 info
+        ply:ChatPrint("[Advanced Space Combat] v4.0.0 - ARIA-4 Ultimate Edition")
+        ply:ChatPrint("Available command categories:")
         for _, cat in ipairs(ASC.Commands.Categories) do
             ply:ChatPrint("• " .. cat .. " (use 'asc_help " .. cat .. "' for commands)")
         end
+        ply:ChatPrint("")
+        ply:ChatPrint("ARIA-4 AI Commands:")
+        ply:ChatPrint("• aria help - AI assistance")
+        ply:ChatPrint("• aria <question> - Ask anything")
+        ply:ChatPrint("• aria system status - System overview")
+        ply:ChatPrint("• aria ship status - Ship information")
+        ply:ChatPrint("• Legacy: !ai commands still supported")
+        ply:ChatPrint("")
         ply:ChatPrint("Use 'asc_help <category>' to see commands in that category")
     end
 end, "Show help for commands", "General")
@@ -313,7 +323,7 @@ ASC.Commands.Register("config", function(ply, cmd, args)
         ply:ChatPrint("• weapons_enabled - Enable/disable weapon systems")
         ply:ChatPrint("• flight_enabled - Enable/disable flight systems")
         ply:ChatPrint("• docking_enabled - Enable/disable docking systems")
-        ply:ChatPrint("• chat_ai_enabled - Enable/disable ARIA chat AI")
+        ply:ChatPrint("• chat_ai_enabled - Enable/disable ARIA-4 chat AI")
         ply:ChatPrint("• debug_mode - Enable/disable debug mode")
         ply:ChatPrint("Usage: asc_config <setting> <value>")
         return

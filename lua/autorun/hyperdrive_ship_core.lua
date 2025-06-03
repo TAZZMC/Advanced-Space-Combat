@@ -1,10 +1,11 @@
--- Hyperdrive Ship Core System
--- Independent ship detection and management system
+-- Enhanced Ship Core System v5.1.0
+-- Comprehensive ship detection and management with real-time updates
+-- COMPLETE CODE UPDATE v5.1.0 - ALL SYSTEMS UPDATED, OPTIMIZED AND INTEGRATED
 
 HYPERDRIVE = HYPERDRIVE or {}
 HYPERDRIVE.ShipCore = HYPERDRIVE.ShipCore or {}
 
-print("[Hyperdrive] Ship Core system loading...")
+print("[Hyperdrive] Ship Core System v5.1.0 - Ultimate Edition with Enhanced Real-Time Updates")
 
 -- Ship detection configuration
 HYPERDRIVE.ShipCore.Config = {
@@ -517,27 +518,29 @@ function ShipClass:GetShipType()
     return self.shipType
 end
 
--- Create front direction indicator (green arrow)
+-- Create front direction indicator (enhanced green arrow)
 function ShipClass:CreateFrontIndicator()
     if not IsValid(self.core) then return end
 
     -- Remove existing indicator
     self:RemoveFrontIndicator()
 
-    -- Create a small green arrow entity to show ship front
+    -- Create enhanced arrow indicator with better visibility
     local indicator = ents.Create("prop_physics")
     if not IsValid(indicator) then return end
 
-    indicator:SetModel("models/hunter/misc/sphere025x025.mdl") -- Small sphere as base
-    indicator:SetPos(self.core:GetPos() + self.core:GetForward() * 100)
-    indicator:SetAngles(self.core:GetAngles())
+    -- Use a more arrow-like model
+    indicator:SetModel("models/hunter/misc/cone1x1.mdl") -- Cone shape for better arrow appearance
+    indicator:SetPos(self.core:GetPos() + self.core:GetForward() * 150) -- Further out for better visibility
+    indicator:SetAngles(self.core:GetAngles() + Angle(0, 0, 90)) -- Rotate to point forward
     indicator:Spawn()
     indicator:Activate()
 
-    -- Make it green and glowing
-    indicator:SetColor(Color(0, 255, 0, 200))
+    -- Enhanced green appearance with glow
+    indicator:SetColor(Color(0, 255, 0, 220))
     indicator:SetMaterial("models/debug/debugwhite")
     indicator:SetRenderMode(RENDERMODE_TRANSALPHA)
+    indicator:SetModelScale(0.8) -- Slightly smaller for better aesthetics
 
     -- Make it non-solid and non-colliding
     indicator:SetSolid(SOLID_NONE)
@@ -551,14 +554,16 @@ function ShipClass:CreateFrontIndicator()
         phys:EnableCollisions(false)
     end
 
-    -- Parent to core
+    -- Parent to core for automatic movement
     indicator:SetParent(self.core)
 
     -- Store reference
     self.frontIndicator = indicator
 
-    -- Hide by default
-    self:HideFrontIndicator()
+    -- Show by default for better user experience
+    self:ShowFrontIndicator()
+
+    print("[Ship Core] Enhanced front indicator created for " .. self.shipType)
 end
 
 -- Remove front direction indicator

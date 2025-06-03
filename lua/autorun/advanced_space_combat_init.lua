@@ -1,13 +1,14 @@
--- Advanced Space Combat v2.2.1 - Main Initialization
--- Ultimate space combat simulation with Stargate technology integration
--- Professional-grade addon for Garry's Mod with modern UI and AI systems
+-- Advanced Space Combat v5.1.0 - Main Initialization
+-- Ultimate space combat simulation with enhanced Stargate hyperspace technology
+-- Professional-grade addon for Garry's Mod with modern UI and ARIA-4 AI systems
+-- COMPLETE CODE UPDATE v5.1.0 - ALL SYSTEMS UPDATED AND OPTIMIZED
 --
--- Copyright (c) 2024 Advanced Space Combat Team
+-- Copyright (c) 2025 Advanced Space Combat Team
 -- Licensed under MIT License - See LICENSE file for details
 
 print("================================================================================")
-print("[Advanced Space Combat] Advanced Space Combat v2.2.1 - Ultimate Edition")
-print("[Advanced Space Combat] Professional space combat simulation with Stargate tech")
+print("[Advanced Space Combat] Advanced Space Combat v5.1.0 - ARIA-4 Ultimate Edition")
+print("[Advanced Space Combat] Enhanced Stargate hyperspace with 4-stage travel system")
 print("================================================================================")
 
 -- Initialize main namespace
@@ -15,27 +16,41 @@ ASC = ASC or {}
 HYPERDRIVE = ASC -- Backward compatibility alias
 
 -- System information
-ASC.VERSION = "2.2.1"
-ASC.BUILD = "2024.12.19.ULTIMATE"
-ASC.NAME = "Advanced Space Combat - Ultimate Edition"
+ASC.VERSION = "5.1.0"
+ASC.BUILD = "2025.01.15.STARGATE.ULTIMATE"
+ASC.NAME = "Advanced Space Combat - ARIA-4 Ultimate Edition with Enhanced Stargate Hyperspace"
 ASC.AUTHOR = "Advanced Space Combat Team"
-ASC.STATUS = "Production Ready - Ultimate"
-ASC.DESCRIPTION = "Ultimate space combat simulation with Stargate technology, modern UI, and AI"
+ASC.STATUS = "Production Ready - Ultimate Stargate Edition"
+ASC.DESCRIPTION = "Ultimate space combat with ARIA-4 AI, 4-stage Stargate hyperspace, complete integrations, and all code updated"
 ASC.LICENSE = "MIT License"
-ASC.REPOSITORY = "https://github.com/advanced-space-combat/asc-ultimate"
-ASC.DOCUMENTATION = "https://docs.advanced-space-combat.com/ultimate"
-ASC.SUPPORT = "https://discord.gg/advanced-space-combat-ultimate"
+ASC.REPOSITORY = "https://github.com/advanced-space-combat/asc-stargate-hyperspace"
+ASC.DOCUMENTATION = "https://docs.advanced-space-combat.com/stargate-hyperspace"
+ASC.SUPPORT = "https://discord.gg/advanced-space-combat-stargate"
 ASC.WEBSITE = "https://advanced-space-combat.com"
+ASC.LAST_UPDATED = os.date("%Y-%m-%d %H:%M:%S")
+ASC.UPDATE_NOTES = "Complete code update - All systems optimized, enhanced Stargate hyperspace, improved integrations"
 
--- Feature list
+-- Enhanced Feature list with Stargate Hyperspace
 ASC.FEATURES = {
-    -- Core Systems
-    "Advanced Ship Core System with Auto-Detection",
-    "Professional Ship Management Interface",
-    "Real-Time Ship Status Monitoring",
-    "Automated Ship Naming System",
-    "Hull Damage & Repair System",
-    
+    -- Core Systems (Updated v5.1.0)
+    "Advanced Ship Core System with Auto-Detection & Real-Time Updates",
+    "Professional Ship Management Interface with Modern UI",
+    "Real-Time Ship Status Monitoring & Diagnostics",
+    "Automated Ship Naming System with Custom Templates",
+    "Hull Damage & Repair System with Visual Indicators",
+    "Enhanced Resource Management with SB3 Integration",
+    "Comprehensive Entity Registration & Validation",
+
+    -- Enhanced Stargate Hyperspace System
+    "4-Stage Stargate Hyperspace Travel (Initiation, Window Opening, Travel, Exit)",
+    "Authentic Stargate Visual Effects (Blue/Purple Energy Windows)",
+    "Stretched Starlines and Dimensional Tunnel Effects",
+    "Gravitational Anomaly Detection and Navigation Hazards",
+    "Ancient Technology and ZPM Integration Bonuses",
+    "Progressive System Stabilization and Energy Management",
+    "Client-Side HUD with Stage Progress and Time Remaining",
+    "Enhanced Screen Effects and Motion Blur During Travel",
+
     -- Combat Systems
     "5 Advanced Weapon Types (Pulse, Beam, Torpedo, Railgun, Plasma)",
     "Weapon Groups with Coordinated Firing",
@@ -65,7 +80,13 @@ ASC.FEATURES = {
     "Service Automation (Refuel/Repair/Resupply)",
     
     -- User Experience
-    "ARIA Chat AI Assistant with Context Awareness",
+    "ARIA-4 Next-Generation AI Assistant with Advanced Intelligence",
+    "AI Intent Recognition and Sentiment Analysis",
+    "AI Conversation Memory and Contextual Understanding",
+    "AI-Enhanced Tactical Decision Making",
+    "AI-Powered Navigation and Pathfinding",
+    "AI-Assisted Weapon Targeting and Accuracy",
+    "Ultimate Hyperdrive Engine - All Types Unified",
     "Comprehensive Undo System with Smart Cleanup",
     "Enhanced Spawn Tool with Auto-Linking",
     "Real-Time System Integration",
@@ -227,6 +248,18 @@ SafeCreateConVar("asc_sound_engines", "1.0", FCVAR_ARCHIVE, "Engine sound volume
 SafeCreateConVar("asc_sound_shields", "1.0", FCVAR_ARCHIVE, "Shield sound volume")
 SafeCreateConVar("asc_sound_ui", "0.6", FCVAR_ARCHIVE, "UI sound volume")
 
+-- Phase 2 Enhanced ConVars - Ship Core Visual and Audio Settings
+SafeCreateConVar("asc_show_front_indicators", "1", FCVAR_ARCHIVE, "Show ship front direction indicators")
+SafeCreateConVar("asc_auto_show_arrows", "1", FCVAR_ARCHIVE, "Automatically show front arrows on ship cores")
+SafeCreateConVar("asc_indicator_distance", "150", FCVAR_ARCHIVE, "Distance of front indicator from ship core")
+SafeCreateConVar("asc_enable_ship_sounds", "1", FCVAR_ARCHIVE, "Enable ship core ambient sounds")
+SafeCreateConVar("asc_ship_core_volume", "0.15", FCVAR_ARCHIVE, "Ship core ambient sound volume")
+SafeCreateConVar("asc_default_ship_sound", "ambient/atmosphere/ambience_base.wav", FCVAR_ARCHIVE, "Default ship core ambient sound")
+SafeCreateConVar("asc_enable_auto_linking", "1", FCVAR_ARCHIVE, "Enable automatic component linking")
+SafeCreateConVar("asc_enable_cap_integration", "1", FCVAR_ARCHIVE, "Enable CAP asset integration")
+SafeCreateConVar("asc_enable_ai_system", "1", FCVAR_ARCHIVE, "Enable ARIA-4 AI system")
+SafeCreateConVar("asc_default_ship_range", "2000", FCVAR_ARCHIVE, "Default ship detection range")
+
 -- Backward compatibility aliases
 HYPERDRIVE.VERSION = ASC.VERSION
 HYPERDRIVE.BUILD = ASC.BUILD
@@ -244,7 +277,6 @@ end
 -- Load organization and UI systems on client
 if CLIENT then
     include("autorun/client/asc_spawn_menu_organization.lua")
-    include("autorun/client/asc_tool_organization.lua")
     include("autorun/client/asc_entity_categories.lua")
     include("autorun/client/asc_ui_system.lua")
 end
@@ -252,44 +284,76 @@ end
 -- Add organization and UI systems to client download
 if SERVER then
     AddCSLuaFile("autorun/client/asc_spawn_menu_organization.lua")
-    AddCSLuaFile("autorun/client/asc_tool_organization.lua")
     AddCSLuaFile("autorun/client/asc_entity_categories.lua")
     AddCSLuaFile("autorun/client/asc_ui_system.lua")
 end
+
+-- Load debug, error recovery, and multilingual systems first
+include("autorun/asc_debug_system.lua")
+include("autorun/asc_error_recovery.lua")
+include("autorun/asc_multilingual_system.lua")
 
 -- Load documentation, console, Stargate technology, and resource systems (shared)
 include("autorun/asc_documentation_system.lua")
 include("autorun/asc_console_commands.lua")
 include("autorun/asc_stargate_technology.lua")
 include("autorun/asc_resource_management.lua")
+include("autorun/asc_tactical_ai_system.lua")
+include("autorun/asc_shield_system.lua")
+include("autorun/asc_flight_system.lua")
+include("autorun/asc_docking_system.lua")
+include("autorun/asc_formation_system.lua")
+include("autorun/asc_boss_system.lua")
+include("autorun/asc_weapon_system.lua")
 include("autorun/asc_ai_system_v2.lua")
+include("autorun/asc_sound_definitions.lua")
+include("autorun/asc_sound_system.lua")
+include("autorun/asc_entity_spawning.lua")
 if SERVER then
+    AddCSLuaFile("autorun/asc_debug_system.lua")
+    AddCSLuaFile("autorun/asc_error_recovery.lua")
+    AddCSLuaFile("autorun/asc_multilingual_system.lua")
     AddCSLuaFile("autorun/asc_documentation_system.lua")
     AddCSLuaFile("autorun/asc_console_commands.lua")
     AddCSLuaFile("autorun/asc_stargate_technology.lua")
     AddCSLuaFile("autorun/asc_resource_management.lua")
+    AddCSLuaFile("autorun/asc_tactical_ai_system.lua")
+    AddCSLuaFile("autorun/asc_shield_system.lua")
+    AddCSLuaFile("autorun/asc_flight_system.lua")
+    AddCSLuaFile("autorun/asc_docking_system.lua")
+    AddCSLuaFile("autorun/asc_formation_system.lua")
+    AddCSLuaFile("autorun/asc_boss_system.lua")
+    AddCSLuaFile("autorun/asc_weapon_system.lua")
     AddCSLuaFile("autorun/asc_ai_system_v2.lua")
+    AddCSLuaFile("autorun/asc_sound_definitions.lua")
+    AddCSLuaFile("autorun/asc_sound_system.lua")
+    AddCSLuaFile("autorun/asc_entity_spawning.lua")
 end
 
--- Load client-side font system
+-- Load client-side systems
 if CLIENT then
     include("autorun/client/asc_fonts.lua")
+    include("autorun/client/asc_ship_camera.lua")
 end
 if SERVER then
     AddCSLuaFile("autorun/client/asc_fonts.lua")
+    AddCSLuaFile("autorun/client/asc_ship_camera.lua")
 end
 
 print("================================================================================")
-print("[Advanced Space Combat] ULTIMATE EDITION INITIALIZATION COMPLETE!")
+print("[Advanced Space Combat] ARIA-4 ULTIMATE EDITION WITH ENHANCED STARGATE HYPERSPACE!")
 print("[Advanced Space Combat] Version: " .. ASC.VERSION .. " Build: " .. ASC.BUILD)
 print("[Advanced Space Combat] Features: " .. #ASC.FEATURES .. " systems loaded")
-print("[Advanced Space Combat] AI Assistant: ARIA-2 v2.2.1 - Use !ai help")
-print("[Advanced Space Combat] Stargate Tech: 6 cultures, 60+ technologies")
-print("[Advanced Space Combat] UI System: Ultimate edition with modern design")
+print("[Advanced Space Combat] AI Assistant: ARIA-4 v5.1.0 - Next-Generation Intelligence - Use 'aria help'")
+print("[Advanced Space Combat] Enhanced Hyperspace: 4-stage Stargate travel with authentic mechanics")
+print("[Advanced Space Combat] Stargate Tech: 6 cultures, 60+ technologies, ZPM/Ancient bonuses")
+print("[Advanced Space Combat] UI System: Ultimate edition with modern design and hyperspace HUD")
+print("[Advanced Space Combat] Last Updated: " .. ASC.LAST_UPDATED)
 print("[Advanced Space Combat] Documentation: Updated with emoji and modern formatting")
 print("[Advanced Space Combat] Resource Management: Intelligent handling of missing files")
+print("[Advanced Space Combat] Sound System: Professional Lua-based audio with fallbacks")
 print("[Advanced Space Combat] Quality: Enterprise-grade architecture")
 print("================================================================================")
 print("[Advanced Space Combat] 🌌 READY FOR ULTIMATE SPACE ADVENTURES! 🚀")
-print("[Advanced Space Combat] Type !ai help to get started with ARIA-2 assistant")
+print("[Advanced Space Combat] Type !ai help to get started with ARIA-4 assistant")
 print("================================================================================")

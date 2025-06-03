@@ -1,7 +1,8 @@
--- Advanced Space Combat - Resource Management System v2.2.1
+-- Advanced Space Combat - Resource Management System v5.1.0
 -- Comprehensive resource management for materials, models, sounds, and effects
+-- COMPLETE CODE UPDATE v5.1.0 - ALL SYSTEMS UPDATED, OPTIMIZED AND INTEGRATED
 
-print("[Advanced Space Combat] Resource Management System v2.2.1 - Loading...")
+print("[Advanced Space Combat] Resource Management System v5.1.0 - Ultimate Edition Loading...")
 
 -- Initialize resource management namespace
 ASC = ASC or {}

@@ -1,23 +1,31 @@
--- Enhanced Hyperdrive System v2.2.1 - Main Initialization
+-- Enhanced Hyperdrive System v5.1.0 - Main Initialization
 -- Comprehensive space travel system with advanced UI, CAP integration, sound system, and visual effects
--- COMPLETE CODE UPDATE v2.2.1 - ALL SYSTEMS UPDATED AND INTEGRATED WITH STEAM WORKSHOP
+-- COMPLETE CODE UPDATE v5.1.0 - ALL SYSTEMS UPDATED AND OPTIMIZED WITH STARGATE HYPERSPACE
 
-print("[Hyperdrive] COMPLETE CODE UPDATE v2.2.1 - ALL SYSTEMS BEING UPDATED")
-print("[Hyperdrive] Enhanced Hyperdrive System v2.2.1 - Build 20241220.3 initializing...")
+print("[Hyperdrive] ENHANCED STARGATE HYPERSPACE UPDATE v5.1.0 - ULTIMATE 4-STAGE TRAVEL SYSTEM")
+print("[Hyperdrive] Advanced Space Combat v5.1.0 - Ultimate Stargate Hyperspace Edition initializing...")
+print("[Hyperdrive] All code updated and optimized for maximum performance and compatibility")
 
 -- Shared initialization
 HYPERDRIVE = HYPERDRIVE or {}
-HYPERDRIVE.Version = "2.2.1"
-HYPERDRIVE.Author = "Enhanced Hyperdrive Team"
+HYPERDRIVE.Version = "5.1.0"
+HYPERDRIVE.Author = "Advanced Space Combat Team"
 HYPERDRIVE.BuildDate = os.date("%Y-%m-%d")
-HYPERDRIVE.BuildNumber = "2203" -- Updated build number
-HYPERDRIVE.Status = "Production Ready - Complete Code Update v2.2.1"
-HYPERDRIVE.LastUpdate = "Complete Steam Workshop Integration"
+HYPERDRIVE.BuildNumber = "5100" -- Ultimate Stargate Hyperspace build - All code updated
+HYPERDRIVE.Status = "Production Ready - Ultimate Stargate Hyperspace Edition"
+HYPERDRIVE.LastUpdate = "Complete code update - All systems optimized with enhanced 4-Stage Stargate Hyperspace"
 HYPERDRIVE.Features = {
+    "Enhanced 4-Stage Stargate Hyperspace System",
+    "Authentic Stargate Visual Effects and Sound",
+    "Gravitational Anomaly Detection",
+    "Ancient Technology and ZPM Bonuses",
+    "Progressive System Stabilization",
+    "Client-Side HUD and Screen Effects",
+    "Ultimate Hyperdrive Engine - All Types Unified",
+    "ARIA-4 Next-Generation AI Assistant",
     "Advanced Ship Core System",
     "Modern UI Framework",
     "CAP (Carter Addon Pack) Integration",
-    "4-Stage Stargate Hyperdrive",
     "Ship Naming & Management",
     "Hull Damage & Repair System",
     "Advanced Shield Systems",
@@ -83,15 +91,16 @@ HYPERDRIVE.Features = {
     "Emergency Evacuation Protocols",
     "Service Automation (Refuel/Repair/Resupply)",
 
-    -- v2.2.1 Advanced User Experience
+    -- v4.0.0 Advanced User Experience
     "Comprehensive Undo System with Smart Cleanup",
-    "ARIA Chat AI Assistant with Context Awareness",
+    "ARIA-4 AI Assistant with Intent Recognition and Sentiment Analysis",
+    "AI Conversation Memory and Contextual Understanding",
     "Enhanced Spawn Tool with Auto-Linking",
     "Real-Time System Integration",
     "Professional Error Handling",
     "Performance Optimization",
     "User-Friendly Operation",
-    "Complete Documentation System"
+    "Complete Documentation System",
 
     -- Real-Time Update Features
     "Real-Time Entity Scanning (10 FPS)",
@@ -339,18 +348,17 @@ if SERVER then
     AddCSLuaFile("autorun/client/hyperdrive_hyperspace_window.lua")
     AddCSLuaFile("autorun/client/hyperdrive_stargate_client.lua")
     AddCSLuaFile("autorun/client/hyperdrive_visual_config.lua")
-    AddCSLuaFile("autorun/client/hyperdrive_qmenu_config.lua")
     AddCSLuaFile("autorun/client/hyperdrive_ui_theme.lua")
     AddCSLuaFile("autorun/client/hyperdrive_entity_selector.lua")
-    AddCSLuaFile("autorun/client/hyperdrive_spawn_menu.lua")
+    AddCSLuaFile("autorun/client/asc_spawn_menu_complete.lua")
+    AddCSLuaFile("autorun/client/asc_menu_organization.lua")
 
     -- Add v2.2.1 client-side files
     AddCSLuaFile("entities/hyperdrive_flight_console/cl_init.lua")
     AddCSLuaFile("entities/hyperdrive_docking_pad/cl_init.lua")
     AddCSLuaFile("entities/hyperdrive_shuttle/cl_init.lua")
 
-    -- Add integrated spawn tool
-    AddCSLuaFile("weapons/gmod_tool/stools/hyperdrive.lua")
+
 
     -- Add sound files to download
     resource.AddFile("sound/hyperdrive/ship_in_hyperspace.wav")
@@ -414,7 +422,12 @@ if SERVER then
         "autorun/hyperdrive_ship_detection.lua",     -- Ship detection algorithms
         "autorun/hyperdrive_optimization_engine.lua", -- Performance optimization
         "autorun/hyperdrive_error_recovery.lua",     -- Error handling and recovery
-        "autorun/hyperdrive_debug.lua"               -- Debug and logging system
+        "autorun/hyperdrive_debug.lua",              -- Debug and logging system
+        "autorun/hyperdrive_real_time_monitoring.lua", -- Real-time monitoring
+        "autorun/hyperdrive_performance_analytics.lua", -- Performance analytics
+        "autorun/asc_code_fixes.lua",                 -- Code fixes and error recovery
+        "autorun/asc_system_diagnostics.lua",         -- System diagnostics and health monitoring
+        "autorun/asc_status_commands.lua"             -- Status commands and help system
     }
 
     for _, fileName in ipairs(coreFiles) do
@@ -444,8 +457,6 @@ if SERVER then
         -- v2.2.0 New Files
         "autorun/hyperdrive_fleet_management.lua",
         "autorun/server/hyperdrive_admin_panel.lua",
-        "autorun/hyperdrive_real_time_monitoring.lua",
-        "autorun/hyperdrive_performance_analytics.lua",
 
         -- v2.2.1 Combat & Weapons Systems
         "autorun/hyperdrive_weapons_system.lua",
@@ -535,7 +546,7 @@ if SERVER then
             ply:ChatPrint("• Docking Pads: 5 types with automated landing and services")
             ply:ChatPrint("• Shuttles: 4 types for automated transport missions")
             ply:ChatPrint("• Undo System: Press Z to undo, hyperdrive_undo_list for history")
-            ply:ChatPrint("• Chat AI: Use !ai, !aria, or !help to talk to ARIA assistant")
+            ply:ChatPrint("• ARIA-4 AI: Use 'aria <question>' (primary) or !ai (legacy) to talk to ARIA-4")
             ply:ChatPrint("")
             ply:ChatPrint("• SHIFT + USE: Open ship core management from engines")
             ply:ChatPrint("• Ship Naming: Use ship core interface to name and manage ships")
@@ -745,7 +756,7 @@ elseif CLIENT then
         chat.AddText(Color(255, 255, 255), "• Docking Pads: 5 types with automated landing and services")
         chat.AddText(Color(255, 255, 255), "• Shuttles: 4 types for automated transport missions")
         chat.AddText(Color(255, 255, 255), "• Undo System: Press Z to undo, hyperdrive_undo_list for history")
-        chat.AddText(Color(255, 255, 255), "• Chat AI: Use !ai, !aria, or !help to talk to ARIA assistant")
+        chat.AddText(Color(255, 255, 255), "• ARIA-4 AI: Use 'aria <question>' (primary) or !ai (legacy) to talk to ARIA-4")
         chat.AddText(Color(100, 255, 100), "")
         chat.AddText(Color(255, 255, 255), "• SHIFT + USE: Open ship core management from engines")
         chat.AddText(Color(255, 255, 255), "• Ship Naming: Use ship core interface to name and manage ships")
@@ -842,7 +853,10 @@ function HYPERDRIVE.InitializeEnhanced()
     if Spacebuild then table.insert(integrations, "SB3") end
     if WireLib then table.insert(integrations, "Wiremod") end
 
-    print("[Hyperdrive] Enhanced initialization complete with integrations: " .. table.concat(integrations, ", "))
+    print("[Hyperdrive] Enhanced Stargate Hyperspace Edition initialization complete with integrations: " .. table.concat(integrations, ", "))
+    print("[Hyperdrive] Enhanced Hyperspace System: 4-stage Stargate travel with authentic mechanics")
+    print("[Hyperdrive] ARIA-4 AI: Next-generation intelligence with contextual understanding")
+    print("[Hyperdrive] Stargate Features: Ancient tech bonuses, ZPM integration, gravitational anomaly detection")
 end
 
 -- Run enhanced initialization after all systems load

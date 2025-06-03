@@ -1,11 +1,11 @@
 "AddonInfo"
 {
-	"name"			"Advanced Space Combat"
-	"version"		"2.2.1"
-	"up_date"		"19/12/2024"
+	"name"			"Advanced Space Combat - Enhanced Stargate Hyperspace Edition"
+	"version"		"5.1.0"
+	"up_date"		"15/01/2025"
 	"author_name"	"Advanced Space Combat Team"
 	"author_email"	""
 	"author_url"	""
-	"info"			"Complete space combat simulation with advanced ships, weapons, flight systems, and AI"
+	"info"			"Enhanced 4-stage Stargate hyperspace system with authentic travel mechanics, ARIA-4 AI v5.1.0, and complete integration"
 	"override"		"0"
 }

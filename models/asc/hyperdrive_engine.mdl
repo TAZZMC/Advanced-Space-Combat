@@ -1,0 +1,13 @@
+// Advanced Space Combat - Hyperdrive Engine Model
+// This is a placeholder file for the hyperdrive engine 3D model
+// The actual .mdl file should be created using a 3D modeling tool
+
+// Model specifications:
+// - Size: Approximately 96x48x48 units
+// - Origin: Center bottom
+// - Collision model: Cylinder collision
+// - Materials: engine_base.vmt, engine_glow.vmt
+// - Animations: idle, thrust, shutdown
+// - Attachment points: thrust_nozzle, energy_intake
+
+// For now, entities will use a default prop model as fallback

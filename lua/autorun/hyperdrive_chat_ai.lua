@@ -1,7 +1,8 @@
--- Enhanced Hyperdrive System - Chat AI Assistant v2.2.1
+-- Enhanced Hyperdrive System - Chat AI Assistant v5.1.0
 -- In-game AI assistant for help and information
+-- COMPLETE CODE UPDATE v5.1.0 - ALL SYSTEMS UPDATED, OPTIMIZED AND INTEGRATED
 
-print("[Hyperdrive Chat AI] Chat AI Assistant v2.2.1 - Initializing...")
+print("[Hyperdrive Chat AI] Chat AI Assistant v5.1.0 - Ultimate Edition Initializing...")
 
 -- Initialize chat AI namespace
 HYPERDRIVE = HYPERDRIVE or {}
@@ -15,8 +16,8 @@ HYPERDRIVE.ChatAI.Config = {
     AIPrefix = "[ARIA]",
     AIColor = Color(100, 200, 255),
     
-    -- Trigger Settings
-    TriggerWords = {"!ai", "!aria", "!help", "!hyperdrive", "!assistant"},
+    -- Trigger Settings (Updated for ARIA-4)
+    TriggerWords = {"aria", "!ai", "!aria"}, -- Primary: aria, Legacy: !ai, !aria
     RequirePrefix = true,
     CaseSensitive = false,
     
@@ -326,9 +327,10 @@ if SERVER then
     concommand.Add("hyperdrive_ai_help", function(ply, cmd, args)
         if not IsValid(ply) then return end
         
-        ply:ChatPrint("[Hyperdrive AI] === ARIA CHAT AI HELP ===")
-        ply:ChatPrint("Trigger words: " .. table.concat(HYPERDRIVE.ChatAI.Config.TriggerWords, ", "))
-        ply:ChatPrint("Example: !ai help, !aria status, !hyperdrive tutorial")
+        ply:ChatPrint("[ARIA-4] === ARIA-4 CHAT AI HELP ===")
+        ply:ChatPrint("Primary command: aria <question>")
+        ply:ChatPrint("Legacy commands: " .. table.concat(HYPERDRIVE.ChatAI.Config.TriggerWords, ", "))
+        ply:ChatPrint("Examples: aria help, aria status, aria ship status")
         ply:ChatPrint("Available topics: help, status, tutorial, entities, commands")
         ply:ChatPrint("Specific help: ship core, weapons, flight, docking, shuttles")
         ply:ChatPrint("System info: diagnostics, count, undo, spawn, wire, energy")

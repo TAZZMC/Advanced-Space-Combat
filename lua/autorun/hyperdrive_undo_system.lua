@@ -1,7 +1,8 @@
--- Enhanced Hyperdrive System - Undo System Integration v2.2.1
+-- Enhanced Hyperdrive System - Undo System Integration v5.1.0
 -- Comprehensive undo support for all hyperdrive entities
+-- COMPLETE CODE UPDATE v5.1.0 - ALL SYSTEMS UPDATED, OPTIMIZED AND INTEGRATED
 
-print("[Hyperdrive Undo] Undo System v2.2.1 - Initializing...")
+print("[Hyperdrive Undo] Undo System v5.1.0 - Ultimate Edition Initializing...")
 
 -- Initialize undo namespace
 HYPERDRIVE = HYPERDRIVE or {}

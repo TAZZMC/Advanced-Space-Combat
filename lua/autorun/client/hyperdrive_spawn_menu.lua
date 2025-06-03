@@ -1,255 +1,240 @@
--- Enhanced Hyperdrive System - Spawn Menu Integration
--- Adds hyperdrive entities to the spawn menu for easy access
+-- Enhanced Hyperdrive System - Spawn Menu Integration v2.2.1
+-- Spawn menu entity registration and organization
 
-if SERVER then return end
+if not CLIENT then return end
 
--- Add hyperdrive entities to spawn menu
-hook.Add("PopulateEntities", "HyperdriveSpawnMenu", function(pnlContent, tree, node)
-    if not IsValid(pnlContent) or not IsValid(tree) then return end
+print("[Hyperdrive] Loading Spawn Menu Integration v2.2.1...")
 
-    -- Create Enhanced Hyperdrive category
-    local hyperdriveNode = tree:AddNode("Enhanced Hyperdrive", "icon16/star.png")
+-- Initialize spawn menu system
+HYPERDRIVE = HYPERDRIVE or {}
+HYPERDRIVE.SpawnMenu = HYPERDRIVE.SpawnMenu or {}
 
-    -- Ship Core
-    local shipCoreIcon = vgui.Create("SpawnIcon")
-    if IsValid(shipCoreIcon) then
-        shipCoreIcon:SetModel("models/props_phx/construct/metal_plate1.mdl")
-        shipCoreIcon.DoClick = function()
-            RunConsoleCommand("gm_spawnsent", "ship_core")
-        end
-        shipCoreIcon:SetTooltip("Ship Core\nCentral management system for ships\nHandles entity detection, resources, and systems")
+-- Spawn menu configuration
+HYPERDRIVE.SpawnMenu.Config = {
+    MainCategory = "Enhanced Hyperdrive",
+    EnableSpawnMenu = true,
+    AutoRegister = true
+}
 
-        -- Safely add to content panel
-        if pnlContent.AddItem then
-            pnlContent:AddItem(shipCoreIcon)
-        elseif pnlContent.Add then
-            pnlContent:Add(shipCoreIcon)
-        end
-    end
+-- Entity definitions for spawn menu
+HYPERDRIVE.SpawnMenu.Entities = {
+    ["Ship Cores"] = {
+        {
+            class = "ship_core",
+            name = "Ship Core",
+            description = "Central ship command and control system",
+            icon = "entities/ship_core.png"
+        },
+        {
+            class = "hyperdrive_computer",
+            name = "Hyperdrive Computer",
+            description = "Advanced navigation and control computer",
+            icon = "entities/hyperdrive_computer.png"
+        }
+    },
+    
+    ["Engines"] = {
+        {
+            class = "hyperdrive_engine",
+            name = "Hyperdrive Engine",
+            description = "Standard faster-than-light propulsion system",
+            icon = "entities/hyperdrive_engine.png"
+        },
+        {
+            class = "hyperdrive_master_engine",
+            name = "Master Engine",
+            description = "Advanced hyperdrive with enhanced capabilities",
+            icon = "entities/hyperdrive_master_engine.png"
+        }
+    },
+    
+    ["Weapons"] = {
+        {
+            class = "asc_pulse_cannon",
+            name = "Pulse Cannon",
+            description = "Fast-firing energy weapon system",
+            icon = "entities/asc_pulse_cannon.png"
+        },
+        {
+            class = "asc_plasma_cannon",
+            name = "Plasma Cannon",
+            description = "High-damage area effect weapon",
+            icon = "entities/asc_plasma_cannon.png"
+        },
+        {
+            class = "asc_railgun",
+            name = "Railgun",
+            description = "Long-range kinetic projectile weapon",
+            icon = "entities/asc_railgun.png"
+        },
+        {
+            class = "hyperdrive_beam_weapon",
+            name = "Beam Weapon",
+            description = "Continuous energy beam weapon",
+            icon = "entities/hyperdrive_beam_weapon.png"
+        },
+        {
+            class = "hyperdrive_torpedo_launcher",
+            name = "Torpedo Launcher",
+            description = "Guided missile launcher system",
+            icon = "entities/hyperdrive_torpedo_launcher.png"
+        }
+    },
+    
+    ["Shields"] = {
+        {
+            class = "asc_shield_generator",
+            name = "Shield Generator",
+            description = "CAP-integrated bubble shield system",
+            icon = "entities/asc_shield_generator.png"
+        },
+        {
+            class = "hyperdrive_shield_generator",
+            name = "Hyperdrive Shield",
+            description = "Basic energy shield generator",
+            icon = "entities/hyperdrive_shield_generator.png"
+        }
+    },
+    
+    ["Transport"] = {
+        {
+            class = "hyperdrive_docking_pad",
+            name = "Docking Pad",
+            description = "Ship docking and landing platform",
+            icon = "entities/hyperdrive_docking_pad.png"
+        },
+        {
+            class = "hyperdrive_docking_bay",
+            name = "Docking Bay",
+            description = "Large ship hangar and maintenance bay",
+            icon = "entities/hyperdrive_docking_bay.png"
+        },
+        {
+            class = "hyperdrive_shuttle",
+            name = "Shuttle",
+            description = "Small transport and utility craft",
+            icon = "entities/hyperdrive_shuttle.png"
+        },
+        {
+            class = "hyperdrive_flight_console",
+            name = "Flight Console",
+            description = "Pilot control and navigation interface",
+            icon = "entities/hyperdrive_flight_console.png"
+        }
+    },
+    
+    ["Utilities"] = {
+        {
+            class = "hyperdrive_beacon",
+            name = "Navigation Beacon",
+            description = "Hyperspace navigation and communication beacon",
+            icon = "entities/hyperdrive_beacon.png"
+        },
+        {
+            class = "asc_ancient_zpm",
+            name = "Ancient ZPM",
+            description = "Zero Point Module power source",
+            icon = "entities/asc_ancient_zpm.png"
+        },
+        {
+            class = "asc_ancient_drone",
+            name = "Ancient Drone",
+            description = "Automated defense and patrol drone",
+            icon = "entities/asc_ancient_drone.png"
+        },
+        {
+            class = "hyperdrive_wire_controller",
+            name = "Wire Controller",
+            description = "Wiremod integration and control interface",
+            icon = "entities/hyperdrive_wire_controller.png"
+        }
+    }
+}
 
-    -- Hyperdrive Engine
-    local engineIcon = vgui.Create("SpawnIcon")
-    if IsValid(engineIcon) then
-        engineIcon:SetModel("models/props_phx/construct/metal_plate2.mdl")
-        engineIcon.DoClick = function()
-            RunConsoleCommand("gm_spawnsent", "hyperdrive_engine")
-        end
-        engineIcon:SetTooltip("Hyperdrive Engine\nAdvanced FTL propulsion system\nSupports Stargate-style 4-stage travel")
-
-        -- Safely add to content panel
-        if pnlContent.AddItem then
-            pnlContent:AddItem(engineIcon)
-        elseif pnlContent.Add then
-            pnlContent:Add(engineIcon)
-        end
-    end
-end)
-
--- Add hyperdrive tools to spawn menu
-hook.Add("PopulateTools", "HyperdriveToolsMenu", function(pnlContent, tree, node)
-    if not IsValid(pnlContent) or not IsValid(tree) then return end
-
-    -- Create Enhanced Hyperdrive tools category
-    local hyperdriveNode = tree:AddNode("Enhanced Hyperdrive", "icon16/wrench.png")
-
-    -- Enhanced Hyperdrive Tool (Integrated)
-    local hyperdriveToolIcon = vgui.Create("SpawnIcon")
-    if IsValid(hyperdriveToolIcon) then
-        hyperdriveToolIcon:SetModel("models/weapons/w_toolgun.mdl")
-        hyperdriveToolIcon.DoClick = function()
-            RunConsoleCommand("gmod_tool", "hyperdrive")
-        end
-        hyperdriveToolIcon:SetTooltip("Enhanced Hyperdrive Tool\nComprehensive tool for spawning and configuring:\n• Ship Cores\n• Hyperdrive Engines\n• Shield Generators\n• CAP Integration\n• Advanced Configuration")
-
-        -- Safely add to content panel
-        if pnlContent.AddItem then
-            pnlContent:AddItem(hyperdriveToolIcon)
-        elseif pnlContent.Add then
-            pnlContent:Add(hyperdriveToolIcon)
-        end
-    end
-end)
-
--- Add context menu options for hyperdrive entities
-hook.Add("OnEntityContextMenuOpen", "HyperdriveContextMenu", function(entity, menu)
-    if not IsValid(entity) then return end
-
-    local class = entity:GetClass()
-
-    -- Ship Core context menu
-    if class == "ship_core" then
-        menu:AddOption("Open Ship Core Interface", function()
-            if entity.OpenUI then
-                entity:OpenUI(LocalPlayer())
+-- Register entities in spawn menu
+function HYPERDRIVE.SpawnMenu.RegisterEntities()
+    if not HYPERDRIVE.SpawnMenu.Config.EnableSpawnMenu then return end
+    
+    local registered = 0
+    print("[Hyperdrive] Registering entities in spawn menu...")
+    
+    for categoryName, entities in pairs(HYPERDRIVE.SpawnMenu.Entities) do
+        print("[Hyperdrive] Registering category: " .. categoryName)
+        
+        for _, entityData in ipairs(entities) do
+            -- Check if entity file exists
+            if file.Exists("lua/entities/" .. entityData.class .. "/init.lua", "GAME") or
+               file.Exists("lua/entities/" .. entityData.class .. ".lua", "GAME") then
+                
+                -- Register in spawn menu
+                list.Set("SpawnableEntities", entityData.class, {
+                    PrintName = entityData.name,
+                    ClassName = entityData.class,
+                    Category = HYPERDRIVE.SpawnMenu.Config.MainCategory .. " - " .. categoryName,
+                    KeyValues = {},
+                    SpawnFunction = function(ply, tr, class)
+                        if not tr.Hit then return end
+                        
+                        local ent = ents.Create(class)
+                        if not IsValid(ent) then return end
+                        
+                        ent:SetPos(tr.HitPos + tr.HitNormal * 10)
+                        ent:SetAngles(ply:EyeAngles())
+                        ent:Spawn()
+                        ent:Activate()
+                        
+                        -- Set ownership
+                        if ent.CPPISetOwner then
+                            ent:CPPISetOwner(ply)
+                        elseif ent.SetOwner then
+                            ent:SetOwner(ply)
+                        end
+                        
+                        return ent
+                    end
+                })
+                
+                registered = registered + 1
+                print("[Hyperdrive] Registered: " .. entityData.name)
             else
-                LocalPlayer():ChatPrint("[Ship Core] Interface not available")
+                print("[Hyperdrive] Skipped " .. entityData.class .. " (file not found)")
             end
-        end):SetIcon("icon16/cog.png")
-
-        menu:AddOption("Detect Ship Entities", function()
-            net.Start("ship_core_command")
-            net.WriteEntity(entity)
-            net.WriteString("detect_entities")
-            net.WriteTable({})
-            net.SendToServer()
-        end):SetIcon("icon16/magnifier.png")
-
-        menu:AddOption("Show Ship Status", function()
-            local shipName = entity:GetNWString("ShipName", "Unknown Ship")
-            local shipType = entity:GetNWString("ShipType", "Unknown Type")
-            local coreState = entity:GetNWInt("CoreState", 0)
-            local stateText = coreState == 0 and "Operational" or coreState == 1 and "Warning" or coreState == 2 and "Critical" or "Emergency"
-
-            LocalPlayer():ChatPrint("[Ship Core] Ship: " .. shipName .. " (" .. shipType .. ")")
-            LocalPlayer():ChatPrint("[Ship Core] Status: " .. stateText)
-        end):SetIcon("icon16/information.png")
-    end
-
-    -- Hyperdrive Engine context menu
-    if class == "hyperdrive_engine" then
-        menu:AddOption("Open Engine Interface", function()
-            if entity.OpenEngineInterface then
-                entity:OpenEngineInterface(LocalPlayer())
-            else
-                LocalPlayer():ChatPrint("[Hyperdrive Engine] Interface not available")
-            end
-        end):SetIcon("icon16/cog.png")
-
-        menu:AddOption("Charge Engine", function()
-            net.Start("hyperdrive_command")
-            net.WriteEntity(entity)
-            net.WriteString("charge")
-            net.WriteTable({})
-            net.SendToServer()
-        end):SetIcon("icon16/lightning.png")
-
-        menu:AddOption("Show Engine Status", function()
-            local energy = entity:GetNWFloat("Energy", 0)
-            local maxEnergy = entity:GetNWFloat("MaxEnergy", 1000)
-            local charging = entity:GetNWBool("Charging", false)
-            local cooldown = entity:GetNWBool("OnCooldown", false)
-
-            LocalPlayer():ChatPrint("[Hyperdrive Engine] Energy: " .. math.floor(energy) .. "/" .. maxEnergy)
-            LocalPlayer():ChatPrint("[Hyperdrive Engine] Status: " .. (charging and "Charging" or cooldown and "Cooldown" or "Ready"))
-        end):SetIcon("icon16/information.png")
-    end
-
-    -- Shield Generator context menu (for CAP shields)
-    if class:find("shield") then
-        menu:AddOption("Toggle Shield", function()
-            -- Try multiple activation methods for compatibility
-            if entity.Toggle then
-                entity:Toggle()
-            elseif entity.Activate and entity.Deactivate then
-                if entity:GetNWBool("Active", false) then
-                    entity:Deactivate()
-                else
-                    entity:Activate()
-                end
-            end
-        end):SetIcon("icon16/shield.png")
-
-        menu:AddOption("Show Shield Status", function()
-            local active = entity:GetNWBool("Active", false)
-            local strength = entity:GetNWFloat("ShieldStrength", 0)
-            local maxStrength = entity:GetNWFloat("MaxShieldStrength", 100)
-            local frequency = entity:GetNWInt("Frequency", 0)
-
-            LocalPlayer():ChatPrint("[Shield] Status: " .. (active and "Active" or "Inactive"))
-            LocalPlayer():ChatPrint("[Shield] Strength: " .. math.floor(strength) .. "/" .. maxStrength)
-            if frequency > 0 then
-                LocalPlayer():ChatPrint("[Shield] Frequency: " .. frequency)
-            end
-        end):SetIcon("icon16/information.png")
-    end
-end)
-
--- Add admin commands to context menu
-hook.Add("OnPlayerContextMenuOpen", "HyperdriveAdminMenu", function(ply, menu)
-    if not LocalPlayer():IsSuperAdmin() then return end
-
-    local adminMenu = menu:AddSubMenu("Enhanced Hyperdrive Admin")
-    adminMenu:SetIcon("icon16/star.png")
-
-    adminMenu:AddOption("Validate System", function()
-        RunConsoleCommand("hyperdrive_validate")
-    end):SetIcon("icon16/tick.png")
-
-    adminMenu:AddOption("Auto-Fix Issues", function()
-        RunConsoleCommand("hyperdrive_autofix")
-    end):SetIcon("icon16/wrench.png")
-
-    adminMenu:AddOption("Run Startup Test", function()
-        RunConsoleCommand("hyperdrive_startup_test")
-    end):SetIcon("icon16/cog.png")
-
-    adminMenu:AddOption("Check CAP Status", function()
-        RunConsoleCommand("hyperdrive_cap_status")
-    end):SetIcon("icon16/information.png")
-
-    adminMenu:AddOption("Open Entity Selector", function()
-        if HYPERDRIVE and HYPERDRIVE.EntitySelector then
-            HYPERDRIVE.EntitySelector.Open(function(entity)
-                LocalPlayer():ChatPrint("[Hyperdrive] Selected: " .. entity:GetClass())
-            end)
-        else
-            LocalPlayer():ChatPrint("[Hyperdrive] Entity selector not available")
         end
-    end):SetIcon("icon16/application_view_list.png")
-end)
-
--- Add quick spawn buttons to HUD (optional)
-local function CreateQuickSpawnHUD()
-    if not GetConVar("hyperdrive_quick_spawn_hud"):GetBool() then return end
-    if not LocalPlayer():IsSuperAdmin() then return end
-
-    local frame = vgui.Create("DPanel")
-    frame:SetSize(200, 120)
-    frame:SetPos(ScrW() - 220, 50)
-    frame:SetPaintBackground(false)
-
-    frame.Paint = function(self, w, h)
-        draw.RoundedBox(8, 0, 0, w, h, Color(0, 0, 0, 150))
-        draw.SimpleText("Quick Spawn", "DermaDefaultBold", w/2, 10, Color(255, 255, 255), TEXT_ALIGN_CENTER)
     end
-
-    local shipCoreBtn = vgui.Create("DButton", frame)
-    shipCoreBtn:SetPos(10, 25)
-    shipCoreBtn:SetSize(180, 25)
-    shipCoreBtn:SetText("Spawn Ship Core")
-    shipCoreBtn.DoClick = function()
-        RunConsoleCommand("gm_spawnsent", "ship_core")
-    end
-
-    local engineBtn = vgui.Create("DButton", frame)
-    engineBtn:SetPos(10, 55)
-    engineBtn:SetSize(180, 25)
-    engineBtn:SetText("Spawn Hyperdrive Engine")
-    engineBtn.DoClick = function()
-        RunConsoleCommand("gm_spawnsent", "hyperdrive_engine")
-    end
-
-    local closeBtn = vgui.Create("DButton", frame)
-    closeBtn:SetPos(10, 85)
-    closeBtn:SetSize(180, 25)
-    closeBtn:SetText("Close")
-    closeBtn.DoClick = function()
-        frame:Remove()
-    end
-
-    return frame
+    
+    print("[Hyperdrive] Spawn menu registration complete: " .. registered .. " entities registered")
 end
 
--- Console command to show quick spawn HUD
-concommand.Add("hyperdrive_quick_spawn", function()
-    if LocalPlayer():IsSuperAdmin() then
-        CreateQuickSpawnHUD()
-    else
-        LocalPlayer():ChatPrint("[Hyperdrive] Admin privileges required")
+-- Auto-register entities when spawn menu is populated
+hook.Add("PopulateContent", "HyperdrivePopulateContent", function(pnlContent, tree, node)
+    if HYPERDRIVE.SpawnMenu.Config.AutoRegister then
+        HYPERDRIVE.SpawnMenu.RegisterEntities()
     end
 end)
 
--- Create ConVar for quick spawn HUD
-CreateClientConVar("hyperdrive_quick_spawn_hud", "0", true, false, "Enable quick spawn HUD for hyperdrive entities")
+-- Manual registration function
+function HYPERDRIVE.SpawnMenu.ForceRegister()
+    HYPERDRIVE.SpawnMenu.RegisterEntities()
+end
 
-print("[Hyperdrive] Spawn menu integration loaded")
+-- Console command to manually register entities
+concommand.Add("hyperdrive_register_entities", function()
+    HYPERDRIVE.SpawnMenu.ForceRegister()
+    chat.AddText(Color(100, 200, 255), "[Hyperdrive] ", Color(255, 255, 255), "Entities registered in spawn menu")
+end)
+
+-- Console command to toggle spawn menu integration
+concommand.Add("hyperdrive_spawn_menu_toggle", function()
+    HYPERDRIVE.SpawnMenu.Config.EnableSpawnMenu = not HYPERDRIVE.SpawnMenu.Config.EnableSpawnMenu
+    local status = HYPERDRIVE.SpawnMenu.Config.EnableSpawnMenu and "enabled" or "disabled"
+    chat.AddText(Color(100, 200, 255), "[Hyperdrive] ", Color(255, 255, 255), "Spawn menu integration " .. status)
+end)
+
+-- Initialize spawn menu integration
+timer.Simple(1, function()
+    if HYPERDRIVE.SpawnMenu.Config.AutoRegister then
+        HYPERDRIVE.SpawnMenu.RegisterEntities()
+    end
+end)
+
+print("[Hyperdrive] Spawn Menu Integration v2.2.1 loaded successfully!")

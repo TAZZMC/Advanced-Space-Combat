@@ -1,0 +1,16 @@
+"VertexLitGeneric"
+{
+	"$basetexture" "entities/asc_docking_pad"
+	"$bumpmap" "entities/asc_docking_pad_normal"
+	"$envmap" "env_cubemap"
+	"$envmaptint" "[0.2 0.2 0.1]"
+	"$envmapfresnel" "1"
+	"$phong" "1"
+	"$phongexponent" "10"
+	"$phongboost" "0.5"
+	"$phongtint" "[1.0 1.0 0.5]"
+	"$selfillum" "1"
+	"$selfillummask" "entities/asc_docking_pad_glow"
+	"$selfillumtint" "[1.0 1.0 0.6]"
+	"$model" "1"
+}

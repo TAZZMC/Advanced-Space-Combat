@@ -7,9 +7,9 @@ include("shared.lua")
 
 function ENT:Initialize()
     self:SetModel("models/hunter/misc/sphere025.mdl")
-    self:PhysicsInit(SOLID_VBBOX)
+    self:PhysicsInit(SOLID_VPHYSICS)
     self:SetMoveType(MOVETYPE_VPHYSICS)
-    self:SetSolid(SOLID_VBBOX)
+    self:SetSolid(SOLID_VPHYSICS)
     self:SetCollisionGroup(COLLISION_GROUP_PROJECTILE)
     
     -- Make it small and glowing

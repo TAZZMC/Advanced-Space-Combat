@@ -1,0 +1,36 @@
+"VertexLitGeneric"
+{
+	"$basetexture" "entities/asc_railgun"
+	"$bumpmap" "entities/asc_railgun_normal"
+	"$envmap" "env_cubemap"
+	"$envmaptint" "[0.1 0.5 0.9]"
+	"$envmapfresnel" "1"
+	"$selfillum" "1"
+	"$selfillummask" "entities/asc_railgun_glow"
+	"$selfillumtint" "[0.2 0.7 1.0]"
+	"$phong" "1"
+	"$phongexponent" "50"
+	"$phongboost" "5"
+	"$phongtint" "[0.6 0.8 1.0]"
+	"$phongfresnelranges" "[0.1 0.5 1.0]"
+	"$rimlight" "1"
+	"$rimlightexponent" "10"
+	"$rimlightboost" "5"
+	"$additive" "0"
+	"$translucent" "0"
+	"$alpha" "1"
+	"$nocull" "0"
+	"$model" "1"
+	"$halflambert" "1"
+	
+	"Proxies"
+	{
+		"Sine"
+		{
+			"sineperiod" "1.2"
+			"sinemin" "0.3"
+			"sinemax" "1.0"
+			"resultvar" "$selfillumtint[2]"
+		}
+	}
+}

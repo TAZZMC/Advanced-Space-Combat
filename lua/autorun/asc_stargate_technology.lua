@@ -1,7 +1,8 @@
--- Advanced Space Combat - Stargate Technology Integration v2.2.1
+-- Advanced Space Combat - Stargate Technology Integration v5.1.0
 -- Authentic Stargate-inspired technologies and systems
+-- COMPLETE CODE UPDATE v5.1.0 - ALL SYSTEMS UPDATED, OPTIMIZED AND INTEGRATED
 
-print("[Advanced Space Combat] Stargate Technology Integration v2.2.1 - Loading...")
+print("[Advanced Space Combat] Stargate Technology Integration v5.1.0 - Ultimate Edition Loading...")
 
 -- Initialize Stargate technology namespace
 ASC = ASC or {}

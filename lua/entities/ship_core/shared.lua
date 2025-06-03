@@ -1,18 +1,18 @@
--- Ship Core Entity - Shared
--- Mandatory ship core for Enhanced Hyperdrive System v2.0
+-- Ship Core Entity - Shared v4.0.0 - ARIA-4 Ultimate Edition
+-- Mandatory ship core for Advanced Space Combat with ARIA-4 features and ultimate engine support
 
 ENT.Type = "anim"
 ENT.Base = "base_gmodentity"
 
 ENT.PrintName = "Ship Core"
-ENT.Author = "Enhanced Hyperdrive System"
+ENT.Author = "Advanced Space Combat Team"
 ENT.Contact = ""
-ENT.Purpose = "Mandatory ship core for hyperdrive operations"
-ENT.Instructions = "Place on ship for hyperdrive functionality. Only one core per ship allowed."
+ENT.Purpose = "Central command and control system for ships with ARIA-4 AI integration"
+ENT.Instructions = "Mandatory ship core for hyperdrive operation. Auto-links to nearby components. Use E to access interface. Compatible with ultimate engine system."
 
 ENT.Spawnable = true
 ENT.AdminSpawnable = true
-ENT.Category = "Enhanced Hyperdrive System"
+ENT.Category = "Advanced Space Combat - Ship Cores"
 
 ENT.RenderGroup = RENDERGROUP_OPAQUE
 
@@ -137,7 +137,8 @@ if WireLib then
         {"EmergencyResourceShutdown", "NORMAL"},
         {"RepairHull", "NORMAL"},
         {"ActivateShields", "NORMAL"},
-        {"DeactivateShields", "NORMAL"}
+        {"DeactivateShields", "NORMAL"},
+        {"Mute", "NORMAL"}
     }
 
     ENT.Outputs = {
@@ -173,6 +174,9 @@ if WireLib then
         {"WeldDetectionEnabled", "NORMAL"},
         {"LastResourceActivity", "STRING"},
         {"ResourceDistributionRate", "NORMAL"},
-        {"ResourceCollectionRate", "NORMAL"}
+        {"ResourceCollectionRate", "NORMAL"},
+
+        -- Ambient sound outputs
+        {"AmbientSoundMuted", "NORMAL"}
     }
 end

@@ -1,0 +1,36 @@
+"VertexLitGeneric"
+{
+	"$basetexture" "entities/ship_core"
+	"$bumpmap" "entities/ship_core_normal"
+	"$envmap" "env_cubemap"
+	"$envmaptint" "[0.1 0.3 0.8]"
+	"$envmapfresnel" "1"
+	"$selfillum" "1"
+	"$selfillummask" "entities/ship_core_glow"
+	"$selfillumtint" "[0.2 0.6 1.0]"
+	"$phong" "1"
+	"$phongexponent" "20"
+	"$phongboost" "2"
+	"$phongtint" "[0.8 0.9 1.0]"
+	"$phongfresnelranges" "[0.5 1.0 2.0]"
+	"$rimlight" "1"
+	"$rimlightexponent" "4"
+	"$rimlightboost" "2"
+	"$additive" "0"
+	"$translucent" "0"
+	"$alpha" "1"
+	"$nocull" "0"
+	"$model" "1"
+	"$halflambert" "1"
+	
+	"Proxies"
+	{
+		"Sine"
+		{
+			"sineperiod" "2"
+			"sinemin" "0.3"
+			"sinemax" "1.0"
+			"resultvar" "$selfillumtint[2]"
+		}
+	}
+}

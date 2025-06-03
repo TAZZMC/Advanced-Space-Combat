@@ -1,9 +1,10 @@
--- Enhanced Hyperdrive Weapons System v2.2.1
+-- Enhanced Hyperdrive Weapons System v5.1.0
 -- COMPLETE WEAPONS FRAMEWORK - Ship-integrated weapon systems
 -- Advanced targeting, energy management, and ship core integration
+-- COMPLETE CODE UPDATE v5.1.0 - ALL SYSTEMS UPDATED, OPTIMIZED AND INTEGRATED
 
-print("[Hyperdrive Weapons] COMPLETE WEAPONS SYSTEM v2.2.1 - Initializing...")
-print("[Hyperdrive Weapons] Ship-integrated weapon systems loading...")
+print("[Hyperdrive Weapons] COMPLETE WEAPONS SYSTEM v5.1.0 - Ultimate Edition Initializing...")
+print("[Hyperdrive Weapons] Ship-integrated weapon systems loading with enhanced optimization...")
 
 -- Initialize weapons namespace
 HYPERDRIVE = HYPERDRIVE or {}

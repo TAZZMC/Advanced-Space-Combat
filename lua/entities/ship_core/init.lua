@@ -1,10 +1,10 @@
--- Ship Core Entity - Server v2.2.1
--- COMPLETE CODE UPDATE v2.2.1 - ALL SYSTEMS INTEGRATED WITH STEAM WORKSHOP
--- Mandatory ship core for Enhanced Hyperdrive System with v2.2.1 features
--- Advanced ship core with real-time monitoring, CAP integration, SB3 Steam Workshop support
+-- Ship Core Entity - Server v5.0.0 - Enhanced Stargate Hyperspace Edition
+-- ENHANCED STARGATE HYPERSPACE UPDATE v5.0.0 - 4-STAGE TRAVEL SYSTEM INTEGRATION
+-- Mandatory ship core for Advanced Space Combat with enhanced Stargate hyperspace features
+-- Advanced ship core with ARIA-4 AI integration, 4-stage hyperspace support, and complete unification
 
-print("[Ship Core] COMPLETE CODE UPDATE v2.2.1 - Ship Core Entity being updated")
-print("[Ship Core] Enhanced ship core v2.2.1 with Steam Workshop integration initializing...")
+print("[Ship Core] ENHANCED STARGATE HYPERSPACE UPDATE v5.0.0 - Ship Core Entity being updated")
+print("[Ship Core] Enhanced ship core v5.0.0 with 4-stage Stargate hyperspace and ARIA-4 AI initializing...")
 
 AddCSLuaFile("cl_init.lua")
 AddCSLuaFile("shared.lua")
@@ -49,9 +49,19 @@ util.AddNetworkString("ship_core_name_dialog")
 util.AddNetworkString("hyperdrive_play_sound")
 
 function ENT:Initialize()
-    self:SetModel("models/hunter/blocks/cube025x025x025.mdl")
-    self:SetMaterial("models/debug/debugwhite")
-    self:SetColor(Color(50, 150, 255))
+    -- Initialize model selection system with CAP assets
+    self.availableModels = self:GetCAPModels()
+
+    -- Set default model (first in list)
+    self.selectedModelIndex = 1
+    self:ApplySelectedModel()
+
+    -- Load saved model preference
+    timer.Simple(0.1, function()
+        if IsValid(self) then
+            self:LoadModelPreference()
+        end
+    end)
 
     self:PhysicsInit(SOLID_VPHYSICS)
     self:SetMoveType(MOVETYPE_VPHYSICS)
@@ -70,6 +80,15 @@ function ENT:Initialize()
     self.updateInterval = 2 -- Update every 2 seconds
     self.activeUIs = {} -- Track active UI sessions
     self.shipNameFile = "hyperdrive/ship_names_" .. self:EntIndex() .. ".txt"
+
+    -- Initialize ambient sound system with improved sounds
+    self.ambientSound = nil
+    self.ambientSoundMuted = false
+    self.ambientSoundVolume = 0.15  -- Even quieter by default
+    self.ambientSoundPath = "ambient/atmosphere/ambience_base.wav" -- Better default sound
+
+    -- Use CAP technology-specific ambient sounds if available
+    self:SelectTechnologyAmbientSound()
 
     -- Load ship name from file
     self:LoadShipName()
@@ -157,7 +176,63 @@ function ENT:Initialize()
     self:InitializePerformanceAnalytics()
     self:StartRealTimeUpdates()
 
-    print("[Ship Core] Enhanced Ship Core v2.2.0 with modern UI and advanced features initialized at " .. tostring(self:GetPos()))
+    print("[Ship Core] Enhanced Ship Core v5.0.0 with Stargate hyperspace integration and advanced features initialized at " .. tostring(self:GetPos()))
+end
+
+-- Ambient Sound System Functions
+function ENT:StartAmbientSound()
+    if self.ambientSoundMuted then return end
+
+    -- Stop existing sound if any
+    self:StopAmbientSound()
+
+    -- Create ambient sound with improved settings
+    self.ambientSound = CreateSound(self, self.ambientSoundPath)
+    if self.ambientSound then
+        self.ambientSound:SetSoundLevel(40) -- Even quieter sound level
+        self.ambientSound:PlayEx(self.ambientSoundVolume, 90) -- Lower volume and pitch for less annoyance
+        print("[Ship Core] Ambient sound started: " .. self.ambientSoundPath .. " (Volume: " .. self.ambientSoundVolume .. ", Level: 40)")
+    end
+end
+
+function ENT:StopAmbientSound()
+    if self.ambientSound then
+        self.ambientSound:Stop()
+        self.ambientSound = nil
+        print("[Ship Core] Ambient sound stopped")
+    end
+end
+
+function ENT:SetAmbientSoundMuted(muted)
+    self.ambientSoundMuted = muted
+
+    if muted then
+        self:StopAmbientSound()
+    else
+        self:StartAmbientSound()
+    end
+
+    -- Update network variable for UI
+    self:SetNWBool("AmbientSoundMuted", muted)
+
+    -- Update wire outputs
+    if WireLib then
+        self:UpdateWireOutputs()
+    end
+end
+
+function ENT:IsAmbientSoundMuted()
+    return self.ambientSoundMuted
+end
+
+function ENT:OnRemove()
+    -- Clean up ambient sound
+    self:StopAmbientSound()
+
+    -- Clean up other resources
+    if self.ship then
+        print("[Ship Core] Ship core removed, cleaning up ship data")
+    end
 end
 
 function ENT:InitializeSystems()
@@ -174,8 +249,13 @@ function ENT:InitializeSystems()
             self:SetNWString("LastResourceActivity", "System initialized")
             print("[Ship Core] Resource system initialized")
         else
-            print("[Ship Core] Resource system initialization failed")
+            -- Try to initialize without Spacebuild 3 integration
+            print("[Ship Core] Spacebuild 3 not available, initializing basic resource system")
+            self:InitializeBasicResourceSystem()
         end
+    else
+        print("[Ship Core] SB3Resources not available, initializing basic resource system")
+        self:InitializeBasicResourceSystem()
     end
 
     -- Initialize hull damage system
@@ -194,20 +274,48 @@ function ENT:InitializeSystems()
         end
     end
 
-    -- Initialize shield system
-    if HYPERDRIVE.Shields and self.ship then
+    -- Initialize built-in shield system (no generators needed)
+    if ASC and ASC.Shields and ASC.Shields.Core and ASC.Shields.Core.Initialize then
+        timer.Simple(2, function()
+            if IsValid(self) then
+                local success, message = ASC.Shields.Core.Initialize(self, "ADVANCED")
+                if success then
+                    self:SetShieldSystemActive(true)
+                    print("[Ship Core] Built-in shield system initialized: " .. (message or "Success"))
+                else
+                    print("[Ship Core] Built-in shield system failed: " .. (message or "Unknown error"))
+                end
+            end
+        end)
+    elseif HYPERDRIVE.Shields and self.ship then
+        -- Fallback to old shield system
         local createFunc = SafeAccess(HYPERDRIVE.Shields, "CreateShield")
         if createFunc then
             local shield, message = SafeCall(createFunc, self, self.ship)
             if shield then
                 self:SetShieldSystemActive(true)
-                print("[Ship Core] Shield system initialized: " .. (message or "Success"))
+                print("[Ship Core] Legacy shield system initialized: " .. (message or "Success"))
             else
-                print("[Ship Core] Shield system failed: " .. (message or "Unknown error"))
+                print("[Ship Core] Legacy shield system failed: " .. (message or "Unknown error"))
             end
         else
             print("[Ship Core] Shield CreateShield function not available")
         end
+    end
+
+    -- Initialize flight system
+    if ASC and ASC.Flight and ASC.Flight.Core and ASC.Flight.Core.Initialize then
+        timer.Simple(3, function()
+            if IsValid(self) then
+                local success, message = ASC.Flight.Core.Initialize(self, "STANDARD")
+                if success then
+                    self:SetNWBool("FlightSystemActive", true)
+                    print("[Ship Core] Flight system initialized: " .. (message or "Success"))
+                else
+                    print("[Ship Core] Flight system failed: " .. (message or "Unknown error"))
+                end
+            end
+        end)
     end
 
     -- Initialize CAP integration
@@ -237,6 +345,9 @@ function ENT:InitializeSystems()
                     })
                 end
             end
+
+            -- Start ambient sound
+            self:StartAmbientSound()
         end
     end)
 end
@@ -472,13 +583,17 @@ function ENT:UpdateV221Systems()
     -- Update ammunition system status
     if self.ammunitionSystemInitialized and HYPERDRIVE.Ammunition then
         local storage = HYPERDRIVE.Ammunition.GetStorage(self)
-        if storage then
+        if storage and storage.ammunition then
             local totalAmmo = 0
             for ammoType, amount in pairs(storage.ammunition) do
                 totalAmmo = totalAmmo + amount
             end
             self:SetNWInt("TotalAmmunition", totalAmmo)
-            self:SetNWFloat("AmmoCapacity", storage.capacity)
+            self:SetNWFloat("AmmoCapacity", storage.capacity or 0)
+        else
+            -- Set defaults if no ammunition storage
+            self:SetNWInt("TotalAmmunition", 0)
+            self:SetNWFloat("AmmoCapacity", 0)
         end
     end
 
@@ -668,10 +783,20 @@ function ENT:UpdateResourceSystem()
 end
 
 function ENT:UpdateResourceNetworkVars()
-    if not HYPERDRIVE.SB3Resources then return end
+    if HYPERDRIVE.SB3Resources then
+        local storage = HYPERDRIVE.SB3Resources.GetCoreStorage(self)
+        if storage then
+            -- Full Spacebuild 3 integration
+            self:UpdateSB3ResourceVars(storage)
+            return
+        end
+    end
 
-    local storage = HYPERDRIVE.SB3Resources.GetCoreStorage(self)
-    if not storage then return end
+    -- Fallback to basic resource system
+    self:UpdateBasicResourceVars()
+end
+
+function ENT:UpdateSB3ResourceVars(storage)
 
     -- Update energy levels for wire outputs
     local energyAmount = HYPERDRIVE.SB3Resources.GetResourceAmount(self, "energy")
@@ -720,6 +845,39 @@ function ENT:UpdateResourceNetworkVars()
         WireLib.TriggerOutput(self, "TotalResourceAmount", totalAmount)
         WireLib.TriggerOutput(self, "ResourceDistributionRate", distributionRate)
         WireLib.TriggerOutput(self, "ResourceCollectionRate", collectionRate)
+    end
+end
+
+function ENT:UpdateBasicResourceVars()
+    -- Update basic resource system network variables
+    self:SetNWString("ResourceStatus", "Basic Mode - Spacebuild Integration Unavailable")
+
+    -- Update Spacebuild entity detection
+    self:DetectSpacebuildEntities()
+
+    -- Set basic resource levels
+    self:SetNWFloat("ResourceEnergy", 100)
+    self:SetNWFloat("ResourceOxygen", 0)
+    self:SetNWFloat("ResourceCoolant", 0)
+    self:SetNWFloat("ResourceFuel", 0)
+    self:SetNWFloat("ResourceWater", 0)
+    self:SetNWFloat("ResourceNitrogen", 0)
+    self:SetNWInt("ResourceEmergencyMode", 0)
+
+    -- Update wire outputs if wiremod is available
+    if WireLib then
+        WireLib.TriggerOutput(self, "EnergyLevel", 100)
+        WireLib.TriggerOutput(self, "OxygenLevel", 0)
+        WireLib.TriggerOutput(self, "CoolantLevel", 0)
+        WireLib.TriggerOutput(self, "FuelLevel", 0)
+        WireLib.TriggerOutput(self, "WaterLevel", 0)
+        WireLib.TriggerOutput(self, "NitrogenLevel", 0)
+        WireLib.TriggerOutput(self, "ResourceEmergency", 0)
+        WireLib.TriggerOutput(self, "ResourceSystemActive", 1)
+        WireLib.TriggerOutput(self, "AutoProvisionEnabled", 0)
+        WireLib.TriggerOutput(self, "WeldDetectionEnabled", 0)
+        WireLib.TriggerOutput(self, "SpacebuildEntityCount", self:GetNWInt("SpacebuildEntityCount", 0))
+        WireLib.TriggerOutput(self, "SpacebuildDetected", self:GetNWBool("SpacebuildDetected", false) and 1 or 0)
     end
 end
 
@@ -838,7 +996,7 @@ function ENT:GetUIData()
         shieldStrength = self:GetShieldStrength(),
 
         -- Resource system (Spacebuild 3)
-        resourceSystemActive = HYPERDRIVE.SB3Resources ~= nil and self:GetNWBool("ResourceSystemActive", false),
+        resourceSystemActive = self:GetNWBool("ResourceSystemActive", false),
         resourceEnergy = self:GetNWFloat("ResourceEnergy", 0),
         resourceOxygen = self:GetNWFloat("ResourceOxygen", 0),
         resourceCoolant = self:GetNWFloat("ResourceCoolant", 0),
@@ -851,6 +1009,20 @@ function ENT:GetUIData()
         autoProvisionEnabled = self:GetNWBool("AutoProvisionEnabled", true),
         weldDetectionEnabled = self:GetNWBool("WeldDetectionEnabled", true),
         lastResourceActivity = self:GetNWString("LastResourceActivity", ""),
+
+        -- Spacebuild detection
+        spacebuildDetected = self:GetNWBool("SpacebuildDetected", false),
+        spacebuildEntityCount = self:GetNWInt("SpacebuildEntityCount", 0),
+        spacebuildTypes = self:GetNWString("SpacebuildTypes", "None"),
+        resourceStatus = self:GetNWString("ResourceStatus", "Unknown"),
+
+        -- Model selection
+        availableModels = self:GetAvailableModels(),
+        currentModelIndex = self.selectedModelIndex or 1,
+        currentModelName = self:GetNWString("ModelName", "Standard Core"),
+        currentModelDescription = self:GetNWString("ModelDescription", "Standard ship core design"),
+        currentModelTechnology = self:GetNWString("ModelTechnology", "Standard"),
+        capModelsAvailable = HYPERDRIVE.CAP and HYPERDRIVE.CAP.Available or false,
 
         -- CAP integration data
         capIntegrationActive = self:GetNWBool("CAPIntegrationActive", false),
@@ -1354,6 +1526,22 @@ function ENT:HandleUICommand(ply, command, data)
 
     elseif command == "close_ui" then
         self:CloseUI(ply)
+
+    elseif command == "change_model" then
+        if data.modelIndex then
+            local success = self:SetModelByIndex(data.modelIndex)
+            if success then
+                local modelData = self:GetCurrentModelData()
+                ply:ChatPrint("[Ship Core] Model changed to: " .. modelData.name)
+
+                -- Log model change
+                if HYPERDRIVE.UI and HYPERDRIVE.UI.AddLogEntry then
+                    HYPERDRIVE.UI.AddLogEntry("Model changed to " .. modelData.name .. " by " .. ply:Nick(), "info", self:EntIndex())
+                end
+            else
+                ply:ChatPrint("[Ship Core] Model change failed: Invalid model index")
+            end
+        end
     end
 end
 
@@ -1420,11 +1608,26 @@ function ENT:TriggerInput(iname, value)
         if HYPERDRIVE.Shields and self.ship then
             HYPERDRIVE.Shields.ManualDeactivate(self, self.ship)
         end
+    elseif iname == "Mute" then
+        -- Handle mute wire input (0 = unmuted, 1 = muted)
+        local shouldMute = value > 0
+        self:SetAmbientSoundMuted(shouldMute)
+        print("[Ship Core] Ambient sound " .. (shouldMute and "muted" or "unmuted") .. " via wire input")
     end
 
     -- Update wire outputs after input processing
     if WireLib then
         self:UpdateWireOutputs()
+    end
+end
+
+-- Update wire outputs
+function ENT:UpdateWireOutputs()
+    if not WireLib then return end
+
+    -- Use the centralized wiremod system
+    if HYPERDRIVE.Wire and HYPERDRIVE.Wire.UpdateShipCoreOutputs then
+        HYPERDRIVE.Wire.UpdateShipCoreOutputs(self)
     end
 end
 
@@ -1533,7 +1736,9 @@ function ENT:RealTimeResourceUpdate()
             distributionRate = 0,
             collectionRate = 0,
             emergencyMode = false,
-            lastUpdate = CurTime()
+            lastUpdate = CurTime(),
+            unlimitedResources = false,
+            resourceGenerator = false
         }
         return
     end
@@ -1560,6 +1765,13 @@ function ENT:RealTimeResourceUpdate()
             distributionRate = storage.distributionRate or 0,
             collectionRate = storage.collectionRate or 0,
             emergencyMode = storage.emergencyMode or false,
+            unlimitedResources = storage.unlimitedResources or false,
+            resourceGenerator = storage.resourceGenerator or false,
+            shipSize = storage.shipSize or 50,
+            sizeMultiplier = storage.sizeMultiplier or 1.0,
+            regenMultiplier = storage.regenMultiplier or 1.0,
+            lifeSupportActive = storage.lifeSupportActive or false,
+            playersSupported = storage.playersSupported or 0,
             lastUpdate = CurTime()
         }
 
@@ -1578,6 +1790,13 @@ function ENT:RealTimeResourceUpdate()
         self:SetNWFloat("ResourceDistributionRate", self.CachedResourceData.distributionRate)
         self:SetNWFloat("ResourceCollectionRate", self.CachedResourceData.collectionRate)
         self:SetNWBool("ResourceEmergencyMode", self.CachedResourceData.emergencyMode)
+        self:SetNWBool("UnlimitedResources", self.CachedResourceData.unlimitedResources)
+        self:SetNWBool("ResourceGenerator", self.CachedResourceData.resourceGenerator)
+        self:SetNWInt("ShipSize", self.CachedResourceData.shipSize)
+        self:SetNWFloat("SizeMultiplier", self.CachedResourceData.sizeMultiplier)
+        self:SetNWFloat("RegenMultiplier", self.CachedResourceData.regenMultiplier)
+        self:SetNWBool("LifeSupportActive", self.CachedResourceData.lifeSupportActive)
+        self:SetNWInt("PlayersSupported", self.CachedResourceData.playersSupported)
     else
         -- Initialize default resource data when storage not available
         self.CachedResourceData = {
@@ -1596,6 +1815,13 @@ function ENT:RealTimeResourceUpdate()
             distributionRate = 0,
             collectionRate = 0,
             emergencyMode = false,
+            unlimitedResources = false,
+            resourceGenerator = false,
+            shipSize = 50,
+            sizeMultiplier = 1.0,
+            regenMultiplier = 1.0,
+            lifeSupportActive = false,
+            playersSupported = 0,
             lastUpdate = CurTime()
         }
     end
@@ -2225,4 +2451,637 @@ function ENT:CleanupV221Systems()
     end
 
     print("[Ship Core] v2.2.1 systems cleaned up")
+end
+
+-- Basic resource system functions (fallback when Spacebuild 3 is not available)
+function ENT:InitializeBasicResourceSystem()
+    -- Initialize basic resource system without Spacebuild 3 integration
+    self:SetNWBool("ResourceSystemActive", true)
+    self:SetNWBool("AutoProvisionEnabled", false)
+    self:SetNWBool("WeldDetectionEnabled", false)
+    self:SetNWString("LastResourceActivity", "Basic system initialized")
+
+    -- Set basic resource values
+    self:SetNWInt("EnergyAmount", 1000)
+    self:SetNWInt("EnergyCapacity", 1000)
+    self:SetNWFloat("EnergyPercentage", 100)
+    self:SetNWString("ResourceStatus", "Basic Mode")
+
+    -- Check for Spacebuild entities on the ship
+    self:DetectSpacebuildEntities()
+
+    print("[Ship Core] Basic resource system initialized")
+end
+
+function ENT:DetectSpacebuildEntities()
+    if not self.ship then return end
+
+    local entities = self.ship:GetEntities()
+    if not entities then return end
+
+    local spacebuildCount = 0
+    local spacebuildTypes = {}
+
+    for _, ent in ipairs(entities) do
+        if IsValid(ent) then
+            local class = ent:GetClass()
+
+            -- Check if this is a Spacebuild entity
+            if string.find(class, "storage_") or
+               string.find(class, "generator_") or
+               string.find(class, "base_") or
+               string.find(class, "rd_") then
+                spacebuildCount = spacebuildCount + 1
+                spacebuildTypes[class] = (spacebuildTypes[class] or 0) + 1
+            end
+        end
+    end
+
+    -- Update network variables
+    self:SetNWInt("SpacebuildEntityCount", spacebuildCount)
+    self:SetNWBool("SpacebuildDetected", spacebuildCount > 0)
+
+    if spacebuildCount > 0 then
+        local typesList = {}
+        for entityType, count in pairs(spacebuildTypes) do
+            table.insert(typesList, entityType .. "(" .. count .. ")")
+        end
+        self:SetNWString("SpacebuildTypes", table.concat(typesList, ", "))
+        print("[Ship Core] Detected " .. spacebuildCount .. " Spacebuild entities: " .. table.concat(typesList, ", "))
+    else
+        self:SetNWString("SpacebuildTypes", "None")
+    end
+end
+
+-- CAP Model Integration System
+function ENT:GetCAPModels()
+    local models = {}
+
+    -- Check if CAP is available
+    local capAvailable = HYPERDRIVE.CAP and HYPERDRIVE.CAP.Available
+
+    if capAvailable then
+        print("[Ship Core] CAP detected - Loading CAP models for ship core")
+
+        -- CAP-based models using ASC.CAP.Assets system
+        local capModels = {
+            {
+                model = ASC.CAP and ASC.CAP.Assets and ASC.CAP.Assets.GetModel("Ancient", "console", "models/props_combine/combine_core.mdl") or "models/props_combine/combine_core.mdl",
+                name = "Ancient Console Core",
+                description = "Ancient technology control console",
+                material = ASC.CAP and ASC.CAP.Assets and ASC.CAP.Assets.GetMaterial("Ancient", "console", "") or "",
+                color = Color(100, 200, 255),
+                technology = "Ancient",
+                capRequired = true
+            },
+            {
+                model = ASC.CAP and ASC.CAP.Assets and ASC.CAP.Assets.GetModel("Ancient", "crystal", "models/props_combine/combine_core.mdl") or "models/props_combine/combine_core.mdl",
+                name = "Crystal Core",
+                description = "Ancient crystal power core",
+                material = ASC.CAP and ASC.CAP.Assets and ASC.CAP.Assets.GetMaterial("Ancient", "crystal", "") or "",
+                color = Color(150, 255, 200),
+                technology = "Ancient",
+                capRequired = true
+            },
+            {
+                model = ASC.CAP and ASC.CAP.Assets and ASC.CAP.Assets.GetModel("Ancient", "zpm", "models/props_combine/combine_core.mdl") or "models/props_combine/combine_core.mdl",
+                name = "ZPM Core",
+                description = "Zero Point Module power core",
+                material = ASC.CAP and ASC.CAP.Assets and ASC.CAP.Assets.GetMaterial("Ancient", "zpm", "") or "",
+                color = Color(255, 255, 255),
+                technology = "Ancient",
+                capRequired = true
+            },
+            {
+                model = ASC.CAP and ASC.CAP.Assets and ASC.CAP.Assets.GetModel("Goauld", "console", "models/props_combine/combine_core.mdl") or "models/props_combine/combine_core.mdl",
+                name = "Goa'uld Core",
+                description = "Goa'uld technology control system",
+                material = ASC.CAP and ASC.CAP.Assets and ASC.CAP.Assets.GetMaterial("Goauld", "console", "") or "",
+                color = Color(255, 200, 100),
+                technology = "Goa'uld",
+                capRequired = true
+            },
+            {
+                model = ASC.CAP and ASC.CAP.Assets and ASC.CAP.Assets.GetModel("Asgard", "console", "models/props_combine/combine_core.mdl") or "models/props_combine/combine_core.mdl",
+                name = "Asgard Core",
+                description = "Asgard advanced computer core",
+                material = ASC.CAP and ASC.CAP.Assets and ASC.CAP.Assets.GetMaterial("Asgard", "console", "") or "",
+                color = Color(200, 200, 255),
+                technology = "Asgard",
+                capRequired = true
+            },
+            {
+                model = ASC.CAP and ASC.CAP.Assets and ASC.CAP.Assets.GetModel("Tauri", "console", "models/props_combine/combine_core.mdl") or "models/props_combine/combine_core.mdl",
+                name = "Tau'ri Core",
+                description = "Earth-based technology core",
+                material = ASC.CAP and ASC.CAP.Assets and ASC.CAP.Assets.GetMaterial("Tauri", "console", "") or "",
+                color = Color(150, 150, 150),
+                technology = "Tau'ri",
+                capRequired = true
+            }
+        }
+
+        -- Validate CAP models and add available ones
+        for _, modelData in ipairs(capModels) do
+            if self:ValidateCAPModel(modelData) then
+                table.insert(models, modelData)
+            end
+        end
+    end
+
+    -- Always include fallback models (non-CAP)
+    local fallbackModels = {
+        {
+            model = "models/hunter/blocks/cube025x025x025.mdl",
+            name = "Standard Core",
+            description = "Standard ship core design",
+            material = "models/debug/debugwhite",
+            color = Color(50, 150, 255),
+            technology = "Standard",
+            capRequired = false
+        },
+        {
+            model = "models/props_combine/combine_core.mdl",
+            name = "Combine Core",
+            description = "Advanced Combine technology core",
+            material = "",
+            color = Color(255, 255, 255),
+            technology = "Combine",
+            capRequired = false
+        },
+        {
+            model = "models/props_lab/monitor01a.mdl",
+            name = "Monitor Core",
+            description = "Display-integrated core system",
+            material = "",
+            color = Color(200, 255, 200),
+            technology = "Human",
+            capRequired = false
+        },
+        {
+            model = "models/props_lab/servers.mdl",
+            name = "Server Core",
+            description = "High-capacity data core",
+            material = "",
+            color = Color(255, 255, 255),
+            technology = "Human",
+            capRequired = false
+        }
+    }
+
+    -- Add fallback models
+    for _, modelData in ipairs(fallbackModels) do
+        table.insert(models, modelData)
+    end
+
+    print("[Ship Core] Loaded " .. #models .. " ship core models (" .. (capAvailable and "CAP enabled" or "CAP disabled") .. ")")
+    return models
+end
+
+function ENT:ValidateCAPModel(modelData)
+    if not modelData.model then return false end
+
+    -- Check if model file exists
+    if not file.Exists(modelData.model, "GAME") then
+        print("[Ship Core] CAP model not found: " .. modelData.model)
+        return false
+    end
+
+    -- Check if material exists (if specified)
+    if modelData.material and modelData.material ~= "" then
+        local materialPath = "materials/" .. modelData.material .. ".vmt"
+        if not file.Exists(materialPath, "GAME") then
+            print("[Ship Core] CAP material not found: " .. materialPath)
+            -- Don't fail validation, just clear the material
+            modelData.material = ""
+        end
+    end
+
+    return true
+end
+
+-- Model selection functions
+function ENT:ApplySelectedModel()
+    if not self.availableModels or not self.selectedModelIndex then return end
+
+    local modelData = self.availableModels[self.selectedModelIndex]
+    if not modelData then return end
+
+    -- Apply model
+    self:SetModel(modelData.model)
+
+    -- Apply material if specified
+    if modelData.material and modelData.material ~= "" then
+        self:SetMaterial(modelData.material)
+    else
+        self:SetMaterial("")
+    end
+
+    -- Apply color
+    if modelData.color then
+        self:SetColor(modelData.color)
+    end
+
+    -- Update network variables for UI
+    self:SetNWString("ModelName", modelData.name)
+    self:SetNWString("ModelDescription", modelData.description)
+    self:SetNWString("ModelTechnology", modelData.technology or "Unknown")
+    self:SetNWInt("SelectedModelIndex", self.selectedModelIndex)
+    self:SetNWBool("CAPModelActive", modelData.capRequired or false)
+
+    local techInfo = modelData.technology and (" [" .. modelData.technology .. "]") or ""
+    print("[Ship Core] Applied model: " .. modelData.name .. techInfo .. " (" .. modelData.model .. ")")
+end
+
+function ENT:SetModelByIndex(index)
+    if not self.availableModels then return false end
+
+    index = tonumber(index)
+    if not index or index < 1 or index > #self.availableModels then
+        return false
+    end
+
+    self.selectedModelIndex = index
+    self:ApplySelectedModel()
+
+    -- Save preference to file
+    self:SaveModelPreference()
+
+    return true
+end
+
+function ENT:SetModelByName(name)
+    if not self.availableModels then return false end
+
+    for i, modelData in ipairs(self.availableModels) do
+        if string.lower(modelData.name) == string.lower(name) then
+            return self:SetModelByIndex(i)
+        end
+    end
+
+    return false
+end
+
+function ENT:GetAvailableModels()
+    return self.availableModels or {}
+end
+
+function ENT:GetCurrentModelData()
+    if not self.availableModels or not self.selectedModelIndex then return nil end
+    return self.availableModels[self.selectedModelIndex]
+end
+
+function ENT:SaveModelPreference()
+    if not self.selectedModelIndex then return end
+
+    local fileName = "hyperdrive/ship_core_model_" .. self:EntIndex() .. ".txt"
+    file.CreateDir("hyperdrive")
+    file.Write(fileName, tostring(self.selectedModelIndex))
+end
+
+function ENT:LoadModelPreference()
+    local fileName = "hyperdrive/ship_core_model_" .. self:EntIndex() .. ".txt"
+
+    if file.Exists(fileName, "DATA") then
+        local savedIndex = tonumber(file.Read(fileName, "DATA"))
+        if savedIndex and savedIndex >= 1 and savedIndex <= #self.availableModels then
+            self.selectedModelIndex = savedIndex
+            self:ApplySelectedModel()
+            print("[Ship Core] Loaded saved model preference: " .. self.availableModels[savedIndex].name)
+        end
+    end
+end
+
+-- CAP Technology Sound Integration
+function ENT:SelectTechnologyAmbientSound()
+    local technology = self:GetCurrentModelData() and self:GetCurrentModelData().technology or "Standard"
+
+    -- Get CAP ambient sound for the technology with improved fallbacks
+    local fallbackSounds = {
+        "ambient/atmosphere/ambience_base.wav",  -- Much more pleasant base ambience
+        "ambient/atmosphere/tone_quiet.wav",     -- Quiet atmospheric tone
+        "ambient/water/water_flow_loop1.wav",    -- Gentle water flow
+        "ambient/atmosphere/wind_quiet.wav",     -- Quiet wind sound
+        "ambient/machines/machine_hum1.wav"      -- Gentle machine hum (last resort)
+    }
+
+    local fallbackSound = fallbackSounds[math.random(1, #fallbackSounds)]
+
+    if ASC and ASC.CAP and ASC.CAP.Assets then
+        self.ambientSoundPath = ASC.CAP.Assets.GetAmbientSound(technology, fallbackSound)
+        print("[Ship Core] Using CAP ambient sound for " .. technology .. " technology: " .. self.ambientSoundPath)
+    else
+        -- Use entity index for variety when CAP not available
+        local baseIndex = self:EntIndex() % #fallbackSounds
+        self.ambientSoundPath = fallbackSounds[baseIndex + 1]
+        print("[Ship Core] CAP not available, using fallback sound: " .. self.ambientSoundPath)
+    end
+end
+
+-- Play technology-specific activation sound
+function ENT:PlayActivationSound()
+    local technology = self:GetCurrentModelData() and self:GetCurrentModelData().technology or "Standard"
+
+    if ASC and ASC.CAP and ASC.CAP.Assets then
+        local success = ASC.CAP.Assets.PlaySound(self, technology, "activation", "buttons/button15.wav", 70, 100)
+        if success then
+            print("[Ship Core] Played CAP activation sound for " .. technology)
+            return
+        end
+    end
+
+    -- Fallback sound
+    self:EmitSound("buttons/button15.wav", 70, 100)
+end
+
+-- Play technology-specific power up sound
+function ENT:PlayPowerUpSound()
+    local technology = self:GetCurrentModelData() and self:GetCurrentModelData().technology or "Standard"
+
+    if ASC and ASC.CAP and ASC.CAP.Assets then
+        local success = ASC.CAP.Assets.PlaySound(self, technology, "power_up", "ambient/energy/electric_loop.wav", 75, 100)
+        if success then
+            print("[Ship Core] Played CAP power up sound for " .. technology)
+            return
+        end
+    end
+
+    -- Fallback sound
+    self:EmitSound("ambient/energy/electric_loop.wav", 75, 100)
+end
+
+-- Play technology-specific power down sound
+function ENT:PlayPowerDownSound()
+    local technology = self:GetCurrentModelData() and self:GetCurrentModelData().technology or "Standard"
+
+    if ASC and ASC.CAP and ASC.CAP.Assets then
+        local success = ASC.CAP.Assets.PlaySound(self, technology, "power_down", "ambient/energy/electric_loop.wav", 75, 80)
+        if success then
+            print("[Ship Core] Played CAP power down sound for " .. technology)
+            return
+        end
+    end
+
+    -- Fallback sound
+    self:EmitSound("ambient/energy/electric_loop.wav", 75, 80)
+end
+
+-- Console commands for ship core sound management
+if SERVER then
+    concommand.Add("asc_ship_core_volume", function(ply, cmd, args)
+        if IsValid(ply) and not ply:IsSuperAdmin() then return end
+
+        local volume = tonumber(args[1])
+        if not volume then
+            print("Usage: asc_ship_core_volume <0.0-1.0>")
+            print("Current default volume: 0.2")
+            return
+        end
+
+        volume = math.Clamp(volume, 0, 1)
+
+        -- Update all existing ship cores
+        local cores = ents.FindByClass("ship_core")
+        local updated = 0
+
+        for _, core in ipairs(cores) do
+            if IsValid(core) then
+                core.ambientSoundVolume = volume
+                if core.ambientSound then
+                    core.ambientSound:ChangeVolume(volume)
+                end
+                updated = updated + 1
+            end
+        end
+
+        print("Updated volume to " .. volume .. " for " .. updated .. " ship cores")
+    end)
+
+    concommand.Add("asc_ship_core_sound", function(ply, cmd, args)
+        if IsValid(ply) and not ply:IsSuperAdmin() then return end
+
+        local soundPath = args[1]
+        if not soundPath then
+            print("Usage: asc_ship_core_sound <sound_path>")
+            print("Available sounds:")
+            print("  ambient/machines/machine_hum1.wav")
+            print("  ambient/energy/electric_loop.wav")
+            print("  ambient/atmosphere/tone_quiet.wav")
+            print("  ambient/water/water_flow_loop1.wav")
+            print("  none (to disable sound)")
+            return
+        end
+
+        -- Update all existing ship cores
+        local cores = ents.FindByClass("ship_core")
+        local updated = 0
+
+        for _, core in ipairs(cores) do
+            if IsValid(core) then
+                if soundPath == "none" then
+                    core:StopAmbientSound()
+                    core.ambientSoundMuted = true
+                else
+                    core.ambientSoundPath = soundPath
+                    core.ambientSoundMuted = false
+                    core:StartAmbientSound()
+                end
+                updated = updated + 1
+            end
+        end
+
+        if soundPath == "none" then
+            print("Disabled ambient sound for " .. updated .. " ship cores")
+        else
+            print("Changed sound to " .. soundPath .. " for " .. updated .. " ship cores")
+        end
+    end)
+
+    concommand.Add("asc_ship_core_mute", function(ply, cmd, args)
+        if IsValid(ply) and not ply:IsSuperAdmin() then return end
+
+        local cores = ents.FindByClass("ship_core")
+        local muted = 0
+
+        for _, core in ipairs(cores) do
+            if IsValid(core) then
+                core:StopAmbientSound()
+                core.ambientSoundMuted = true
+                muted = muted + 1
+            end
+        end
+
+        print("Muted " .. muted .. " ship cores")
+    end)
+
+    concommand.Add("asc_ship_core_randomize", function(ply, cmd, args)
+        if IsValid(ply) and not ply:IsSuperAdmin() then return end
+
+        local ambientSounds = {
+            "ambient/machines/machine_hum1.wav",
+            "ambient/energy/electric_loop.wav",
+            "ambient/machines/machine1_hit1.wav",
+            "ambient/atmosphere/tone_quiet.wav",
+            "ambient/water/water_flow_loop1.wav",
+            "ambient/machines/machine2_hit1.wav",
+            "ambient/energy/electric_loop2.wav",
+            "ambient/atmosphere/wind_quiet.wav"
+        }
+
+        local cores = ents.FindByClass("ship_core")
+        local randomized = 0
+
+        for _, core in ipairs(cores) do
+            if IsValid(core) then
+                -- Give each core a truly random sound
+                local randomSound = ambientSounds[math.random(1, #ambientSounds)]
+                core.ambientSoundPath = randomSound
+                core.ambientSoundMuted = false
+                core:StartAmbientSound()
+                randomized = randomized + 1
+                print("[Ship Core] Core " .. core:EntIndex() .. " randomized to: " .. randomSound)
+            end
+        end
+
+        print("Randomized sounds for " .. randomized .. " ship cores")
+    end)
+
+    -- Model selection commands
+    concommand.Add("asc_ship_core_model", function(ply, cmd, args)
+        if IsValid(ply) and not ply:IsSuperAdmin() then return end
+
+        local modelName = args[1]
+        if not modelName then
+            print("Usage: asc_ship_core_model <model_name>")
+            print("Available models:")
+            print("  1. Standard Core")
+            print("  2. Combine Core")
+            print("  3. Compact Core")
+            print("  4. Communication Core")
+            print("  5. Monitor Core")
+            print("  6. Server Core")
+            print("  7. Control Core")
+            print("  8. Command Core")
+            return
+        end
+
+        local cores = ents.FindByClass("ship_core")
+        local changed = 0
+
+        for _, core in ipairs(cores) do
+            if IsValid(core) then
+                local success = core:SetModelByName(modelName)
+                if success then
+                    changed = changed + 1
+                end
+            end
+        end
+
+        if changed > 0 then
+            print("Changed model to " .. modelName .. " for " .. changed .. " ship cores")
+        else
+            print("No ship cores found or invalid model name")
+        end
+    end)
+
+    concommand.Add("asc_ship_core_model_list", function(ply, cmd, args)
+        if IsValid(ply) and not ply:IsSuperAdmin() then return end
+
+        local cores = ents.FindByClass("ship_core")
+        if #cores == 0 then
+            print("No ship cores found")
+            return
+        end
+
+        local core = cores[1]
+        local models = core:GetAvailableModels()
+
+        print("Available ship core models:")
+        for i, modelData in ipairs(models) do
+            print("  " .. i .. ". " .. modelData.name .. " - " .. modelData.description)
+        end
+    end)
+
+    concommand.Add("asc_ship_core_model_random", function(ply, cmd, args)
+        if IsValid(ply) and not ply:IsSuperAdmin() then return end
+
+        local cores = ents.FindByClass("ship_core")
+        local randomized = 0
+
+        for _, core in ipairs(cores) do
+            if IsValid(core) then
+                local models = core:GetAvailableModels()
+                if #models > 0 then
+                    local randomIndex = math.random(1, #models)
+                    local success = core:SetModelByIndex(randomIndex)
+                    if success then
+                        randomized = randomized + 1
+                        print("[Ship Core] Core " .. core:EntIndex() .. " randomized to: " .. models[randomIndex].name)
+                    end
+                end
+            end
+        end
+
+        print("Randomized models for " .. randomized .. " ship cores")
+    end)
+
+    -- CAP Asset Management Commands
+    concommand.Add("asc_cap_status", function(ply, cmd, args)
+        if IsValid(ply) and not ply:IsSuperAdmin() then return end
+
+        print("=== Advanced Space Combat - CAP Asset Status ===")
+
+        if ASC and ASC.CAP and ASC.CAP.Assets then
+            local detection = ASC.CAP.Assets.DetectCAP()
+            print("CAP Asset System: Available")
+            print("CAP Integration: " .. (detection.available and "Active" or "Inactive"))
+            print("Models Available: " .. detection.models)
+            print("Materials Available: " .. detection.materials)
+            print("Sounds Available: " .. detection.sounds)
+            print("Version: " .. detection.version)
+        else
+            print("CAP Asset System: Not Available")
+        end
+
+        if HYPERDRIVE and HYPERDRIVE.CAP then
+            print("HYPERDRIVE CAP: Available")
+            print("CAP Detection: " .. tostring(HYPERDRIVE.CAP.Available))
+        else
+            print("HYPERDRIVE CAP: Not Available")
+        end
+
+        local cores = ents.FindByClass("ship_core")
+        local capCores = 0
+        for _, core in ipairs(cores) do
+            if IsValid(core) and core:GetNWBool("CAPModelActive", false) then
+                capCores = capCores + 1
+            end
+        end
+
+        print("Ship Cores Using CAP Models: " .. capCores .. "/" .. #cores)
+        print("===============================================")
+    end)
+
+    concommand.Add("asc_cap_reload", function(ply, cmd, args)
+        if IsValid(ply) and not ply:IsSuperAdmin() then return end
+
+        print("Reloading CAP Asset System...")
+
+        if ASC and ASC.CAP and ASC.CAP.Assets then
+            ASC.CAP.Assets.DetectCAP()
+
+            -- Refresh all ship core models
+            local cores = ents.FindByClass("ship_core")
+            for _, core in ipairs(cores) do
+                if IsValid(core) then
+                    core.availableModels = core:GetCAPModels()
+                    core:ApplySelectedModel()
+                end
+            end
+
+            print("CAP Asset System reloaded and ship cores refreshed")
+        else
+            print("CAP Asset System not available")
+        end
+    end)
 end

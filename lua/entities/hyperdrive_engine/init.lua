@@ -6,7 +6,10 @@ AddCSLuaFile("shared.lua")
 include("shared.lua")
 
 function ENT:Initialize()
-    self:SetModel("models/props_phx/construct/metal_plate1.mdl")
+    -- Initialize CAP asset integration
+    self.selectedTechnology = "Tauri" -- Default technology
+    self:ApplyCAPModel()
+
     self:PhysicsInit(SOLID_VPHYSICS)
     self:SetMoveType(MOVETYPE_VPHYSICS)
     self:SetSolid(SOLID_VPHYSICS)
@@ -76,7 +79,71 @@ function ENT:Initialize()
         theme = "modern"
     }
 
-    print("[Hyperdrive] Enhanced Engine v2.1.0 with modern UI initialized: " .. self:EntIndex())
+    print("[Hyperdrive] Enhanced Engine v2.1.0 with CAP integration initialized: " .. self:EntIndex())
+end
+
+-- Apply CAP model based on selected technology
+function ENT:ApplyCAPModel()
+    local fallbackModel = "models/props_phx/construct/metal_plate1.mdl"
+
+    if ASC and ASC.CAP and ASC.CAP.Assets then
+        local model = ASC.CAP.Assets.GetEntityModel("hyperdrive_engine", self.selectedTechnology, fallbackModel)
+        local color = ASC.CAP.Assets.GetTechnologyColor(self.selectedTechnology)
+
+        self:SetModel(model)
+        self:SetColor(color)
+
+        -- Apply technology-specific material
+        local material = ASC.CAP.Assets.GetMaterial(self.selectedTechnology, "engine", "")
+        if material and material ~= "" then
+            self:SetMaterial(material)
+        end
+
+        print("[Hyperdrive Engine] Applied " .. self.selectedTechnology .. " technology model: " .. model)
+    else
+        self:SetModel(fallbackModel)
+        self:SetColor(Color(255, 255, 255))
+        print("[Hyperdrive Engine] CAP assets not available, using fallback model")
+    end
+end
+
+-- Change technology type
+function ENT:SetTechnology(technology)
+    if not technology then return false end
+
+    local availableTechs = ASC and ASC.CAP and ASC.CAP.Assets and ASC.CAP.Assets.GetEntityTechnologies("hyperdrive_engine") or {}
+
+    -- Check if technology is available
+    local techAvailable = false
+    for _, tech in ipairs(availableTechs) do
+        if tech == technology then
+            techAvailable = true
+            break
+        end
+    end
+
+    if not techAvailable then
+        -- Fallback to standard technologies
+        local standardTechs = {"Ancient", "Goauld", "Asgard", "Tauri", "Ori", "Wraith"}
+        techAvailable = table.HasValue(standardTechs, technology)
+    end
+
+    if techAvailable then
+        self.selectedTechnology = technology
+        self:ApplyCAPModel()
+
+        -- Update network variables
+        self:SetNWString("Technology", technology)
+
+        return true
+    end
+
+    return false
+end
+
+-- Get current technology
+function ENT:GetTechnology()
+    return self.selectedTechnology or "Tauri"
 end
 
 -- Initialize CAP integration

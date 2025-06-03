@@ -8,10 +8,18 @@ AddCSLuaFile("shared.lua")
 include("shared.lua")
 
 function ENT:Initialize()
-    self:SetModel("models/props_combine/combine_interface001.mdl")
-    self:PhysicsInit(SOLID_VBBOX)
+    -- Use centralized model manager
+    if ASC and ASC.Models and ASC.Models.GetModel then
+        self:SetModel(ASC.Models.GetModel("beam_weapon"))
+    else
+        -- Fallback if model manager not loaded yet
+        self:SetModel("models/props_combine/combine_interface001.mdl")
+        print("[Hyperdrive Beam Weapon] Model manager not available, using direct fallback")
+    end
+
+    self:PhysicsInit(SOLID_VPHYSICS)
     self:SetMoveType(MOVETYPE_VPHYSICS)
-    self:SetSolid(SOLID_VBBOX)
+    self:SetSolid(SOLID_VPHYSICS)
     self:SetUseType(SIMPLE_USE)
 
     local phys = self:GetPhysicsObject()

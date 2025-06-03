@@ -1,0 +1,16 @@
+"VertexLitGeneric"
+{
+	"$basetexture" "entities/asc_shuttle"
+	"$bumpmap" "entities/asc_shuttle_normal"
+	"$envmap" "env_cubemap"
+	"$envmaptint" "[0.1 0.2 0.2]"
+	"$envmapfresnel" "1"
+	"$phong" "1"
+	"$phongexponent" "25"
+	"$phongboost" "0.9"
+	"$phongtint" "[0.4 0.8 0.8]"
+	"$selfillum" "1"
+	"$selfillummask" "entities/asc_shuttle_glow"
+	"$selfillumtint" "[0.5 1.0 1.0]"
+	"$model" "1"
+}

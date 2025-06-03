@@ -1,0 +1,16 @@
+"VertexLitGeneric"
+{
+	"$basetexture" "entities/hyperdrive_master_engine"
+	"$bumpmap" "entities/hyperdrive_master_engine_normal"
+	"$envmap" "env_cubemap"
+	"$envmaptint" "[0.2 0.1 0.3]"
+	"$envmapfresnel" "1"
+	"$phong" "1"
+	"$phongexponent" "30"
+	"$phongboost" "1.2"
+	"$phongtint" "[0.4 0.2 0.8]"
+	"$selfillum" "1"
+	"$selfillummask" "entities/hyperdrive_master_engine_glow"
+	"$selfillumtint" "[0.6 0.3 1.0]"
+	"$model" "1"
+}

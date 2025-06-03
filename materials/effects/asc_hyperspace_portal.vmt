@@ -1,0 +1,30 @@
+"UnlitGeneric"
+{
+	"$basetexture" "effects/asc_hyperspace_portal"
+	"$additive" "1"
+	"$translucent" "1"
+	"$vertexcolor" "1"
+	"$vertexalpha" "1"
+	"$nocull" "1"
+	"$ignorez" "0"
+	"$nofog" "1"
+	"$selfillum" "1"
+	"$selfillumtint" "[0.3 0.6 1.0]"
+	
+	"Proxies"
+	{
+		"TextureScroll"
+		{
+			"texturescrollvar" "$basetexturetransform"
+			"texturescrollrate" "0.2"
+			"texturescrollangle" "90"
+		}
+		"Sine"
+		{
+			"sineperiod" "2"
+			"sinemin" "0.5"
+			"sinemax" "1.5"
+			"resultvar" "$alpha"
+		}
+	}
+}

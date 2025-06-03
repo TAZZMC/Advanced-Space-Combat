@@ -431,6 +431,13 @@ function HYPERDRIVE.Wire.UpdateShipCoreOutputs(ent)
     WireLib.TriggerOutput(ent, "HullSystemActive", ent:GetHullSystemActive() and 1 or 0)
     WireLib.TriggerOutput(ent, "ShieldStrength", ent:GetShieldStrength())
     WireLib.TriggerOutput(ent, "ShieldSystemActive", ent:GetShieldSystemActive() and 1 or 0)
+
+    -- Ambient sound outputs
+    if ent.IsAmbientSoundMuted then
+        WireLib.TriggerOutput(ent, "AmbientSoundMuted", ent:IsAmbientSoundMuted() and 1 or 0)
+    else
+        WireLib.TriggerOutput(ent, "AmbientSoundMuted", 0)
+    end
     WireLib.TriggerOutput(ent, "StatusMessage", ent:GetStatusMessage())
 
     -- Validate ship name

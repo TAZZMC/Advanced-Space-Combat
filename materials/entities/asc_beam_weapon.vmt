@@ -1,0 +1,16 @@
+"VertexLitGeneric"
+{
+	"$basetexture" "entities/asc_beam_weapon"
+	"$bumpmap" "entities/asc_beam_weapon_normal"
+	"$envmap" "env_cubemap"
+	"$envmaptint" "[0.3 0.1 0.1]"
+	"$envmapfresnel" "1"
+	"$phong" "1"
+	"$phongexponent" "35"
+	"$phongboost" "1.0"
+	"$phongtint" "[1.0 0.3 0.3]"
+	"$selfillum" "1"
+	"$selfillummask" "entities/asc_beam_weapon_glow"
+	"$selfillumtint" "[1.0 0.4 0.4]"
+	"$model" "1"
+}

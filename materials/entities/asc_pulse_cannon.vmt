@@ -1,0 +1,36 @@
+"VertexLitGeneric"
+{
+	"$basetexture" "entities/asc_pulse_cannon"
+	"$bumpmap" "entities/asc_pulse_cannon_normal"
+	"$envmap" "env_cubemap"
+	"$envmaptint" "[0.8 0.2 0.1]"
+	"$envmapfresnel" "1"
+	"$selfillum" "1"
+	"$selfillummask" "entities/asc_pulse_cannon_glow"
+	"$selfillumtint" "[1.0 0.3 0.1]"
+	"$phong" "1"
+	"$phongexponent" "40"
+	"$phongboost" "4"
+	"$phongtint" "[1.0 0.7 0.6]"
+	"$phongfresnelranges" "[0.2 0.6 1.2]"
+	"$rimlight" "1"
+	"$rimlightexponent" "8"
+	"$rimlightboost" "4"
+	"$additive" "0"
+	"$translucent" "0"
+	"$alpha" "1"
+	"$nocull" "0"
+	"$model" "1"
+	"$halflambert" "1"
+	
+	"Proxies"
+	{
+		"Sine"
+		{
+			"sineperiod" "0.8"
+			"sinemin" "0.5"
+			"sinemax" "1.5"
+			"resultvar" "$selfillumtint[0]"
+		}
+	}
+}

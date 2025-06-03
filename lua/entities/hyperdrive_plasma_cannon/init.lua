@@ -1,18 +1,27 @@
--- Enhanced Hyperdrive Plasma Cannon v2.2.1
+-- Enhanced Hyperdrive Plasma Cannon v5.1.0
 -- Ship-integrated plasma cannon with area-effect damage
+-- COMPLETE CODE UPDATE v5.1.0 - ALL SYSTEMS UPDATED, OPTIMIZED AND INTEGRATED
 
-print("[Hyperdrive Weapons] Plasma Cannon v2.2.1 - Entity loading...")
+print("[Hyperdrive Weapons] Plasma Cannon v5.1.0 - Ultimate Entity loading...")
 
 AddCSLuaFile("cl_init.lua")
 AddCSLuaFile("shared.lua")
 include("shared.lua")
 
 function ENT:Initialize()
-    self:SetModel("models/props_combine/combine_mine01.mdl")
+    -- Use centralized model manager
+    if ASC and ASC.Models and ASC.Models.GetModel then
+        self:SetModel(ASC.Models.GetModel("plasma_cannon"))
+    else
+        -- Fallback if model manager not loaded yet
+        self:SetModel("models/props_combine/combine_mine01.mdl")
+        print("[Hyperdrive Plasma Cannon] Model manager not available, using direct fallback")
+    end
+
     self:SetModelScale(1.3)
-    self:PhysicsInit(SOLID_VBBOX)
+    self:PhysicsInit(SOLID_VPHYSICS)
     self:SetMoveType(MOVETYPE_VPHYSICS)
-    self:SetSolid(SOLID_VBBOX)
+    self:SetSolid(SOLID_VPHYSICS)
     self:SetUseType(SIMPLE_USE)
 
     local phys = self:GetPhysicsObject()

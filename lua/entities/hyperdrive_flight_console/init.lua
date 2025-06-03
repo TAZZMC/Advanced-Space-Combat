@@ -9,9 +9,9 @@ include("shared.lua")
 
 function ENT:Initialize()
     self:SetModel("models/props_combine/combine_interface001.mdl")
-    self:PhysicsInit(SOLID_VBBOX)
+    self:PhysicsInit(SOLID_VPHYSICS)
     self:SetMoveType(MOVETYPE_VPHYSICS)
-    self:SetSolid(SOLID_VBBOX)
+    self:SetSolid(SOLID_VPHYSICS)
     self:SetUseType(SIMPLE_USE)
 
     local phys = self:GetPhysicsObject()

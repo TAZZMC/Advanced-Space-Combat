@@ -1,12 +1,12 @@
--- Master Hyperdrive Engine Entity - Shared
+-- Master Hyperdrive Engine Entity v3.0.0 - Shared
 ENT.Type = "anim"
 ENT.Base = "base_gmodentity"
 
-ENT.PrintName = "Master Hyperdrive Engine"
-ENT.Author = "Hyperdrive Team"
+ENT.PrintName = "Ultimate Hyperdrive Engine"
+ENT.Author = "Advanced Space Combat Team"
 ENT.Contact = ""
-ENT.Purpose = "Ultimate hyperdrive engine combining ALL features: Wiremod, Spacebuild, and Stargate integration"
-ENT.Instructions = "The most advanced hyperdrive engine with unified integration of all systems. Use to access master control interface."
+ENT.Purpose = "Ultimate combined engine: All engine types unified with complete integration"
+ENT.Instructions = "The most advanced hyperdrive engine combining ALL engine types and systems. Use to access master control interface."
 
 ENT.Spawnable = true
 ENT.AdminSpawnable = true
@@ -39,6 +39,13 @@ function ENT:SetupDataTables()
     self:NetworkVar("Int", 0, "SystemIntegration")
     self:NetworkVar("Float", 8, "EfficiencyRating")
     self:NetworkVar("Int", 1, "OperationalMode")
+
+    -- Engine type properties (NEW v3.0.0)
+    self:NetworkVar("String", 2, "EngineType")
+    self:NetworkVar("String", 3, "EngineClass")
+    self:NetworkVar("Int", 2, "ThrustPower")
+    self:NetworkVar("Int", 3, "MaxThrust")
+    self:NetworkVar("Bool", 2, "EngineActive")
 end
 
 function ENT:GetEnergyPercent()
@@ -227,4 +234,69 @@ end
 
 function ENT:GetEfficiencyString()
     return string.format("%.2fx", self:GetEfficiencyRating())
+end
+
+-- Engine type status functions (NEW v3.0.0)
+function ENT:GetEngineTypeString()
+    local engineType = self:GetEngineType() or "master"
+    return string.upper(engineType)
+end
+
+function ENT:GetEngineClassString()
+    local engineClass = self:GetEngineClass() or "hyperdrive"
+    return string.upper(engineClass)
+end
+
+function ENT:GetEngineStatusString()
+    if not self:GetEngineActive() then
+        return "INACTIVE", Color(100, 100, 100)
+    elseif self:GetCharging() then
+        return "CHARGING", Color(255, 255, 0)
+    elseif self:IsOnCooldown() then
+        return "COOLDOWN", Color(255, 150, 0)
+    elseif self:CanJump() then
+        return "READY", Color(0, 255, 0)
+    else
+        return "ACTIVE", Color(0, 200, 255)
+    end
+end
+
+function ENT:GetThrustString()
+    return string.format("%d/%d", self:GetThrustPower() or 100, self:GetMaxThrust() or 1000)
+end
+
+function ENT:GetEngineTypeColor()
+    local engineType = self:GetEngineType() or "master"
+
+    if engineType == "master" then
+        return Color(255, 215, 0) -- Gold
+    elseif engineType == "heavy" then
+        return Color(255, 100, 100) -- Red
+    elseif engineType == "light" then
+        return Color(100, 255, 100) -- Green
+    elseif engineType == "enhanced" then
+        return Color(100, 150, 255) -- Blue
+    elseif engineType == "quantum" then
+        return Color(255, 100, 255) -- Magenta
+    elseif engineType == "dimensional" then
+        return Color(150, 0, 255) -- Purple
+    else -- standard
+        return Color(200, 200, 200) -- Gray
+    end
+end
+
+function ENT:GetEngineClassColor()
+    local engineClass = self:GetEngineClass() or "hyperdrive"
+
+    if engineClass == "hyperdrive" then
+        return Color(0, 150, 255) -- Blue
+    elseif engineClass == "sublight" then
+        return Color(255, 255, 0) -- Yellow
+    elseif engineClass == "quantum" then
+        return Color(255, 100, 255) -- Magenta
+    elseif engineClass == "dimensional" then
+        return Color(150, 0, 255) -- Purple
+    else
+        return Color(200, 200, 200) -- Gray
+    end
 end

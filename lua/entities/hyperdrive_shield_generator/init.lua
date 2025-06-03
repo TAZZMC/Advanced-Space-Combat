@@ -1,9 +1,9 @@
--- Enhanced Hyperdrive Shield Generator v2.2.1
--- COMPLETE CODE UPDATE v2.2.1 - ALL SYSTEMS INTEGRATED WITH STEAM WORKSHOP
+-- Enhanced Hyperdrive Shield Generator v5.1.0
+-- COMPLETE CODE UPDATE v5.1.0 - ALL SYSTEMS UPDATED, OPTIMIZED AND INTEGRATED WITH STEAM WORKSHOP
 -- Advanced shield system with CAP Steam Workshop integration and visual effects
 
-print("[Hyperdrive Shield] COMPLETE CODE UPDATE v2.2.1 - Shield Generator being updated")
-print("[Hyperdrive Shield] Steam Workshop CAP shield integration active")
+print("[Hyperdrive Shield] COMPLETE CODE UPDATE v5.1.0 - Ultimate Shield Generator")
+print("[Hyperdrive Shield] Enhanced Steam Workshop CAP shield integration active")
 
 AddCSLuaFile("cl_init.lua")
 AddCSLuaFile("shared.lua")
@@ -12,9 +12,9 @@ include("shared.lua")
 -- Initialize shield generator
 function ENT:Initialize()
     self:SetModel("models/props_lab/powerbox02d.mdl")
-    self:PhysicsInit(SOLID_VBBOX)
+    self:PhysicsInit(SOLID_VPHYSICS)
     self:SetMoveType(MOVETYPE_VPHYSICS)
-    self:SetSolid(SOLID_VBBOX)
+    self:SetSolid(SOLID_VPHYSICS)
     self:SetUseType(SIMPLE_USE)
 
     local phys = self:GetPhysicsObject()

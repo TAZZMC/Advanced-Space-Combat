@@ -1,7 +1,8 @@
--- Enhanced Hyperdrive Ship Flight System v2.2.1
+-- Enhanced Hyperdrive Ship Flight System v5.1.0
 -- Advanced ship movement, navigation, and autopilot system
+-- COMPLETE CODE UPDATE v5.1.0 - ALL SYSTEMS UPDATED, OPTIMIZED AND INTEGRATED
 
-print("[Hyperdrive Flight] Ship Flight System v2.2.1 - Initializing...")
+print("[Hyperdrive Flight] Ship Flight System v5.1.0 - Ultimate Edition Initializing...")
 
 -- Initialize flight namespace
 HYPERDRIVE = HYPERDRIVE or {}
@@ -343,8 +344,10 @@ function ShipFlight:ApplyCollisionAvoidance()
     end
     
     -- Apply avoidance to thrust
-    if avoidanceVector:Length() > 0 then
-        self.thrust = self.thrust + avoidanceVector * 0.5
+    if avoidanceVector and avoidanceVector.Length and avoidanceVector:Length() > 0 then
+        if self.thrust then
+            self.thrust = self.thrust + avoidanceVector * 0.5
+        end
     end
 end
 
@@ -363,10 +366,17 @@ end
 
 function ShipFlight:UpdateStabilization(deltaTime)
     -- Reduce unwanted rotation
-    self.angularVelocity = self.angularVelocity * 0.9
-    
+    if self.angularVelocity then
+        self.angularVelocity = self.angularVelocity * 0.9
+    end
+
     -- Reduce drift
-    if self.thrust:Length() < 0.1 then
+    local thrustMagnitude = 0
+    if self.thrust and self.thrust.Length then
+        thrustMagnitude = self.thrust:Length()
+    end
+
+    if thrustMagnitude < 0.1 and self.velocity then
         self.velocity = self.velocity * 0.98
     end
 end
@@ -374,20 +384,25 @@ end
 function ShipFlight:UpdateEnergyConsumption(deltaTime)
     local currentTime = CurTime()
     if currentTime - self.lastEnergyUpdate < 1.0 then return end
-    
+
     local energyCost = HYPERDRIVE.Flight.Config.IdleEnergyCost
-    
+
     -- Add thrust energy cost
-    energyCost = energyCost + (self.thrust:Length() * HYPERDRIVE.Flight.Config.ThrustEnergyCost)
-    
-    -- Add rotation energy cost
-    energyCost = energyCost + (self.rotation:Length() * HYPERDRIVE.Flight.Config.RotationEnergyCost)
-    
+    if self.thrust and self.thrust.Length then
+        energyCost = energyCost + (self.thrust:Length() * HYPERDRIVE.Flight.Config.ThrustEnergyCost)
+    end
+
+    -- Add rotation energy cost (calculate magnitude of angle)
+    if self.rotation then
+        local rotationMagnitude = math.sqrt(self.rotation.p^2 + self.rotation.y^2 + self.rotation.r^2)
+        energyCost = energyCost + (rotationMagnitude * HYPERDRIVE.Flight.Config.RotationEnergyCost)
+    end
+
     -- Consume energy from ship
     if HYPERDRIVE.SB3Resources then
         HYPERDRIVE.SB3Resources.ConsumeResource(self.shipCore, "energy", energyCost)
     end
-    
+
     self.energyConsumption = energyCost
     self.stats.energyConsumed = self.stats.energyConsumed + energyCost
     self.lastEnergyUpdate = currentTime
@@ -396,9 +411,12 @@ end
 function ShipFlight:UpdateStatistics(deltaTime)
     -- Update flight time
     self.stats.flightTime = self.stats.flightTime + deltaTime
-    
+
     -- Update distance traveled
-    local distanceThisFrame = self.velocity:Length() * deltaTime
+    local distanceThisFrame = 0
+    if self.velocity and self.velocity.Length then
+        distanceThisFrame = self.velocity:Length() * deltaTime
+    end
     self.stats.distanceTraveled = self.stats.distanceTraveled + distanceThisFrame
 end
 
@@ -465,12 +483,22 @@ function ShipFlight:AngleDifference(target, current)
 end
 
 function ShipFlight:GetStatus()
+    local velocityMagnitude = 0
+    if self.velocity and self.velocity.Length then
+        velocityMagnitude = self.velocity:Length()
+    end
+
+    local thrustMagnitude = 0
+    if self.thrust and self.thrust.Length then
+        thrustMagnitude = self.thrust:Length()
+    end
+
     return {
         active = self.active,
         flightMode = self.flightMode,
-        velocity = self.velocity:Length(),
+        velocity = velocityMagnitude,
         maxSpeed = HYPERDRIVE.Flight.Config.MaxSpeed,
-        thrust = self.thrust:Length(),
+        thrust = thrustMagnitude,
         autopilot = self.autopilotActive,
         waypoints = #self.waypoints,
         currentWaypoint = self.currentWaypoint,

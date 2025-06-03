@@ -1,5 +1,5 @@
--- Enhanced Hyperdrive System - Comprehensive CAP Integration v2.2.1
--- COMPLETE CODE UPDATE v2.2.1 - ALL SYSTEMS INTEGRATED WITH STEAM WORKSHOP
+-- Enhanced Hyperdrive System - Comprehensive CAP Integration v5.1.0
+-- COMPLETE CODE UPDATE v5.1.0 - ALL SYSTEMS UPDATED, OPTIMIZED AND INTEGRATED WITH STEAM WORKSHOP
 -- Integrates with Carter Addon Pack (CAP) for shields, stargates, resources, and effects
 -- Supports: CAP main addon, CAP resources, Steam Workshop CAP
 -- GitHub: https://github.com/RafaelDeJongh/cap
@@ -69,11 +69,13 @@ HYPERDRIVE.CAP.State = {
 
 -- Comprehensive CAP entity detection system
 HYPERDRIVE.CAP.EntityCategories = {
-    -- Stargate entities (all variants)
+    -- Stargate entities (all variants) - Updated with correct class names
     STARGATES = {
-        -- Main CAP Stargates
+        -- Main CAP Stargates (correct class names)
+        "stargate_sg1", "stargate_movie", "stargate_infinity", "stargate_tollan",
+        -- Legacy CAP Stargates (keeping for compatibility)
         "stargate_atlantis", "stargate_milkyway", "stargate_universe",
-        "stargate_supergate", "stargate_orlin", "stargate_tollan",
+        "stargate_supergate", "stargate_orlin",
         -- Workshop variants
         "cap_stargate", "cap_stargate_sg1", "cap_stargate_atlantis",
         "cap_stargate_universe", "cap_stargate_destiny",
@@ -188,11 +190,15 @@ function HYPERDRIVE.CAP.DetectCAP()
         "lua/entities/cap_base/init.lua",                    -- CAP: Code
         "materials/models/cap/",                             -- CAP: Resources
 
-        -- Stargate Components (ID: 180223815, 180226239, 180228917, 180227098)
-        "lua/entities/stargate_atlantis/init.lua",           -- CAP: Stargate
-        "lua/entities/stargate_milkyway/init.lua",           -- CAP: Stargate
-        "lua/entities/stargate_universe/init.lua",           -- CAP: Stargate Universe
-        "lua/entities/stargate_supergate/init.lua",          -- CAP: Supergate
+        -- Stargate Components (ID: 180223815, 180226239, 180228917, 180227098) - Updated with correct class names
+        "lua/entities/stargate_sg1/init.lua",               -- CAP: Stargate SG-1
+        "lua/entities/stargate_movie/init.lua",             -- CAP: Stargate Movie
+        "lua/entities/stargate_infinity/init.lua",          -- CAP: Stargate Infinity
+        "lua/entities/stargate_tollan/init.lua",            -- CAP: Stargate Tollan
+        "lua/entities/stargate_atlantis/init.lua",          -- CAP: Stargate Atlantis (legacy)
+        "lua/entities/stargate_milkyway/init.lua",          -- CAP: Stargate Milky Way (legacy)
+        "lua/entities/stargate_universe/init.lua",          -- CAP: Stargate Universe (legacy)
+        "lua/entities/stargate_supergate/init.lua",         -- CAP: Supergate (legacy)
 
         -- DHD Components (ID: 180094475, 180095275)
         "lua/entities/dhd_atlantis/init.lua",                -- CAP: DHD

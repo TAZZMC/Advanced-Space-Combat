@@ -4,10 +4,113 @@
 
 if CLIENT then return end
 
--- Check for Spacebuild 3 CAF framework
-local isSpacebuild3Loaded = CAF and CAF.GetAddon and true or false
+-- Multiple detection methods for Spacebuild 3
+local function DetectSpacebuild3()
+    local detectionMethods = {}
+    local detectionResults = {}
 
-print("[Hyperdrive] Enhanced Spacebuild 3 integration loading... (SB3 " .. (isSpacebuild3Loaded and "detected" or "not detected") .. ")")
+    -- Method 1: Check for CAF framework (traditional method)
+    if CAF then
+        detectionMethods.caf_global = true
+        if CAF.GetAddon then
+            detectionMethods.caf_getaddon = true
+        end
+        if CAF.RegisterAddon then
+            detectionMethods.caf_register = true
+        end
+    end
+
+    -- Method 2: Check for Spacebuild gamemode
+    if GAMEMODE and GAMEMODE.Name then
+        if string.find(string.lower(GAMEMODE.Name), "spacebuild") then
+            detectionMethods.gamemode = true
+        end
+    end
+
+    -- Method 3: Check for Spacebuild map
+    local mapName = game.GetMap()
+    if mapName and string.find(string.lower(mapName), "sb_") then
+        detectionMethods.map = true
+    end
+
+    -- Method 4: Check for known Spacebuild entities in the game
+    local spacebuildEntities = {
+        "storage_energy", "generator_energy_fusion", "base_air_exchanger",
+        "base_climate_control", "storage_gas", "generator_gas", "rd_pump"
+    }
+
+    for _, entClass in ipairs(spacebuildEntities) do
+        -- Try multiple detection methods for entities
+        local entityFound = false
+
+        -- Method 4a: Check scripted_ents (if available)
+        if scripted_ents and scripted_ents.GetStored then
+            local success, storedEnts = pcall(scripted_ents.GetStored)
+            if success and storedEnts and storedEnts[entClass] then
+                entityFound = true
+            end
+        end
+
+        -- Method 4b: Check if we can create the entity (alternative method)
+        if not entityFound then
+            local success, result = pcall(ents.Create, entClass)
+            if success and IsValid(result) then
+                result:Remove() -- Clean up test entity
+                entityFound = true
+            end
+        end
+
+        if entityFound then
+            detectionMethods.entities = detectionMethods.entities or {}
+            table.insert(detectionMethods.entities, entClass)
+        end
+    end
+
+    -- Method 5: Check for Spacebuild-specific globals
+    if RD then detectionMethods.rd_global = true end
+    if LS then detectionMethods.ls_global = true end
+    if ENV then detectionMethods.env_global = true end
+
+    -- Method 6: Check for Spacebuild workshop addon
+    if file.Exists("spacebuild.jpg", "GAME") then
+        detectionMethods.workshop_files = true
+    end
+
+    -- Determine if Spacebuild is loaded
+    local isLoaded = detectionMethods.caf_global or
+                    detectionMethods.gamemode or
+                    detectionMethods.map or
+                    detectionMethods.entities or
+                    detectionMethods.rd_global or
+                    detectionMethods.ls_global or
+                    detectionMethods.workshop_files
+
+    return isLoaded, detectionMethods
+end
+
+local isSpacebuild3Loaded, detectionMethods = DetectSpacebuild3()
+
+print("[Hyperdrive] Enhanced Spacebuild 3 integration loading...")
+print("[Hyperdrive] Spacebuild 3 detection: " .. (isSpacebuild3Loaded and "DETECTED" or "NOT DETECTED"))
+
+if isSpacebuild3Loaded then
+    print("[Hyperdrive] Detection methods that succeeded:")
+    for method, result in pairs(detectionMethods) do
+        if result then
+            if type(result) == "table" then
+                print("  - " .. method .. ": " .. table.concat(result, ", "))
+            else
+                print("  - " .. method .. ": true")
+            end
+        end
+    end
+else
+    print("[Hyperdrive] No Spacebuild 3 detection methods succeeded")
+    print("[Hyperdrive] Current map: " .. game.GetMap())
+    if GAMEMODE and GAMEMODE.Name then
+        print("[Hyperdrive] Current gamemode: " .. GAMEMODE.Name)
+    end
+end
 
 HYPERDRIVE.Spacebuild = HYPERDRIVE.Spacebuild or {}
 
@@ -120,21 +223,53 @@ end
 
 -- Check if Spacebuild 3 is loaded and functional
 function HYPERDRIVE.Spacebuild.Enhanced.IsSpacebuild3Loaded()
-    if not CAF then return false, "CAF framework not found" end
-    if not CAF.GetAddon then return false, "CAF.GetAddon not available" end
+    local isLoaded, methods = DetectSpacebuild3()
 
-    -- Check for core CAF functionality
-    local hasCore = CAF.RegisterAddon and CAF.GetAddonStatus and true or false
-    if not hasCore then return false, "Core CAF functions missing" end
+    if not isLoaded then
+        return false, "Spacebuild 3 not detected", {}
+    end
+
+    local details = {
+        detection_methods = methods,
+        caf = CAF ~= nil,
+        rd = RD ~= nil,
+        ls = LS ~= nil,
+        env = ENV ~= nil,
+        version = "unknown"
+    }
+
+    -- Try to get version info if CAF is available
+    if CAF and CAF.version then
+        details.version = CAF.version
+    elseif CAF and CAF.GetAddon then
+        -- Try to get version from CAF addon system
+        local coreAddon = CAF.GetAddon("Spacebuild Core")
+        if coreAddon and coreAddon.version then
+            details.version = coreAddon.version
+        end
+    end
 
     -- Check for resource distribution system
-    local hasRD3 = CAF.GetAddon("Resource Distribution") ~= nil
+    if CAF and CAF.GetAddon then
+        details.rd3 = CAF.GetAddon("Resource Distribution") ~= nil
+    else
+        details.rd3 = RD ~= nil
+    end
 
-    return true, "Spacebuild 3 fully loaded", {
-        caf = true,
-        rd3 = hasRD3,
-        version = CAF.version or "unknown"
-    }
+    local statusMessage = "Spacebuild 3 detected via: "
+    local detectedMethods = {}
+    for method, result in pairs(methods) do
+        if result then
+            if type(result) == "table" then
+                table.insert(detectedMethods, method .. "(" .. #result .. " items)")
+            else
+                table.insert(detectedMethods, method)
+            end
+        end
+    end
+    statusMessage = statusMessage .. table.concat(detectedMethods, ", ")
+
+    return true, statusMessage, details
 end
 
 -- Get CAF addon information
@@ -631,7 +766,360 @@ else
     end)
 end
 
+-- Store initial detection state
+HYPERDRIVE.Spacebuild.InitialDetection = {
+    detected = isSpacebuild3Loaded,
+    methods = detectionMethods,
+    timestamp = CurTime()
+}
+
+-- Delayed detection check (after all addons have loaded)
+timer.Simple(2, function()
+    local newDetected, newMethods = DetectSpacebuild3()
+
+    if newDetected ~= isSpacebuild3Loaded then
+        print("[Hyperdrive] Spacebuild 3 detection status changed!")
+        print("[Hyperdrive] New detection: " .. (newDetected and "DETECTED" or "NOT DETECTED"))
+
+        if newDetected then
+            print("[Hyperdrive] New detection methods that succeeded:")
+            for method, result in pairs(newMethods) do
+                if result then
+                    if type(result) == "table" then
+                        print("  - " .. method .. ": " .. table.concat(result, ", "))
+                    else
+                        print("  - " .. method .. ": true")
+                    end
+                end
+            end
+        end
+
+        -- Update global state
+        isSpacebuild3Loaded = newDetected
+        detectionMethods = newMethods
+        HYPERDRIVE.Spacebuild.InitialDetection.detected = newDetected
+        HYPERDRIVE.Spacebuild.InitialDetection.methods = newMethods
+    end
+end)
+
+-- Console command to check Spacebuild detection
+concommand.Add("hyperdrive_check_spacebuild", function(ply, cmd, args)
+    if IsValid(ply) and not ply:IsSuperAdmin() then return end
+
+    local detected, methods = DetectSpacebuild3()
+    local isLoaded, message, details = HYPERDRIVE.Spacebuild.Enhanced.IsSpacebuild3Loaded()
+
+    print("=== Hyperdrive Spacebuild 3 Detection Report ===")
+    print("Detection Status: " .. (detected and "DETECTED" or "NOT DETECTED"))
+    print("IsLoaded Function: " .. (isLoaded and "TRUE" or "FALSE"))
+    print("Message: " .. message)
+    print("Current Map: " .. game.GetMap())
+
+    if GAMEMODE and GAMEMODE.Name then
+        print("Current Gamemode: " .. GAMEMODE.Name)
+    end
+
+    print("\nDetection Methods:")
+    for method, result in pairs(methods) do
+        if result then
+            if type(result) == "table" then
+                print("  ✓ " .. method .. ": " .. table.concat(result, ", "))
+            else
+                print("  ✓ " .. method .. ": true")
+            end
+        else
+            print("  ✗ " .. method .. ": false")
+        end
+    end
+
+    print("\nGlobal Variables:")
+    print("  CAF: " .. (CAF and "exists" or "nil"))
+    print("  RD: " .. (RD and "exists" or "nil"))
+    print("  LS: " .. (LS and "exists" or "nil"))
+    print("  ENV: " .. (ENV and "exists" or "nil"))
+
+    if details and details.detection_methods then
+        print("\nDetailed Information:")
+        for key, value in pairs(details) do
+            if key ~= "detection_methods" then
+                print("  " .. key .. ": " .. tostring(value))
+            end
+        end
+    end
+
+    print("=== End Report ===")
+end)
+
+-- Immediate Spacebuild 3 CAF compatibility fixes
+-- This needs to run immediately, not in a timer
+local function ApplySpacebuildCAFFixes()
+    print("[Hyperdrive] Applying immediate Spacebuild 3 CAF compatibility fixes...")
+
+    -- Fix Spacebuild entities that might have CAF initialization issues
+    local problematicEntities = {"storage_gas", "storage_energy", "generator_energy_fusion", "base_air_exchanger", "base_climate_control"}
+
+    for _, entClass in ipairs(problematicEntities) do
+        if scripted_ents and scripted_ents.GetStored then
+            local success, storedEnts = pcall(scripted_ents.GetStored)
+            if success and storedEnts and storedEnts[entClass] then
+                local entTable = storedEnts[entClass]
+                if entTable and entTable.t then
+                    -- Patch the Initialize function to ensure all required structures exist
+                    local originalInit = entTable.t.Initialize
+                    entTable.t.Initialize = function(self)
+                        -- Ensure all required structures exist before calling original Initialize
+                        self.caf = self.caf or {}
+                        self.RD = self.RD or {}
+                        self.custom = self.custom or {}
+                        self.env = self.env or {}
+                        self.ls = self.ls or {}
+                        self.rd = self.rd or {}
+
+                        -- Initialize common Spacebuild structures
+                        if not self.caf.custom then
+                            self.caf.custom = {}
+                        end
+
+                        -- Call original Initialize if it exists
+                        if originalInit then
+                            return originalInit(self)
+                        end
+                    end
+
+                    -- Also patch SpawnFunction if it exists
+                    local originalSpawn = entTable.t.SpawnFunction
+                    if originalSpawn then
+                        entTable.t.SpawnFunction = function(ply, tr, class)
+                            local ent = originalSpawn(ply, tr, class)
+                            if IsValid(ent) then
+                                ent.caf = ent.caf or {}
+                                ent.RD = ent.RD or {}
+                                ent.custom = ent.custom or {}
+                                ent.env = ent.env or {}
+                                ent.ls = ent.ls or {}
+                                ent.rd = ent.rd or {}
+
+                                -- Initialize nested structures
+                                if not ent.caf.custom then
+                                    ent.caf.custom = {}
+                                end
+                            end
+                            return ent
+                        end
+                    end
+
+                    print("[Hyperdrive] Patched " .. entClass .. " with CAF compatibility")
+                end
+            end
+        end
+    end
+end
+
+-- Apply fixes immediately
+ApplySpacebuildCAFFixes()
+
+-- Also apply fixes after a short delay in case entities load later
+timer.Simple(0.1, ApplySpacebuildCAFFixes)
+timer.Simple(0.5, ApplySpacebuildCAFFixes)
+
+-- Override ents.Create temporarily to fix Spacebuild entities as they're created
+local originalEntsCreate = ents.Create
+ents.Create = function(class)
+    local ent = originalEntsCreate(class)
+
+    if IsValid(ent) then
+        local spacebuildClasses = {
+            "storage_gas", "storage_energy", "storage_liquid_water", "storage_liquid_nitrogen",
+            "generator_energy_fusion", "generator_energy_solar", "generator_gas",
+            "base_air_exchanger", "base_climate_control", "base_gravity_control"
+        }
+
+        for _, sbClass in ipairs(spacebuildClasses) do
+            if class == sbClass then
+                ent.caf = ent.caf or {}
+                ent.RD = ent.RD or {}
+                ent.custom = ent.custom or {}
+                ent.env = ent.env or {}
+                ent.ls = ent.ls or {}
+                ent.rd = ent.rd or {}
+
+                -- Initialize nested structures
+                if not ent.caf.custom then
+                    ent.caf.custom = {}
+                end
+
+                print("[Hyperdrive] Pre-initialized all structures for " .. class)
+                break
+            end
+        end
+    end
+
+    return ent
+end
+
+-- Restore original function after a delay
+timer.Simple(10, function()
+    ents.Create = originalEntsCreate
+    print("[Hyperdrive] Restored original ents.Create function")
+end)
+
+-- Multiple hooks to fix Spacebuild entities at different stages
+hook.Add("OnEntityCreated", "HyperdriveSpacebuildCAFFix", function(ent)
+    if not IsValid(ent) then return end
+
+    local entClass = ent:GetClass()
+    local spacebuildEntities = {
+        "storage_gas", "storage_energy", "storage_liquid_water", "storage_liquid_nitrogen",
+        "generator_energy_fusion", "generator_energy_solar", "generator_gas",
+        "base_air_exchanger", "base_climate_control", "base_gravity_control"
+    }
+
+    -- Check if this is a Spacebuild entity
+    local isSpacebuildEntity = false
+    for _, sbClass in ipairs(spacebuildEntities) do
+        if entClass == sbClass then
+            isSpacebuildEntity = true
+            break
+        end
+    end
+
+    if isSpacebuildEntity then
+        -- Fix immediately (no timer delay)
+        ent.caf = ent.caf or {}
+        ent.RD = ent.RD or {}
+        ent.custom = ent.custom or {}
+        ent.env = ent.env or {}
+        ent.ls = ent.ls or {}
+        ent.rd = ent.rd or {}
+
+        -- Initialize nested structures
+        if not ent.caf.custom then
+            ent.caf.custom = {}
+        end
+
+        -- Also fix with a small delay as backup
+        timer.Simple(0, function()
+            if IsValid(ent) then
+                ent.caf = ent.caf or {}
+                ent.RD = ent.RD or {}
+                ent.custom = ent.custom or {}
+                ent.env = ent.env or {}
+                ent.ls = ent.ls or {}
+                ent.rd = ent.rd or {}
+
+                if not ent.caf.custom then
+                    ent.caf.custom = {}
+                end
+            end
+        end)
+
+        print("[Hyperdrive] Applied immediate structure fix for " .. entClass)
+    end
+end)
+
+-- Additional hook for entity initialization
+hook.Add("Initialize", "HyperdriveSpacebuildCAFInit", function()
+    -- This runs when the gamemode initializes
+    timer.Simple(0, ApplySpacebuildCAFFixes)
+end)
+
+-- Hook for when entities are spawned via tools
+hook.Add("PlayerSpawnedSENT", "HyperdriveSpacebuildSENTFix", function(ply, ent)
+    if not IsValid(ent) then return end
+
+    local entClass = ent:GetClass()
+    if string.find(entClass, "storage_") or string.find(entClass, "generator_") or string.find(entClass, "base_") then
+        ent.caf = ent.caf or {}
+        ent.RD = ent.RD or {}
+        ent.custom = ent.custom or {}
+        ent.env = ent.env or {}
+        ent.ls = ent.ls or {}
+        ent.rd = ent.rd or {}
+
+        -- Initialize nested structures
+        if not ent.caf.custom then
+            ent.caf.custom = {}
+        end
+
+        print("[Hyperdrive] Applied complete structure fix to spawned " .. entClass)
+    end
+end)
+
+-- Console command to fix existing Spacebuild entities
+concommand.Add("hyperdrive_fix_spacebuild", function(ply, cmd, args)
+    if IsValid(ply) and not ply:IsSuperAdmin() then return end
+
+    print("=== Hyperdrive Spacebuild 3 Entity Fix ===")
+
+    local spacebuildEntities = {
+        "storage_gas", "storage_energy", "storage_liquid_water", "storage_liquid_nitrogen",
+        "generator_energy_fusion", "generator_energy_solar", "generator_gas",
+        "base_air_exchanger", "base_climate_control", "base_gravity_control"
+    }
+
+    local fixedCount = 0
+    local totalCount = 0
+
+    for _, entClass in ipairs(spacebuildEntities) do
+        local entities = ents.FindByClass(entClass)
+        for _, ent in ipairs(entities) do
+            if IsValid(ent) then
+                totalCount = totalCount + 1
+                local needsFix = false
+
+                -- Fix all required structures
+                if not ent.caf then
+                    ent.caf = {}
+                    needsFix = true
+                end
+
+                if not ent.RD then
+                    ent.RD = {}
+                    needsFix = true
+                end
+
+                if not ent.custom then
+                    ent.custom = {}
+                    needsFix = true
+                end
+
+                if not ent.env then
+                    ent.env = {}
+                    needsFix = true
+                end
+
+                if not ent.ls then
+                    ent.ls = {}
+                    needsFix = true
+                end
+
+                if not ent.rd then
+                    ent.rd = {}
+                    needsFix = true
+                end
+
+                -- Fix nested structures
+                if not ent.caf.custom then
+                    ent.caf.custom = {}
+                    needsFix = true
+                end
+
+                if needsFix then
+                    fixedCount = fixedCount + 1
+                    print("Fixed " .. entClass .. " (ID: " .. ent:EntIndex() .. ")")
+                end
+            end
+        end
+    end
+
+    print("Fixed " .. fixedCount .. " out of " .. totalCount .. " Spacebuild entities")
+    print("=== Fix Complete ===")
+end)
+
 print("[Hyperdrive] Enhanced Spacebuild 3 integration loaded successfully")
+print("[Hyperdrive] Use 'hyperdrive_check_spacebuild' console command for detailed detection report")
+print("[Hyperdrive] Use 'hyperdrive_fix_spacebuild' console command to fix existing Spacebuild entities")
+print("[Hyperdrive] Spacebuild 3 CAF compatibility fixes active")
 
 -- Get all attached entities using SB3 ship core or constraint system
 function HYPERDRIVE.Spacebuild.Enhanced.GetAttachedEntities(engine)

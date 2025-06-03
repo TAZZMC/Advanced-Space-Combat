@@ -65,7 +65,7 @@ TacticalAI.__index = TacticalAI
 
 function TacticalAI:New(shipCore, behavior)
     local ai = setmetatable({}, TacticalAI)
-    
+
     ai.shipCore = shipCore
     ai.behavior = behavior or "balanced"
     ai.active = true
@@ -77,7 +77,18 @@ function TacticalAI:New(shipCore, behavior)
     ai.lastThreatScan = 0
     ai.engagementStartTime = 0
     ai.retreatPosition = nil
-    
+
+    -- Enhanced AI integration with ARIA-3
+    ai.ARIA3Enhanced = true
+    ai.AIDecisionHistory = {}
+    ai.AILearningData = {
+        successful_engagements = 0,
+        failed_engagements = 0,
+        preferred_tactics = {},
+        threat_response_patterns = {},
+        efficiency_scores = {}
+    }
+
     -- AI Statistics
     ai.stats = {
         targetsEngaged = 0,
@@ -85,9 +96,16 @@ function TacticalAI:New(shipCore, behavior)
         hits = 0,
         damageDealt = 0,
         damageTaken = 0,
-        retreats = 0
+        retreats = 0,
+        aiDecisions = 0,
+        successfulDecisions = 0
     }
-    
+
+    -- Integrate with ARIA-3 if available
+    if ASC and ASC.AI and ASC.AI.AddonIntegration then
+        ASC.AI.AddonIntegration.IntegrateWithTacticalAI(ai)
+    end
+
     return ai
 end
 

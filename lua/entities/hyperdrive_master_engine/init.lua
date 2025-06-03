@@ -1,12 +1,12 @@
--- Master Hyperdrive Engine v2.2.1 - ALL FEATURES COMBINED
--- COMPLETE CODE UPDATE v2.2.1 - ALL SYSTEMS INTEGRATED WITH STEAM WORKSHOP
--- Enhanced with fleet management, real-time monitoring, CAP Steam Workshop, and SB3 Steam Workshop integration
+-- Master Hyperdrive Engine v3.0.0 - ULTIMATE COMBINED ENGINE
+-- ALL ENGINE TYPES UNIFIED - Standard, Enhanced, Master, and Custom variants
+-- Complete integration: CAP, SB3, Wiremod, Ship Core, AI, and all addon systems
 AddCSLuaFile("cl_init.lua")
 AddCSLuaFile("shared.lua")
 include("shared.lua")
 
-print("[Hyperdrive Master] COMPLETE CODE UPDATE v2.2.1 - Master Engine being updated")
-print("[Hyperdrive Master] Steam Workshop CAP and SB3 integration active")
+print("[Hyperdrive Master] ULTIMATE COMBINED ENGINE v3.0.0 - All engine types unified")
+print("[Hyperdrive Master] Complete integration: CAP, SB3, Wiremod, Ship Core, AI systems")
 
 function ENT:Initialize()
     self:SetModel("models/props_phx/construct/metal_plate_curve360x2.mdl")
@@ -45,6 +45,13 @@ function ENT:Initialize()
     self:SetEfficiencyRating(1.0)
     self:SetOperationalMode(1) -- 1=Standard, 2=Enhanced, 3=Maximum
 
+    -- Engine type and configuration (NEW v3.0.0)
+    self:SetEngineType("master") -- master, standard, enhanced, heavy, light, custom
+    self:SetEngineClass("hyperdrive") -- hyperdrive, sublight, quantum, dimensional
+    self:SetThrustPower(100)
+    self:SetMaxThrust(1000)
+    self:SetEngineActive(false)
+
     -- Integration data storage (safe initialization)
     self.IntegrationData = self.IntegrationData or {}
     if not self.IntegrationData.wiremod then
@@ -82,7 +89,100 @@ function ENT:Initialize()
     self:InitializeRealTimeMonitoring()
     self:InitializePerformanceAnalytics()
 
-    print("[Hyperdrive Master] Engine initialized with ALL features including v2.2.0")
+    -- Configure engine based on type
+    self:ConfigureEngineType("master")
+
+    print("[Hyperdrive Master] Ultimate Combined Engine v3.0.0 initialized with ALL features")
+end
+
+-- Configure engine based on type (NEW v3.0.0)
+function ENT:ConfigureEngineType(engineType)
+    engineType = engineType or "master"
+    self:SetEngineType(engineType)
+
+    -- Configure properties based on engine type
+    if engineType == "master" then
+        -- Master engine - all capabilities
+        self:SetMaxThrust(1000)
+        self:SetThrustPower(200)
+        self.MaxEnergy = 2000
+        self.ChargeRate = 100
+        self.JumpCost = 1000
+        self.CooldownTime = 3
+        self.JumpRange = 100000
+        self:SetEngineClass("hyperdrive")
+
+    elseif engineType == "heavy" then
+        -- Heavy engine - high power, slow charge
+        self:SetMaxThrust(1500)
+        self:SetThrustPower(300)
+        self.MaxEnergy = 3000
+        self.ChargeRate = 75
+        self.JumpCost = 1500
+        self.CooldownTime = 8
+        self.JumpRange = 150000
+        self:SetEngineClass("hyperdrive")
+
+    elseif engineType == "light" then
+        -- Light engine - fast charge, lower power
+        self:SetMaxThrust(500)
+        self:SetThrustPower(100)
+        self.MaxEnergy = 1000
+        self.ChargeRate = 150
+        self.JumpCost = 600
+        self.CooldownTime = 2
+        self.JumpRange = 75000
+        self:SetEngineClass("hyperdrive")
+
+    elseif engineType == "enhanced" then
+        -- Enhanced engine - balanced performance
+        self:SetMaxThrust(800)
+        self:SetThrustPower(150)
+        self.MaxEnergy = 1500
+        self.ChargeRate = 80
+        self.JumpCost = 800
+        self.CooldownTime = 4
+        self.JumpRange = 80000
+        self:SetEngineClass("hyperdrive")
+
+    elseif engineType == "quantum" then
+        -- Quantum engine - advanced technology
+        self:SetMaxThrust(1200)
+        self:SetThrustPower(250)
+        self.MaxEnergy = 2500
+        self.ChargeRate = 120
+        self.JumpCost = 1200
+        self.CooldownTime = 2
+        self.JumpRange = 200000
+        self:SetEngineClass("quantum")
+
+    elseif engineType == "dimensional" then
+        -- Dimensional engine - ultimate technology
+        self:SetMaxThrust(2000)
+        self:SetThrustPower(400)
+        self.MaxEnergy = 5000
+        self.ChargeRate = 200
+        self.JumpCost = 2000
+        self.CooldownTime = 1
+        self.JumpRange = 500000
+        self:SetEngineClass("dimensional")
+
+    else -- standard
+        -- Standard engine - basic capabilities
+        self:SetMaxThrust(600)
+        self:SetThrustPower(100)
+        self.MaxEnergy = 1000
+        self.ChargeRate = 50
+        self.JumpCost = 800
+        self.CooldownTime = 5
+        self.JumpRange = 50000
+        self:SetEngineClass("hyperdrive")
+    end
+
+    -- Update efficiency based on engine type
+    self:UpdateSystemIntegration()
+
+    print("[Hyperdrive Master] Configured as " .. engineType .. " engine with " .. self:GetEngineClass() .. " class")
 end
 
 function ENT:SetupDataTables()
@@ -110,6 +210,13 @@ function ENT:SetupDataTables()
     self:NetworkVar("Int", 0, "SystemIntegration")
     self:NetworkVar("Float", 8, "EfficiencyRating")
     self:NetworkVar("Int", 1, "OperationalMode")
+
+    -- Engine type properties (NEW v3.0.0)
+    self:NetworkVar("String", 2, "EngineType")
+    self:NetworkVar("String", 3, "EngineClass")
+    self:NetworkVar("Int", 2, "ThrustPower")
+    self:NetworkVar("Int", 3, "MaxThrust")
+    self:NetworkVar("Bool", 2, "EngineActive")
 end
 
 function ENT:InitializeWiremod()
@@ -138,6 +245,14 @@ function ENT:InitializeWiremod()
         "SetMode",
         "SystemScan",
         "FleetCoordinate",
+
+        -- Engine type inputs (NEW v3.0.0)
+        "SetEngineType [STRING]",
+        "SetEngineClass [STRING]",
+        "SetThrustPower",
+        "ToggleEngine",
+        "ActivateEngine",
+        "DeactivateEngine",
 
         -- Front Indicator inputs
         "ShowFrontIndicator",
@@ -181,6 +296,14 @@ function ENT:InitializeWiremod()
         "OperationalMode",
         "IntegrationCount",
         "MasterStatus [STRING]",
+
+        -- Engine type outputs (NEW v3.0.0)
+        "EngineType [STRING]",
+        "EngineClass [STRING]",
+        "ThrustPower",
+        "MaxThrust",
+        "EngineActive",
+        "EngineStatus [STRING]",
 
         -- Front Indicator outputs
         "FrontIndicatorVisible",
@@ -1063,6 +1186,25 @@ function ENT:TriggerInput(iname, value)
     elseif iname == "SystemScan" and value > 0 then
         self:UpdateAllSystems()
 
+    -- Engine type inputs (NEW v3.0.0)
+    elseif iname == "SetEngineType" and isstring(value) then
+        self:ConfigureEngineType(value)
+
+    elseif iname == "SetEngineClass" and isstring(value) then
+        self:SetEngineClass(value)
+
+    elseif iname == "SetThrustPower" then
+        self:SetThrustPower(math.Clamp(math.floor(value), 10, 1000))
+
+    elseif iname == "ToggleEngine" and value > 0 then
+        self:SetEngineActive(not self:GetEngineActive())
+
+    elseif iname == "ActivateEngine" and value > 0 then
+        self:SetEngineActive(true)
+
+    elseif iname == "DeactivateEngine" and value > 0 then
+        self:SetEngineActive(false)
+
     -- Front Indicator inputs
     elseif iname == "ShowFrontIndicator" and value > 0 then
         if HYPERDRIVE.ShipCore then
@@ -1155,6 +1297,21 @@ function ENT:UpdateAllWireOutputs()
     if self.IntegrationData.spacebuild.active then integrationCount = integrationCount + 1 end
     if self.IntegrationData.stargate.active then integrationCount = integrationCount + 1 end
     WireLib.TriggerOutput(self, "IntegrationCount", integrationCount)
+
+    -- Engine type outputs (NEW v3.0.0)
+    WireLib.TriggerOutput(self, "EngineType", self:GetEngineType())
+    WireLib.TriggerOutput(self, "EngineClass", self:GetEngineClass())
+    WireLib.TriggerOutput(self, "ThrustPower", self:GetThrustPower())
+    WireLib.TriggerOutput(self, "MaxThrust", self:GetMaxThrust())
+    WireLib.TriggerOutput(self, "EngineActive", self:GetEngineActive() and 1 or 0)
+
+    local engineStatus = self:GetEngineActive() and "ACTIVE" or "INACTIVE"
+    if self:GetCharging() then
+        engineStatus = "CHARGING"
+    elseif self:IsOnCooldown() then
+        engineStatus = "COOLDOWN"
+    end
+    WireLib.TriggerOutput(self, "EngineStatus", engineStatus)
 
     -- Status strings
     local canOperate, reason = self:CanOperateMaster()

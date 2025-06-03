@@ -1,0 +1,14 @@
+// Advanced Space Combat - Ship Core Model
+// This is a placeholder file for the ship core 3D model
+// The actual .mdl file should be created using a 3D modeling tool
+// and compiled with Garry's Mod model compilation tools
+
+// Model specifications:
+// - Size: Approximately 64x64x32 units
+// - Origin: Center bottom
+// - Collision model: Simple box collision
+// - Materials: ship_core_base.vmt, ship_core_glow.vmt
+// - Animations: idle, activate, deactivate
+// - Attachment points: control_panel, hologram_display
+
+// For now, entities will use a default prop model as fallback
