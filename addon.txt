@@ -1,11 +1,12 @@
 "AddonInfo"
 {
-	"name"			"Advanced Space Combat - Enhanced Stargate Hyperspace Edition"
+	"name"			"Advanced Space Combat - ARIA-4 Ultimate Edition with Enhanced Stargate Hyperspace"
 	"version"		"5.1.0"
 	"up_date"		"15/01/2025"
-	"author_name"	"Advanced Space Combat Team"
+	"author_name"	"Advanced Space Combat Development Team"
 	"author_email"	""
 	"author_url"	""
-	"info"			"Enhanced 4-stage Stargate hyperspace system with authentic travel mechanics, ARIA-4 AI v5.1.0, and complete integration"
+	"info"			"Ultimate space combat addon featuring 4-stage Stargate hyperspace travel, ARIA-4 AI Assistant v5.1.0, comprehensive ship systems, advanced weapons, shield technology, and complete CAP integration. Production ready with Czech localization."
 	"override"		"0"
+	"tags"			"fun,realism,roleplay,scenic,combat"
 }

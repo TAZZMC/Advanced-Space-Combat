@@ -2,15 +2,15 @@
 ENT.Type = "anim"
 ENT.Base = "base_gmodentity"
 
-ENT.PrintName = "Hyperdrive Computer"
-ENT.Author = "Hyperdrive Team"
+ENT.PrintName = "ASC Navigation Computer"
+ENT.Author = "Advanced Space Combat Team"
 ENT.Contact = ""
 ENT.Purpose = "Easy-to-use hyperdrive control system with automatic planet detection"
-ENT.Instructions = "Simple hyperdrive computer. Press E to open interface. Automatically finds Master Engines and planets."
+ENT.Instructions = "Advanced navigation computer. Press E to open interface. Automatically finds Master Engines and planets."
 
 ENT.Spawnable = true
 ENT.AdminSpawnable = true
-ENT.Category = "Hyperdrive"
+ENT.Category = "Advanced Space Combat"
 
 ENT.RenderGroup = RENDERGROUP_BOTH
 

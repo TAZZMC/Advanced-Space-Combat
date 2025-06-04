@@ -1,15 +1,15 @@
 ENT.Type = "anim"
 ENT.Base = "base_gmodentity"
 
-ENT.PrintName = "Hyperdrive Plasma Cannon"
-ENT.Author = "Hyperdrive Team"
+ENT.PrintName = "ASC Plasma Cannon"
+ENT.Author = "Advanced Space Combat Team"
 ENT.Contact = ""
 ENT.Purpose = "Ship-mounted plasma cannon with area-effect damage and heat effects"
 ENT.Instructions = "Mount on ship near ship core. Fires superheated plasma bolts with splash damage."
 
 ENT.Spawnable = true
 ENT.AdminSpawnable = true
-ENT.Category = "Hyperdrive - Weapons"
+ENT.Category = "Advanced Space Combat"
 
 -- Network strings
 if SERVER then

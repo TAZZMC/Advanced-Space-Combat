@@ -265,13 +265,13 @@ if SERVER then
     
     -- Version command
     concommand.Add("asc_version", function(ply, cmd, args)
-        local message = "[ASC] Advanced Space Combat v5.0.0 - Enhanced Stargate Hyperspace Edition"
+        local message = "[ASC] Advanced Space Combat v5.1.0 - ARIA-4 Ultimate Edition with Enhanced Stargate Hyperspace"
         if IsValid(ply) then
             ply:ChatPrint(message)
-            ply:ChatPrint("[ASC] Features: 4-stage Stargate hyperspace, Ancient tech bonuses, authentic visual effects")
+            ply:ChatPrint("[ASC] Features: 4-stage Stargate hyperspace, ARIA-4 AI v5.1.0, Ancient tech bonuses, authentic visual effects")
         else
             print(message)
-            print("[ASC] Features: 4-stage Stargate hyperspace, Ancient tech bonuses, authentic visual effects")
+            print("[ASC] Features: 4-stage Stargate hyperspace, ARIA-4 AI v5.1.0, Ancient tech bonuses, authentic visual effects")
         end
     end)
 end
@@ -300,12 +300,12 @@ timer.Simple(5, function()
         local status = ASC.StatusSystem.GetSystemStatus()
         local health = math.floor(status.health * 100)
         print("[ASC] ========================================")
-        print("[ASC] Advanced Space Combat v3.1.0 Loaded!")
+        print("[ASC] Advanced Space Combat v5.1.0 - ARIA-4 Ultimate Edition Loaded!")
         print("[ASC] System Health: " .. health .. "%")
         print("[ASC] Use 'asc_help' for commands")
-        print("[ASC] Use '!ai help' for AI assistance")
+        print("[ASC] Use 'aria help' for ARIA-4 AI assistance")
         print("[ASC] ========================================")
     end
 end)
 
-print("[ASC] Status Commands v3.1.0 loaded successfully!")
+print("[ASC] Status Commands v5.1.0 loaded successfully!")

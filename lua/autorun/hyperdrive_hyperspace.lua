@@ -1141,7 +1141,7 @@ function HYPERDRIVE.Hyperspace.NotifyPlayerEnterHyperspace(player, transitData)
     net.WriteVector(transitData.destination)
     net.Send(player)
 
-    player:ChatPrint("[Hyperdrive] Entering hyperspace...")
+    player:ChatPrint("[Advanced Space Combat] Entering hyperspace...")
 end
 
 -- Notify player exiting hyperspace
@@ -1151,7 +1151,7 @@ function HYPERDRIVE.Hyperspace.NotifyPlayerExitHyperspace(player)
     net.Start("hyperdrive_hyperspace_exit")
     net.Send(player)
 
-    player:ChatPrint("[Hyperdrive] Exiting hyperspace...")
+    player:ChatPrint("[Advanced Space Combat] Exiting hyperspace...")
 end
 
 -- Logging function

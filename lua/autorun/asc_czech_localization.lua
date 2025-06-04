@@ -1422,7 +1422,7 @@ concommand.Add("asc_apply_czech", function(ply, cmd, args)
 end)
 
 -- Console command to control auto-detection
-concommand.Add("asc_czech_autodetect", function(ply, cmd, args)
+concommand.Add("asc_czech_auto_detect", function(ply, cmd, args)
     local action = args[1] or "status"
 
     if action == "enable" or action == "on" or action == "1" then
@@ -1467,10 +1467,10 @@ concommand.Add("asc_czech_autodetect", function(ply, cmd, args)
             print(msg)
         end
     else
-        local usage = "[Advanced Space Combat] Usage: asc_czech_autodetect [enable|disable|test|status]"
+        local usage = "[Advanced Space Combat] Usage: asc_czech_auto_detect [enable|disable|test|status]"
         if IsValid(ply) then
             ply:ChatPrint(usage)
-            ply:ChatPrint("[ASC] Použití: asc_czech_autodetect [enable|disable|test|status]")
+            ply:ChatPrint("[ASC] Použití: asc_czech_auto_detect [enable|disable|test|status]")
         else
             print(usage)
         end

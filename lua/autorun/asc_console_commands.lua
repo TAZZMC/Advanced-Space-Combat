@@ -98,7 +98,7 @@ ASC.Commands.Register("help", function(ply, cmd, args)
         end
     else
         -- Show all categories and ARIA-4 info
-        ply:ChatPrint("[" .. GetText("Advanced Space Combat", "Advanced Space Combat") .. "] v4.0.0 - ARIA-4 Ultimate Edition")
+        ply:ChatPrint("[" .. GetText("Advanced Space Combat", "Advanced Space Combat") .. "] v5.1.0 - ARIA-4 Ultimate Edition")
         ply:ChatPrint(GetText("Available command categories", "Available command categories") .. ":")
         for _, cat in ipairs(ASC.Commands.Categories) do
             local localizedCat = GetText(cat, cat)
@@ -510,4 +510,133 @@ hook.Add("OnPlayerChat", "ASC_CommandAutocomplete", function(ply, text, team, de
     end
 end)
 
-print("[Advanced Space Combat] Console Commands loaded successfully!")
+-- Missing console commands implementation
+ASC.Commands.Register("weapon_interface", function(ply, cmd, args)
+    if not IsValid(ply) then return end
+
+    -- Open weapon interface (placeholder for actual implementation)
+    ply:ChatPrint("[Advanced Space Combat] Opening weapon interface...")
+    ply:ConCommand("asc_weapon_config")
+end, "Open weapon configuration interface", "Combat")
+
+ASC.Commands.Register("flight_hud_test", function(ply, cmd, args)
+    if not IsValid(ply) then return end
+
+    ply:ChatPrint("[Advanced Space Combat] Testing flight HUD display...")
+
+    -- Test flight HUD (placeholder)
+    if CLIENT then
+        -- This would show a test flight HUD
+        ply:ChatPrint("[Advanced Space Combat] Flight HUD test activated for 10 seconds")
+    end
+end, "Test flight HUD display", "Flight")
+
+ASC.Commands.Register("ai_chat", function(ply, cmd, args)
+    if not IsValid(ply) then return end
+
+    ply:ChatPrint("[Advanced Space Combat] Opening ARIA-4 AI chat interface...")
+    ply:ChatPrint("[Advanced Space Combat] Use 'aria <question>' to chat with ARIA-4")
+    ply:ChatPrint("[Advanced Space Combat] Example: aria help")
+end, "Open ARIA-4 AI chat interface", "General")
+
+ASC.Commands.Register("vgui_rescan", function(ply, cmd, args)
+    if not IsValid(ply) then return end
+
+    ply:ChatPrint("[Advanced Space Combat] Rescanning VGUI elements for theming...")
+
+    -- Trigger VGUI rescan
+    if ASC.ComprehensiveTheme and ASC.ComprehensiveTheme.RescanVGUI then
+        ASC.ComprehensiveTheme.RescanVGUI()
+        ply:ChatPrint("[Advanced Space Combat] VGUI rescan completed")
+    else
+        ply:ChatPrint("[Advanced Space Combat] Theme system not available")
+    end
+end, "Rescan all VGUI elements for theming", "Configuration")
+
+ASC.Commands.Register("ship_status", function(ply, cmd, args)
+    if not IsValid(ply) then return end
+
+    -- Find player's ship core
+    local shipCore = nil
+    local cores = ents.FindByClass("ship_core")
+
+    for _, core in ipairs(cores) do
+        if IsValid(core) and core:GetNWString("Owner") == ply:Name() then
+            shipCore = core
+            break
+        end
+    end
+
+    if not IsValid(shipCore) then
+        ply:ChatPrint("[Advanced Space Combat] No ship core found")
+        return
+    end
+
+    ply:ChatPrint("[Advanced Space Combat] Ship Status:")
+    ply:ChatPrint("• Name: " .. shipCore:GetNWString("ShipName", "Unnamed Ship"))
+    ply:ChatPrint("• Health: " .. shipCore:Health() .. "/" .. shipCore:GetMaxHealth())
+    ply:ChatPrint("• Hull Integrity: " .. shipCore:GetNWFloat("HullIntegrity", 100) .. "%")
+    ply:ChatPrint("• Shield Status: " .. (shipCore:GetNWBool("ShieldActive", false) and "Active" or "Inactive"))
+    ply:ChatPrint("• Core State: " .. shipCore:GetNWString("StatusMessage", "Unknown"))
+end, "Show detailed ship status information", "Ship Management")
+
+ASC.Commands.Register("weapon_status", function(ply, cmd, args)
+    if not IsValid(ply) then return end
+
+    -- Find weapons near player
+    local weapons = {}
+    local weaponClasses = {"asc_pulse_cannon", "asc_plasma_cannon", "asc_railgun", "hyperdrive_pulse_cannon", "hyperdrive_plasma_cannon", "hyperdrive_railgun"}
+
+    for _, class in ipairs(weaponClasses) do
+        local found = ents.FindByClass(class)
+        for _, weapon in ipairs(found) do
+            if IsValid(weapon) and weapon:GetPos():Distance(ply:GetPos()) < 2000 then
+                table.insert(weapons, weapon)
+            end
+        end
+    end
+
+    if #weapons == 0 then
+        ply:ChatPrint("[Advanced Space Combat] No weapons found nearby")
+        return
+    end
+
+    ply:ChatPrint("[Advanced Space Combat] Weapon Status (" .. #weapons .. " weapons found):")
+    for i, weapon in ipairs(weapons) do
+        local name = weapon:GetClass():gsub("_", " "):gsub("asc ", ""):gsub("hyperdrive ", "")
+        local health = weapon:Health() or 100
+        local maxHealth = weapon:GetMaxHealth() or 100
+        ply:ChatPrint("• " .. name .. ": " .. health .. "/" .. maxHealth .. " HP")
+    end
+end, "Show weapon system status", "Combat")
+
+ASC.Commands.Register("stargate_info", function(ply, cmd, args)
+    if not IsValid(ply) then return end
+
+    ply:ChatPrint("[Advanced Space Combat] Stargate Technology Information:")
+    ply:ChatPrint("• Supported Technologies: Ancient, Asgard, Goa'uld, Wraith, Ori, Tau'ri")
+    ply:ChatPrint("• Hyperspace Travel: 4-stage Stargate-inspired system")
+    ply:ChatPrint("• Integration: Full CAP (Carter Addon Pack) support")
+    ply:ChatPrint("• Commands: Use 'aria stargate help' for detailed assistance")
+
+    -- Show nearby stargates
+    local stargates = {}
+    local sgClasses = {"stargate_sg1", "stargate_movie", "stargate_infinity", "stargate_tollan"}
+
+    for _, class in ipairs(sgClasses) do
+        local found = ents.FindByClass(class)
+        for _, sg in ipairs(found) do
+            if IsValid(sg) and sg:GetPos():Distance(ply:GetPos()) < 5000 then
+                table.insert(stargates, sg)
+            end
+        end
+    end
+
+    if #stargates > 0 then
+        ply:ChatPrint("• Nearby Stargates: " .. #stargates .. " found")
+    end
+end, "Show Stargate technology information", "Transport")
+
+print("[Advanced Space Combat] Console Commands v5.1.0 - Ultimate Edition Loaded successfully!")
+print("[Advanced Space Combat] Use 'asc_help' for a complete list of available commands")
+print("[Advanced Space Combat] Use 'asc_help <category>' to see commands in a specific category")

@@ -2,7 +2,7 @@
 -- Comprehensive ship core spawning and management tool
 
 TOOL.Category = "Advanced Space Combat"
-TOOL.Name = "Ship Core Tool v4.0.0"
+TOOL.Name = "ASC Ship Core Tool v5.1.0"
 TOOL.Command = nil
 TOOL.ConfigName = ""
 
@@ -12,8 +12,8 @@ TOOL.ClientConVar["auto_link"] = "1"
 TOOL.ClientConVar["power_level"] = "100"
 
 if CLIENT then
-    language.Add("tool.asc_ship_core_tool.name", "Ship Core Tool v4.0.0")
-    language.Add("tool.asc_ship_core_tool.desc", "Spawn and configure ship cores with ARIA-4 AI integration")
+    language.Add("tool.asc_ship_core_tool.name", "ASC Ship Core Tool v5.1.0")
+    language.Add("tool.asc_ship_core_tool.desc", "Spawn and configure Advanced Space Combat ship cores with ARIA-4 AI integration")
     language.Add("tool.asc_ship_core_tool.0", "Left click to spawn ship core, Right click to configure")
 end
 

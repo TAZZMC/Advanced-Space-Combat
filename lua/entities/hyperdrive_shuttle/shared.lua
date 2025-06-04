@@ -1,15 +1,15 @@
 ENT.Type = "anim"
 ENT.Base = "base_gmodentity"
 
-ENT.PrintName = "Hyperdrive Shuttle"
-ENT.Author = "Hyperdrive Team"
+ENT.PrintName = "ASC Transport Shuttle"
+ENT.Author = "Advanced Space Combat Team"
 ENT.Contact = ""
 ENT.Purpose = "Automated shuttle craft for passenger and cargo transport"
 ENT.Instructions = "Spawns as a shuttle that can be assigned missions for transport operations."
 
 ENT.Spawnable = true
 ENT.AdminSpawnable = true
-ENT.Category = "Hyperdrive - Shuttle"
+ENT.Category = "Advanced Space Combat"
 
 -- Network strings
 if SERVER then

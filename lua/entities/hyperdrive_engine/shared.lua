@@ -3,15 +3,15 @@
 ENT.Type = "anim"
 ENT.Base = "base_gmodentity"
 
-ENT.PrintName = "Hyperdrive Engine"
-ENT.Author = "Hyperdrive Team"
+ENT.PrintName = "ASC Hyperdrive Engine"
+ENT.Author = "Advanced Space Combat Team"
 ENT.Contact = ""
 ENT.Purpose = "Advanced FTL propulsion system with ship detection"
-ENT.Instructions = "Use with Hyperdrive Computer for easy control"
+ENT.Instructions = "Use with ASC Navigation Computer for easy control"
 
 ENT.Spawnable = true
 ENT.AdminSpawnable = true
-ENT.Category = "Hyperdrive"
+ENT.Category = "Advanced Space Combat"
 
 -- Network variables
 function ENT:SetupDataTables()

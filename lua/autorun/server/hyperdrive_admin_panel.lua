@@ -80,7 +80,7 @@ local function NotifyAdmins(message, level)
     
     for _, ply in ipairs(player.GetAll()) do
         if IsValid(ply) and ply:IsAdmin() then
-            ply:ChatPrint("[Hyperdrive Admin] " .. message)
+            ply:ChatPrint("[Advanced Space Combat] " .. message)
         end
     end
 end

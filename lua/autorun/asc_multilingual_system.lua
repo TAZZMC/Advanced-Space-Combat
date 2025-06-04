@@ -180,6 +180,11 @@ ASC.Multilingual.Core = {
 
         print("[Multilingual] Integrating with Czech localization system...")
 
+        -- Ensure Czech localized strings table exists
+        if not ASC.Multilingual.Core.LocalizedStrings.cs then
+            ASC.Multilingual.Core.LocalizedStrings.cs = {}
+        end
+
         -- Import Czech translations from the Czech system
         if ASC.Czech.Translations then
             local imported = 0
@@ -194,6 +199,10 @@ ASC.Multilingual.Core = {
 
         -- Set up automatic synchronization
         hook.Add("ASC_Czech_TranslationAdded", "Multilingual_SyncCzech", function(key, translation)
+            -- Ensure Czech table exists before adding translation
+            if not ASC.Multilingual.Core.LocalizedStrings.cs then
+                ASC.Multilingual.Core.LocalizedStrings.cs = {}
+            end
             ASC.Multilingual.Core.LocalizedStrings.cs[key] = translation
         end)
 
@@ -586,7 +595,14 @@ end
 
 -- Hook for Czech system integration
 hook.Add("ASC_Czech_SystemLoaded", "Multilingual_IntegrateCzech", function()
-    if ASC.Multilingual and ASC.Multilingual.Core then
+    if ASC.Multilingual and ASC.Multilingual.Core and ASC.Multilingual.Core.LocalizedStrings then
         ASC.Multilingual.Core.IntegrateWithCzechSystem()
+    else
+        -- If multilingual system isn't ready yet, try again in a moment
+        timer.Simple(1, function()
+            if ASC.Multilingual and ASC.Multilingual.Core and ASC.Multilingual.Core.LocalizedStrings then
+                ASC.Multilingual.Core.IntegrateWithCzechSystem()
+            end
+        end)
     end
 end)

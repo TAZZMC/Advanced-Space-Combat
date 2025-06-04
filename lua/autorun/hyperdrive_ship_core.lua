@@ -977,7 +977,7 @@ function HYPERDRIVE.ShipCore.CheckForDuplicateCores()
         end
     end
 
-    print("[Hyperdrive Ship Core] Checking " .. #allCores .. " ship cores for duplicates...")
+    print("[Advanced Space Combat] Checking " .. #allCores .. " ship cores for duplicates...")
 
     local duplicatesFound = 0
     local processedCores = {}
@@ -990,7 +990,7 @@ function HYPERDRIVE.ShipCore.CheckForDuplicateCores()
                 core.InvalidDueToDuplicate = true
                 core:SetColor(Color(255, 100, 100, 200))
                 duplicatesFound = duplicatesFound + 1
-                print("[Hyperdrive Ship Core] Core " .. core:EntIndex() .. " marked as duplicate: " .. message)
+                print("[Advanced Space Combat] Core " .. core:EntIndex() .. " marked as duplicate: " .. message)
             else
                 -- Clear any previous duplicate marking
                 core.InvalidDueToDuplicate = false
@@ -1075,7 +1075,7 @@ function HYPERDRIVE.ShipCore.DetectShipForEngine(engine)
                 if core ~= primaryCore then
                     core.InvalidDueToDuplicate = true
                     core:SetColor(Color(255, 100, 100, 200)) -- Red tint for invalid cores
-                    print("[Hyperdrive Ship Core] Marked core " .. core:EntIndex() .. " as INVALID (duplicate)")
+                    print("[Advanced Space Combat] Marked core " .. core:EntIndex() .. " as INVALID (duplicate)")
 
                     -- Add warning message to core
                     if core.SetOverlayText then

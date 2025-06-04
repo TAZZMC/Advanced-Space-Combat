@@ -314,6 +314,18 @@ if SERVER then
     AddCSLuaFile("autorun/client/asc_hud_overlay_system.lua")
     AddCSLuaFile("autorun/client/asc_settings_menu_theme.lua")
     AddCSLuaFile("autorun/client/asc_master_theme_controller.lua")
+
+    -- Add missing client files
+    AddCSLuaFile("autorun/client/asc_character_selection.lua")
+    AddCSLuaFile("autorun/client/asc_web_resource_manager.lua")
+    AddCSLuaFile("autorun/client/hyperdrive_effects_v2.lua")
+    AddCSLuaFile("autorun/client/hyperdrive_hyperspace_effects.lua")
+    AddCSLuaFile("autorun/client/hyperdrive_sound_system.lua")
+    AddCSLuaFile("autorun/client/hyperdrive_hud.lua")
+    AddCSLuaFile("autorun/client/hyperdrive_shield_hud.lua")
+    AddCSLuaFile("autorun/client/asc_menu_organization.lua")
+    AddCSLuaFile("autorun/client/asc_spawn_menu_complete.lua")
+    AddCSLuaFile("autorun/client/asc_simple_organization.lua")
 end
 
 -- Load debug, error recovery, and multilingual systems first

@@ -1,15 +1,15 @@
 ENT.Type = "anim"
 ENT.Base = "base_gmodentity"
 
-ENT.PrintName = "Hyperdrive Shield Generator"
-ENT.Author = "Hyperdrive Team"
+ENT.PrintName = "ASC Shield Generator"
+ENT.Author = "Advanced Space Combat Team"
 ENT.Contact = ""
 ENT.Purpose = "Generates protective shields for ships using CAP bubble technology"
 ENT.Instructions = "Place near ship core or hyperdrive engine. Use E to toggle shield."
 
 ENT.Spawnable = true
 ENT.AdminSpawnable = true
-ENT.Category = "Hyperdrive"
+ENT.Category = "Advanced Space Combat"
 
 -- Network strings
 if SERVER then

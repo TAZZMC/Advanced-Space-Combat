@@ -2,7 +2,7 @@
 -- Comprehensive hyperdrive engine spawning and configuration tool
 
 TOOL.Category = "Advanced Space Combat"
-TOOL.Name = "Ultimate Hyperdrive Engine Tool v4.0.0"
+TOOL.Name = "ASC Hyperdrive Engine Tool v5.1.0"
 TOOL.Command = nil
 TOOL.ConfigName = ""
 
@@ -12,8 +12,8 @@ TOOL.ClientConVar["auto_link"] = "1"
 TOOL.ClientConVar["thrust_power"] = "100"
 
 if CLIENT then
-    language.Add("tool.asc_hyperdrive_tool.name", "Hyperdrive Engine Tool")
-    language.Add("tool.asc_hyperdrive_tool.desc", "Spawn and configure hyperdrive engines")
+    language.Add("tool.asc_hyperdrive_tool.name", "ASC Hyperdrive Engine Tool v5.1.0")
+    language.Add("tool.asc_hyperdrive_tool.desc", "Spawn and configure Advanced Space Combat hyperdrive engines")
     language.Add("tool.asc_hyperdrive_tool.0", "Left click to spawn engine, Right click to link to ship core")
 end
 

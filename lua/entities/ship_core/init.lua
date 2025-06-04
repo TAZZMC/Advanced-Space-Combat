@@ -2326,13 +2326,13 @@ function ENT:CheckSystemAlerts()
                 else
                     for _, ply in ipairs(player.GetAll()) do
                         if ply:IsAdmin() then
-                            ply:ChatPrint("[HYPERDRIVE ALERT] " .. alertMessage)
+                            ply:ChatPrint("[Advanced Space Combat] " .. alertMessage)
                         end
                     end
                 end
 
                 -- Log to console (but only once per cooldown)
-                print("[Ship Core Alert] " .. alertMessage)
+                print("[Advanced Space Combat] " .. alertMessage)
             end
         end
     end

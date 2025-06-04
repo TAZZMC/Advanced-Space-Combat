@@ -444,14 +444,15 @@ end)
 -- Help command
 concommand.Add("hyperdrive_help", function()
     local ply = LocalPlayer()
-    ply:ChatPrint("=== HYPERDRIVE HELP ===")
+    ply:ChatPrint("=== ADVANCED SPACE COMBAT HELP ===")
     ply:ChatPrint("• Use hyperdrive_toggle_hud to toggle HUD")
-    ply:ChatPrint("• Use the Hyperdrive tool to place engines")
+    ply:ChatPrint("• Use the ASC Hyperdrive tool to place engines")
     ply:ChatPrint("• Use placed engines to access interface")
     ply:ChatPrint("• Set destination by looking where you want to go")
     ply:ChatPrint("• Energy recharges automatically")
     ply:ChatPrint("• Longer jumps cost more energy")
     ply:ChatPrint("• Type !close in chat to close interface")
+    ply:ChatPrint("• Use 'aria help' for ARIA-4 AI assistance")
 end)
 
 -- Real-time data update system

@@ -253,7 +253,7 @@ function HYPERDRIVE.CAP.DetectCAP()
     if detection.steamWorkshop then
         detection.source = "Steam Workshop Collection"
         detection.version = string.format("Workshop (%d/%d components)", detection.workshopComponents, #workshopFiles)
-        print("[Hyperdrive CAP] Steam Workshop CAP Collection detected: " .. detection.workshopComponents .. "/" .. #workshopFiles .. " components")
+        print("[Advanced Space Combat] Steam Workshop CAP Collection detected: " .. detection.workshopComponents .. "/" .. #workshopFiles .. " components")
     end
 
     -- Check for main CAP addon (StarGate global)

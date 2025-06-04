@@ -2,15 +2,15 @@
 ENT.Type = "anim"
 ENT.Base = "base_gmodentity"
 
-ENT.PrintName = "Hyperdrive Beacon"
-ENT.Author = "Hyperdrive Team"
+ENT.PrintName = "ASC Navigation Beacon"
+ENT.Author = "Advanced Space Combat Team"
 ENT.Contact = ""
-ENT.Purpose = "Navigation beacon for hyperdrive systems"
+ENT.Purpose = "Navigation beacon for Advanced Space Combat systems"
 ENT.Instructions = "Use to configure beacon settings. Provides navigation reference for hyperdrive engines."
 
 ENT.Spawnable = true
 ENT.AdminSpawnable = true
-ENT.Category = "Hyperdrive"
+ENT.Category = "Advanced Space Combat"
 
 ENT.RenderGroup = RENDERGROUP_BOTH
 
