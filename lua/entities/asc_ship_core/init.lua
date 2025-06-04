@@ -46,6 +46,8 @@ util.AddNetworkString("asc_ship_core_update_ui")
 util.AddNetworkString("asc_ship_core_command")
 util.AddNetworkString("asc_ship_core_close_ui")
 util.AddNetworkString("asc_ship_core_name_dialog")
+util.AddNetworkString("asc_ship_core_model_selection")
+util.AddNetworkString("asc_ship_core_model_change")
 util.AddNetworkString("hyperdrive_play_sound")
 
 function ENT:Initialize()
@@ -868,6 +870,32 @@ function ENT:HandleUICommand(ply, command, data)
         self:SetAmbientSoundMuted(muted)
         ply:ChatPrint("[ASC Ship Core] Ambient sound " .. (muted and "muted" or "unmuted"))
 
+    elseif command == "next_model" then
+        self:NextModel()
+        local modelName = self:GetNWString("SelectedModelName", "Unknown")
+        ply:ChatPrint("[ASC Ship Core] Model changed to: " .. modelName)
+
+    elseif command == "previous_model" then
+        self:PreviousModel()
+        local modelName = self:GetNWString("SelectedModelName", "Unknown")
+        ply:ChatPrint("[ASC Ship Core] Model changed to: " .. modelName)
+
+    elseif command == "set_model" then
+        local index = data.index or 1
+        if self:SetModelByIndex(index) then
+            local modelName = self:GetNWString("SelectedModelName", "Unknown")
+            ply:ChatPrint("[ASC Ship Core] Model changed to: " .. modelName)
+        else
+            ply:ChatPrint("[ASC Ship Core] Invalid model index: " .. index)
+        end
+
+    elseif command == "get_model_info" then
+        local info = self:GetModelInfo()
+        net.Start("asc_ship_core_model_selection")
+        net.WriteEntity(self)
+        net.WriteTable(info)
+        net.Send(ply)
+
     elseif command == "close_ui" then
         self:CloseUI(ply)
     end
@@ -969,13 +997,14 @@ function ENT:GetUIData()
         hullSystemActive = self:GetHullSystemActive(),
         shieldSystemActive = self:GetShieldSystemActive(),
         statusMessage = self:GetStatusMessage(),
-        ambientSoundMuted = self:IsAmbientSoundMuted()
+        ambientSoundMuted = self:IsAmbientSoundMuted(),
+        modelInfo = self:GetModelInfo()
     }
 
     -- Add ship data if available
     if self.ship then
         data.entityCount = #self.ship:GetEntities()
-        data.shipMass = self.ship:GetMass()
+        data.shipMass = self.ship.mass or 0
         data.shipCenter = self.ship:GetCenter()
         data.frontDirection = self.ship:GetFrontDirection()
     end
@@ -1068,7 +1097,7 @@ if WireLib then
 
         if self.ship then
             self:TriggerOutput("EntityCount", #self.ship:GetEntities())
-            self:TriggerOutput("ShipMass", self.ship:GetMass())
+            self:TriggerOutput("ShipMass", self.ship.mass or 0)
         else
             self:TriggerOutput("EntityCount", 0)
             self:TriggerOutput("ShipMass", 0)
@@ -1559,7 +1588,7 @@ function ENT:UpdateRealTimeData()
     -- Update real-time monitoring data
     if self.ship then
         self:SetNWInt("EntityCount", #self.ship:GetEntities())
-        self:SetNWFloat("ShipMass", self.ship:GetMass())
+        self:SetNWFloat("ShipMass", self.ship.mass or 0)
     end
 end
 
@@ -1588,9 +1617,16 @@ end
 -- Model selection system
 function ENT:GetCAPModels()
     local models = {
-        "models/props_combine/combine_core.mdl",
-        "models/hunter/blocks/cube025x025x025.mdl",
-        "models/props_lab/huladoll.mdl"
+        {path = "models/props_combine/combine_core.mdl", name = "Combine Core", category = "Default"},
+        {path = "models/hunter/blocks/cube025x025x025.mdl", name = "Basic Cube", category = "Default"},
+        {path = "models/props_lab/huladoll.mdl", name = "Hula Doll", category = "Default"},
+        {path = "models/props_c17/oildrum001.mdl", name = "Oil Drum", category = "Default"},
+        {path = "models/props_phx/construct/metal_plate1.mdl", name = "Metal Plate", category = "Default"},
+        {path = "models/props_phx/construct/metal_dome360.mdl", name = "Metal Dome", category = "Default"},
+        {path = "models/props_phx/construct/metal_tube.mdl", name = "Metal Tube", category = "Default"},
+        {path = "models/props_phx/construct/glass/glass_dome360.mdl", name = "Glass Dome", category = "Default"},
+        {path = "models/props_phx/construct/windows/window1x1.mdl", name = "Window Panel", category = "Default"},
+        {path = "models/props_phx/construct/concrete_pipe001.mdl", name = "Concrete Pipe", category = "Default"}
     }
 
     -- Add CAP models if available
@@ -1598,7 +1634,11 @@ function ENT:GetCAPModels()
         local capModels = HYPERDRIVE.CAP.Models.GetShipCoreModels()
         if capModels then
             for _, model in ipairs(capModels) do
-                table.insert(models, model)
+                if type(model) == "string" then
+                    table.insert(models, {path = model, name = "CAP Model", category = "CAP"})
+                else
+                    table.insert(models, model)
+                end
             end
         end
     end
@@ -1609,8 +1649,19 @@ end
 function ENT:ApplySelectedModel()
     local models = self:GetCAPModels()
     if models and models[self.selectedModelIndex] then
-        self:SetModel(models[self.selectedModelIndex])
-        print("[ASC Ship Core] Applied model: " .. models[self.selectedModelIndex])
+        local modelData = models[self.selectedModelIndex]
+        local modelPath = type(modelData) == "table" and modelData.path or modelData
+        local modelName = type(modelData) == "table" and modelData.name or "Unknown Model"
+
+        self:SetModel(modelPath)
+        self:SetNWString("SelectedModelName", modelName)
+        self:SetNWInt("SelectedModelIndex", self.selectedModelIndex)
+        self:SetNWInt("TotalModels", #models)
+
+        print("[ASC Ship Core] Applied model: " .. modelName .. " (" .. modelPath .. ")")
+
+        -- Save preference
+        self:SaveModelPreference()
     end
 end
 
@@ -1630,6 +1681,57 @@ function ENT:SaveModelPreference()
     -- Save model preference to file
     local prefFile = "asc_ship_core_model_" .. self:EntIndex() .. ".txt"
     file.Write(prefFile, tostring(self.selectedModelIndex))
+end
+
+-- Model selection functions for player interaction
+function ENT:NextModel()
+    local models = self:GetCAPModels()
+    self.selectedModelIndex = self.selectedModelIndex + 1
+    if self.selectedModelIndex > #models then
+        self.selectedModelIndex = 1
+    end
+    self:ApplySelectedModel()
+end
+
+function ENT:PreviousModel()
+    local models = self:GetCAPModels()
+    self.selectedModelIndex = self.selectedModelIndex - 1
+    if self.selectedModelIndex < 1 then
+        self.selectedModelIndex = #models
+    end
+    self:ApplySelectedModel()
+end
+
+function ENT:SetModelByIndex(index)
+    local models = self:GetCAPModels()
+    if index >= 1 and index <= #models then
+        self.selectedModelIndex = index
+        self:ApplySelectedModel()
+        return true
+    end
+    return false
+end
+
+function ENT:GetModelInfo()
+    local models = self:GetCAPModels()
+    local info = {
+        currentIndex = self.selectedModelIndex,
+        totalModels = #models,
+        models = {}
+    }
+
+    for i, modelData in ipairs(models) do
+        local name = type(modelData) == "table" and modelData.name or "Model " .. i
+        local category = type(modelData) == "table" and modelData.category or "Default"
+        table.insert(info.models, {
+            index = i,
+            name = name,
+            category = category,
+            selected = (i == self.selectedModelIndex)
+        })
+    end
+
+    return info
 end
 
 -- CAP technology ambient sound selection
@@ -1661,3 +1763,73 @@ function ENT:SelectTechnologyAmbientSound()
         end
     end
 end
+
+-- Console commands for model selection
+concommand.Add("aria_ship_core_next_model", function(ply, cmd, args)
+    if not IsValid(ply) then return end
+
+    local core = ply:GetEyeTrace().Entity
+    if IsValid(core) and core:GetClass() == "asc_ship_core" then
+        core:NextModel()
+        local modelName = core:GetNWString("SelectedModelName", "Unknown")
+        ply:ChatPrint("[ASC Ship Core] Model changed to: " .. modelName)
+    else
+        ply:ChatPrint("[ASC Ship Core] Look at a ship core to change its model")
+    end
+end, nil, "Change ship core to next model")
+
+concommand.Add("aria_ship_core_prev_model", function(ply, cmd, args)
+    if not IsValid(ply) then return end
+
+    local core = ply:GetEyeTrace().Entity
+    if IsValid(core) and core:GetClass() == "asc_ship_core" then
+        core:PreviousModel()
+        local modelName = core:GetNWString("SelectedModelName", "Unknown")
+        ply:ChatPrint("[ASC Ship Core] Model changed to: " .. modelName)
+    else
+        ply:ChatPrint("[ASC Ship Core] Look at a ship core to change its model")
+    end
+end, nil, "Change ship core to previous model")
+
+concommand.Add("aria_ship_core_set_model", function(ply, cmd, args)
+    if not IsValid(ply) then return end
+    if #args < 1 then
+        ply:ChatPrint("[ASC Ship Core] Usage: aria_ship_core_set_model <model_index>")
+        return
+    end
+
+    local index = tonumber(args[1])
+    if not index then
+        ply:ChatPrint("[ASC Ship Core] Invalid model index")
+        return
+    end
+
+    local core = ply:GetEyeTrace().Entity
+    if IsValid(core) and core:GetClass() == "asc_ship_core" then
+        if core:SetModelByIndex(index) then
+            local modelName = core:GetNWString("SelectedModelName", "Unknown")
+            ply:ChatPrint("[ASC Ship Core] Model changed to: " .. modelName)
+        else
+            ply:ChatPrint("[ASC Ship Core] Invalid model index: " .. index)
+        end
+    else
+        ply:ChatPrint("[ASC Ship Core] Look at a ship core to change its model")
+    end
+end, nil, "Set ship core model by index")
+
+concommand.Add("aria_ship_core_list_models", function(ply, cmd, args)
+    if not IsValid(ply) then return end
+
+    local core = ply:GetEyeTrace().Entity
+    if IsValid(core) and core:GetClass() == "asc_ship_core" then
+        local info = core:GetModelInfo()
+        ply:ChatPrint("[ASC Ship Core] Available models (" .. info.totalModels .. " total):")
+
+        for _, modelData in ipairs(info.models) do
+            local prefix = modelData.selected and ">>> " or "    "
+            ply:ChatPrint(prefix .. modelData.index .. ". " .. modelData.name .. " (" .. modelData.category .. ")")
+        end
+    else
+        ply:ChatPrint("[ASC Ship Core] Look at a ship core to list its models")
+    end
+end, nil, "List available ship core models")
