@@ -188,7 +188,7 @@ ASC.Debug.Log = function(level, message, data)
     end
     
     -- Track in analytics
-    if ASC.Analytics and ASC.Debug.Config.Features.ErrorTracking then
+    if ASC.Analytics and ASC.Debug.Config and ASC.Debug.Config.Features and ASC.Debug.Config.Features.ErrorTracking then
         ASC.Analytics.TrackEvent("debug_log", {
             level = level,
             message = message,
@@ -328,7 +328,7 @@ ASC.Debug.PerformanceMonitor = {
 ASC.Debug.Visual = {
     -- Draw entity bounds
     DrawEntityBounds = function()
-        if not ASC.Debug.Config.Visual.ShowEntityBounds then return end
+        if not (ASC.Debug.Config and ASC.Debug.Config.Visual and ASC.Debug.Config.Visual.ShowEntityBounds) then return end
         
         for _, ent in ipairs(ents.GetAll()) do
             if IsValid(ent) then
@@ -344,7 +344,7 @@ ASC.Debug.Visual = {
     
     -- Draw performance overlay
     DrawPerformanceOverlay = function()
-        if not ASC.Debug.Config.Visual.ShowPerformanceOverlay then return end
+        if not (ASC.Debug.Config and ASC.Debug.Config.Visual and ASC.Debug.Config.Visual.ShowPerformanceOverlay) then return end
         
         local x, y = 10, 10
         local lineHeight = 20
