@@ -49,17 +49,40 @@ ASC.Analytics.EventTypes = {
 -- Initialize analytics system
 function ASC.Analytics.Initialize()
     print("[Advanced Space Combat] Initializing analytics system...")
-    
+
+    -- Validate configuration
+    if not ASC.Analytics.Config then
+        print("[Advanced Space Combat] Error: Analytics config not found, creating default config")
+        ASC.Analytics.Config = {
+            EnableUserTracking = true,
+            EnablePerformanceTracking = true,
+            EnableFeatureUsageTracking = true,
+            EnableErrorTracking = true,
+            DataRetentionDays = 30,
+            MaxEventsPerUser = 1000,
+            MaxErrorLogs = 500,
+            ReportInterval = 300,
+            DetailedReportInterval = 3600,
+            AnonymizeUserData = false,
+            EnableDataExport = true
+        }
+    end
+
+    -- Validate critical config values
+    ASC.Analytics.Config.ReportInterval = ASC.Analytics.Config.ReportInterval or 300
+    ASC.Analytics.Config.DetailedReportInterval = ASC.Analytics.Config.DetailedReportInterval or 3600
+    ASC.Analytics.Config.DataRetentionDays = ASC.Analytics.Config.DataRetentionDays or 30
+
     -- Set up data collection
     ASC.Analytics.SetupDataCollection()
-    
+
     -- Set up reporting
     ASC.Analytics.SetupReporting()
-    
+
     -- Set up cleanup
     ASC.Analytics.SetupCleanup()
-    
-    print("[Advanced Space Combat] Analytics system initialized")
+
+    print("[Advanced Space Combat] Analytics system initialized successfully")
 end
 
 -- Set up data collection
@@ -209,15 +232,32 @@ end
 
 -- Set up reporting
 function ASC.Analytics.SetupReporting()
+    -- Validate configuration values and provide fallbacks
+    local reportInterval = ASC.Analytics.Config.ReportInterval or 300
+    local detailedReportInterval = ASC.Analytics.Config.DetailedReportInterval or 3600
+
+    -- Ensure values are numbers
+    if type(reportInterval) ~= "number" then
+        reportInterval = 300
+        print("[Advanced Space Combat] Warning: Invalid ReportInterval, using default 300")
+    end
+
+    if type(detailedReportInterval) ~= "number" then
+        detailedReportInterval = 3600
+        print("[Advanced Space Combat] Warning: Invalid DetailedReportInterval, using default 3600")
+    end
+
     -- Regular reports
-    timer.Create("ASC_Analytics_Report", ASC.Analytics.Config.ReportInterval, 0, function()
+    timer.Create("ASC_Analytics_Report", reportInterval, 0, function()
         ASC.Analytics.GenerateReport()
     end)
-    
+
     -- Detailed reports
-    timer.Create("ASC_Analytics_DetailedReport", ASC.Analytics.Config.DetailedReportInterval, 0, function()
+    timer.Create("ASC_Analytics_DetailedReport", detailedReportInterval, 0, function()
         ASC.Analytics.GenerateDetailedReport()
     end)
+
+    print("[Advanced Space Combat] Analytics reporting timers created successfully")
 end
 
 -- Generate basic report
@@ -408,9 +448,9 @@ concommand.Add("asc_analytics_report", function(ply, cmd, args)
         ply:ChatPrint("[Advanced Space Combat] Admin only command")
         return
     end
-    
+
     ASC.Analytics.GenerateDetailedReport()
-    
+
     local msg = "[Advanced Space Combat] Analytics report generated"
     if IsValid(ply) then
         ply:ChatPrint(msg)
@@ -419,10 +459,47 @@ concommand.Add("asc_analytics_report", function(ply, cmd, args)
     end
 end, nil, "Generate detailed analytics report (Admin only)")
 
--- Initialize analytics
+concommand.Add("asc_analytics_debug", function(ply, cmd, args)
+    if IsValid(ply) and not ply:IsAdmin() then
+        ply:ChatPrint("[Advanced Space Combat] Admin only command")
+        return
+    end
+
+    local function printMsg(msg)
+        if IsValid(ply) then
+            ply:ChatPrint(msg)
+        else
+            print(msg)
+        end
+    end
+
+    printMsg("[Advanced Space Combat] Analytics Debug Information:")
+    printMsg("Config exists: " .. tostring(ASC.Analytics.Config ~= nil))
+
+    if ASC.Analytics.Config then
+        printMsg("ReportInterval: " .. tostring(ASC.Analytics.Config.ReportInterval) .. " (type: " .. type(ASC.Analytics.Config.ReportInterval) .. ")")
+        printMsg("DetailedReportInterval: " .. tostring(ASC.Analytics.Config.DetailedReportInterval) .. " (type: " .. type(ASC.Analytics.Config.DetailedReportInterval) .. ")")
+        printMsg("DataRetentionDays: " .. tostring(ASC.Analytics.Config.DataRetentionDays) .. " (type: " .. type(ASC.Analytics.Config.DataRetentionDays) .. ")")
+    end
+
+    printMsg("Data exists: " .. tostring(ASC.Analytics.Data ~= nil))
+    printMsg("Timer exists (Report): " .. tostring(timer.Exists("ASC_Analytics_Report")))
+    printMsg("Timer exists (Detailed): " .. tostring(timer.Exists("ASC_Analytics_DetailedReport")))
+    printMsg("Timer exists (Cleanup): " .. tostring(timer.Exists("ASC_Analytics_Cleanup")))
+
+end, nil, "Show analytics debug information (Admin only)")
+
+-- Initialize analytics with error handling
 hook.Add("Initialize", "ASC_Analytics_Init", function()
     timer.Simple(2, function()
-        ASC.Analytics.Initialize()
+        local success, err = pcall(function()
+            ASC.Analytics.Initialize()
+        end)
+
+        if not success then
+            print("[Advanced Space Combat] Analytics initialization failed: " .. tostring(err))
+            print("[Advanced Space Combat] Analytics system disabled due to error")
+        end
     end)
 end)
 
