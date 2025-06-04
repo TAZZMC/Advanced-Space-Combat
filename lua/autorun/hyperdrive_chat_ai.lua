@@ -265,7 +265,7 @@ function HYPERDRIVE.ChatAI.GetEntityCounts()
     local counts = {}
     
     local shipCores = #ents.FindByClass("ship_core")
-    local engines = #ents.FindByClass("hyperdrive_engine") + #ents.FindByClass("hyperdrive_master_engine")
+    local engines = #ents.FindByClass("hyperdrive_master_engine")
     local weapons = #ents.FindByClass("hyperdrive_pulse_cannon") + #ents.FindByClass("hyperdrive_beam_weapon") + 
                    #ents.FindByClass("hyperdrive_torpedo_launcher") + #ents.FindByClass("hyperdrive_railgun") + 
                    #ents.FindByClass("hyperdrive_plasma_cannon")

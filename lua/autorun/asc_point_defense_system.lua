@@ -373,8 +373,7 @@ ASC.PointDefense.Core = {
     CalculateInterceptPoint = function(targetPos, targetVel, shooterPos)
         local timeToTarget = targetPos:Distance(shooterPos) / 1000 -- Assume projectile speed of 1000
         return targetPos + (targetVel * timeToTarget * ASC.PointDefense.Config.TargetLeadTime)
-    end
-}
+    end,
 
     -- Engage targets with available turrets
     EngageTargets = function(shipID, currentTime)

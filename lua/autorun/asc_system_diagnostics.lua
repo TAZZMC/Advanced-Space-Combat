@@ -67,7 +67,6 @@ function ASC.Diagnostics.CheckEntitySystems()
     -- Core entities
     local coreEntities = {
         "ship_core",
-        "hyperdrive_engine", 
         "hyperdrive_master_engine",
         "hyperdrive_computer"
     }

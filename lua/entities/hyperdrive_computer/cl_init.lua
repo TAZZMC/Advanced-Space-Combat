@@ -28,18 +28,18 @@ function ENT:DrawScreen()
         draw.RoundedBox(0, -98, -78, 196, 156, Color(0, 40, 80, 255))
 
         -- Title bar
-        draw.RoundedBox(0, -98, -78, 196, 20, Color(0, 100, 200, 255))
-        draw.SimpleText("HYPERDRIVE COMPUTER", "DermaDefault", 0, -68, Color(255, 255, 255), TEXT_ALIGN_CENTER)
+        draw.RoundedBox(0, -98, -78, 196, 20, Color(80, 120, 255, 255))
+        draw.SimpleText("ENHANCED HYPERDRIVE", "DermaDefault", 0, -68, Color(255, 255, 255), TEXT_ALIGN_CENTER)
 
         -- Mode indicator
         local modeColor = self:GetPowered() and Color(0, 255, 0) or Color(255, 0, 0)
         draw.SimpleText("MODE: " .. self:GetModeString(), "DermaDefault", 0, -45, modeColor, TEXT_ALIGN_CENTER)
 
-        -- Status display
+        -- Enhanced status display
         if self:GetPowered() then
-            draw.SimpleText("SYSTEM ONLINE", "DermaDefault", 0, -25, Color(0, 255, 0), TEXT_ALIGN_CENTER)
-            draw.SimpleText("ENGINES LINKED", "DermaDefault", 0, -5, Color(100, 200, 255), TEXT_ALIGN_CENTER)
-            draw.SimpleText("READY FOR OPERATIONS", "DermaDefault", 0, 15, Color(255, 255, 100), TEXT_ALIGN_CENTER)
+            draw.SimpleText("ENHANCED SYSTEM ONLINE", "DermaDefault", 0, -25, Color(0, 255, 0), TEXT_ALIGN_CENTER)
+            draw.SimpleText("QUANTUM READY", "DermaDefault", 0, -5, Color(100, 200, 255), TEXT_ALIGN_CENTER)
+            draw.SimpleText("4-STAGE TRAVEL READY", "DermaDefault", 0, 15, Color(255, 255, 100), TEXT_ALIGN_CENTER)
 
             -- Pulsing "Press E" message
             local time = CurTime()
@@ -71,10 +71,12 @@ end
 
 function ENT:GetModeString()
     local mode = self:GetComputerMode()
-    if mode == 1 then return "NAVIGATION"
-    elseif mode == 2 then return "PLANETS"
-    elseif mode == 3 then return "STATUS"
-    else return "NAVIGATION" end
+    if mode == 1 then return "ENHANCED NAV"
+    elseif mode == 2 then return "FLEET COORD"
+    elseif mode == 3 then return "QUANTUM SYS"
+    elseif mode == 4 then return "PLANETS"
+    elseif mode == 5 then return "STATUS"
+    else return "ENHANCED NAV" end
 end
 
 -- Computer Interface
@@ -174,16 +176,16 @@ hook.Add("HUDPaint", "HyperdriveComputerInterface", function()
     draw.RoundedBox(8, x + 4, y + 4, panelW - 8, panelH - 8, Color(20, 40, 80, 220))
 
     -- Title bar
-    draw.RoundedBox(8, x + 4, y + 4, panelW - 8, 40, Color(0, 100, 200, 255))
-    draw.SimpleText("HYPERDRIVE FLEET COMMAND", "DermaLarge", x + panelW/2, y + 24, Color(255, 255, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+    draw.RoundedBox(8, x + 4, y + 4, panelW - 8, 40, Color(80, 120, 255, 255))
+    draw.SimpleText("ENHANCED HYPERSPACE COMMAND", "DermaLarge", x + panelW/2, y + 24, Color(255, 255, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 
-    -- Mode tabs
-    local tabW = (panelW - 40) / 3
+    -- Enhanced Mode tabs
+    local tabW = (panelW - 40) / 5
     local tabY = y + 50
 
-    local tabNames = {"NAVIGATION", "PLANETS", "STATUS"}
+    local tabNames = {"ENHANCED NAV", "FLEET COORD", "QUANTUM SYS", "PLANETS", "STATUS"}
 
-    for i = 1, 3 do
+    for i = 1, 5 do
         local tabX = x + 20 + (i - 1) * tabW
         local tabColor = (computerInterface.mode == i) and Color(0, 150, 255, 255) or Color(50, 50, 100, 255)
         local tabText = tabNames[i]
@@ -212,13 +214,19 @@ hook.Add("HUDPaint", "HyperdriveComputerInterface", function()
     local contentH = panelH - 140
 
     if computerInterface.mode == 1 then
-        -- Navigation mode (combines old navigation + manual control)
-        DrawSimpleNavigationMode(x + 20, contentY, panelW - 40, contentH)
+        -- Enhanced Navigation mode
+        DrawEnhancedNavigationMode(x + 20, contentY, panelW - 40, contentH)
     elseif computerInterface.mode == 2 then
-        -- Planets mode (combines waypoints + planet detection)
-        DrawSimplePlanetsMode(x + 20, contentY, panelW - 40, contentH)
+        -- Fleet Coordination mode
+        DrawFleetCoordinationMode(x + 20, contentY, panelW - 40, contentH)
     elseif computerInterface.mode == 3 then
-        -- Status mode (combines engineering + diagnostics)
+        -- Quantum Systems mode
+        DrawQuantumSystemsMode(x + 20, contentY, panelW - 40, contentH)
+    elseif computerInterface.mode == 4 then
+        -- Planets mode
+        DrawSimplePlanetsMode(x + 20, contentY, panelW - 40, contentH)
+    elseif computerInterface.mode == 5 then
+        -- Status mode
         DrawSimpleStatusMode(x + 20, contentY, panelW - 40, contentH)
     end
 
@@ -822,4 +830,280 @@ function DrawSimpleStatusMode(x, y, w, h)
     draw.SimpleText("Performance: " .. fps .. " FPS", "DermaDefault", x, y + yOffset, fpsColor)
 end
 
--- All old complex functions have been replaced by the simple 3-mode system above
+-- Enhanced Hyperspace Interface Functions
+
+-- Enhanced Navigation Mode (replaces old navigation)
+function DrawEnhancedNavigationMode(x, y, w, h)
+    draw.SimpleText("ENHANCED HYPERSPACE NAVIGATION", "DermaDefaultBold", x, y, Color(80, 120, 255))
+
+    local yOffset = 30
+
+    -- 4-Stage Travel Status
+    draw.RoundedBox(4, x, y + yOffset, w - 20, 80, Color(20, 40, 80, 150))
+    draw.SimpleText("4-STAGE STARGATE TRAVEL SYSTEM", "DermaDefaultBold", x + 10, y + yOffset + 5, Color(100, 150, 255))
+
+    local entity = computerInterface.entity
+    if IsValid(entity) then
+        local stage = entity:GetHyperspaceStage()
+        local stageText = entity:GetHyperspaceStageString()
+        local stageColor = stage > 0 and Color(0, 255, 0) or Color(200, 200, 200)
+
+        draw.SimpleText("Current Stage: " .. stageText, "DermaDefault", x + 10, y + yOffset + 25, stageColor)
+
+        if stage > 0 then
+            -- Show stage progress
+            local stageNames = {"Energy Buildup", "Window Opening", "Dimensional Transit", "System Stabilization"}
+            for i = 1, 4 do
+                local color = i <= stage and Color(0, 255, 0) or Color(100, 100, 100)
+                draw.SimpleText("Stage " .. i .. ": " .. stageNames[i], "DermaDefault", x + 10, y + yOffset + 40 + (i-1) * 15, color)
+            end
+        else
+            draw.SimpleText("Ready for enhanced hyperspace travel", "DermaDefault", x + 10, y + yOffset + 45, Color(255, 255, 100))
+        end
+    end
+
+    yOffset = yOffset + 120
+
+    -- Enhanced destination setting
+    draw.SimpleText("ENHANCED DESTINATION CONTROL", "DermaDefaultBold", x, y + yOffset, Color(255, 255, 100))
+    yOffset = yOffset + 30
+
+    -- Coordinate input (simplified)
+    draw.SimpleText("Point crosshair at destination and click SET DESTINATION", "DermaDefault", x + 10, y + yOffset, Color(200, 200, 200))
+    yOffset = yOffset + 30
+
+    -- Set destination button
+    local setDestColor = Color(0, 120, 200)
+    local setDestX, setDestY = x, y + yOffset
+
+    if input.IsMouseDown(MOUSE_LEFT) and
+       gui.MouseX() >= setDestX and gui.MouseX() <= setDestX + 200 and
+       gui.MouseY() >= setDestY and gui.MouseY() <= setDestY + 30 then
+        setDestColor = Color(0, 180, 255)
+
+        if CurTime() - computerInterface.lastUpdate > 0.2 then
+            computerInterface.lastUpdate = CurTime()
+
+            -- Get player's aim position
+            local ply = LocalPlayer()
+            local trace = ply:GetEyeTrace()
+            if trace.Hit and not trace.HitSky then
+                local destination = trace.HitPos + trace.HitNormal * 100
+
+                net.Start("hyperdrive_enhanced_destination")
+                net.WriteEntity(computerInterface.entity)
+                net.WriteVector(destination)
+                net.SendToServer()
+            end
+        end
+    end
+
+    draw.RoundedBox(4, setDestX, setDestY, 200, 30, setDestColor)
+    draw.SimpleText("SET DESTINATION", "DermaDefault", setDestX + 100, setDestY + 15, Color(255, 255, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+
+    yOffset = yOffset + 50
+
+    -- Enhanced 4-stage jump button
+    local jumpColor = Color(0, 200, 0)
+    local jumpX, jumpY = x, y + yOffset
+
+    if input.IsMouseDown(MOUSE_LEFT) and
+       gui.MouseX() >= jumpX and gui.MouseX() <= jumpX + 300 and
+       gui.MouseY() >= jumpY and gui.MouseY() <= jumpY + 40 then
+        jumpColor = Color(0, 255, 0)
+
+        if CurTime() - computerInterface.lastUpdate > 0.2 then
+            computerInterface.lastUpdate = CurTime()
+
+            net.Start("hyperdrive_4stage_travel")
+            net.WriteEntity(computerInterface.entity)
+            net.SendToServer()
+        end
+    end
+
+    draw.RoundedBox(4, jumpX, jumpY, 300, 40, jumpColor)
+    draw.SimpleText("INITIATE 4-STAGE HYPERSPACE TRAVEL", "DermaDefaultBold", jumpX + 150, jumpY + 20, Color(255, 255, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+end
+
+-- Fleet Coordination Mode
+function DrawFleetCoordinationMode(x, y, w, h)
+    draw.SimpleText("FLEET COORDINATION & QUANTUM ENTANGLEMENT", "DermaDefaultBold", x, y, Color(100, 255, 100))
+
+    local yOffset = 30
+    local entity = computerInterface.entity
+
+    if IsValid(entity) then
+        -- Fleet status
+        local fleetSize = entity:GetFleetSize()
+        local fleetCoord = entity:GetFleetCoordination()
+        local quantumEntangled = entity:GetQuantumEntangled()
+        local formation = entity:GetFleetFormation()
+
+        draw.RoundedBox(4, x, y + yOffset, w - 20, 100, Color(20, 60, 20, 150))
+        draw.SimpleText("FLEET STATUS", "DermaDefaultBold", x + 10, y + yOffset + 5, Color(0, 255, 0))
+
+        draw.SimpleText("Fleet Size: " .. fleetSize .. " engines", "DermaDefault", x + 10, y + yOffset + 25, Color(255, 255, 255))
+        draw.SimpleText("Coordination: " .. (fleetCoord and "ACTIVE" or "INACTIVE"), "DermaDefault", x + 10, y + yOffset + 45, fleetCoord and Color(0, 255, 0) or Color(255, 100, 100))
+        draw.SimpleText("Quantum Status: " .. entity:GetQuantumStatus(), "DermaDefault", x + 10, y + yOffset + 65, quantumEntangled and Color(0, 255, 255) or Color(200, 200, 200))
+        draw.SimpleText("Formation: " .. formation, "DermaDefault", x + 10, y + yOffset + 85, Color(255, 255, 100))
+
+        yOffset = yOffset + 120
+
+        -- Fleet control buttons
+        local syncColor = Color(0, 120, 120)
+        local syncX, syncY = x, y + yOffset
+
+        if input.IsMouseDown(MOUSE_LEFT) and
+           gui.MouseX() >= syncX and gui.MouseX() <= syncX + 150 and
+           gui.MouseY() >= syncY and gui.MouseY() <= syncY + 30 then
+            syncColor = Color(0, 180, 180)
+
+            if CurTime() - computerInterface.lastUpdate > 0.2 then
+                computerInterface.lastUpdate = CurTime()
+
+                net.Start("hyperdrive_fleet_sync")
+                net.WriteEntity(computerInterface.entity)
+                net.SendToServer()
+            end
+        end
+
+        draw.RoundedBox(4, syncX, syncY, 150, 30, syncColor)
+        draw.SimpleText("SYNC FLEET", "DermaDefault", syncX + 75, syncY + 15, Color(255, 255, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+
+        -- Quantum entanglement button
+        local quantumColor = Color(120, 0, 120)
+        local quantumX, quantumY = x + 170, y + yOffset
+
+        if input.IsMouseDown(MOUSE_LEFT) and
+           gui.MouseX() >= quantumX and gui.MouseX() <= quantumX + 180 and
+           gui.MouseY() >= quantumY and gui.MouseY() <= quantumY + 30 then
+            quantumColor = Color(180, 0, 180)
+
+            if CurTime() - computerInterface.lastUpdate > 0.2 then
+                computerInterface.lastUpdate = CurTime()
+
+                net.Start("hyperdrive_quantum_entangle")
+                net.WriteEntity(computerInterface.entity)
+                net.SendToServer()
+            end
+        end
+
+        draw.RoundedBox(4, quantumX, quantumY, 180, 30, quantumColor)
+        draw.SimpleText("QUANTUM ENTANGLE", "DermaDefault", quantumX + 90, quantumY + 15, Color(255, 255, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+
+        yOffset = yOffset + 50
+
+        -- Formation selection
+        draw.SimpleText("FLEET FORMATIONS", "DermaDefaultBold", x, y + yOffset, Color(255, 255, 100))
+        yOffset = yOffset + 30
+
+        local formations = {"Diamond", "V-Formation", "Line", "Sphere"}
+        local formationColors = {Color(100, 100, 0), Color(0, 100, 100), Color(100, 0, 100), Color(100, 100, 100)}
+
+        for i, formName in ipairs(formations) do
+            local formX = x + (i - 1) * 120
+            local formY = y + yOffset
+            local formColor = formationColors[i]
+
+            if formation == formName then
+                formColor = Color(formColor.r + 100, formColor.g + 100, formColor.b + 100)
+            end
+
+            if input.IsMouseDown(MOUSE_LEFT) and
+               gui.MouseX() >= formX and gui.MouseX() <= formX + 110 and
+               gui.MouseY() >= formY and gui.MouseY() <= formY + 25 then
+
+                if CurTime() - computerInterface.lastUpdate > 0.2 then
+                    computerInterface.lastUpdate = CurTime()
+
+                    net.Start("hyperdrive_fleet_formation")
+                    net.WriteEntity(computerInterface.entity)
+                    net.WriteString(formName)
+                    net.SendToServer()
+                end
+            end
+
+            draw.RoundedBox(4, formX, formY, 110, 25, formColor)
+            draw.SimpleText(formName, "DermaDefault", formX + 55, formY + 12, Color(255, 255, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        end
+    end
+end
+
+-- Quantum Systems Mode
+function DrawQuantumSystemsMode(x, y, w, h)
+    draw.SimpleText("QUANTUM SYSTEMS & ADVANCED PHYSICS", "DermaDefaultBold", x, y, Color(200, 100, 255))
+
+    local yOffset = 30
+    local entity = computerInterface.entity
+
+    if IsValid(entity) then
+        -- Spatial folding status
+        local spatialFolding = entity:GetSpatialFoldingEnabled()
+        local quantumCoherence = entity:GetQuantumCoherence()
+
+        draw.RoundedBox(4, x, y + yOffset, w - 20, 120, Color(40, 20, 60, 150))
+        draw.SimpleText("TARDIS-INSPIRED PHYSICS", "DermaDefaultBold", x + 10, y + yOffset + 5, Color(200, 100, 255))
+
+        draw.SimpleText("Spatial Folding: " .. (spatialFolding and "ENABLED" or "DISABLED"), "DermaDefault", x + 10, y + yOffset + 25, spatialFolding and Color(0, 255, 0) or Color(255, 100, 100))
+        draw.SimpleText("Distance Reduction: 90%", "DermaDefault", x + 10, y + yOffset + 45, Color(255, 255, 100))
+        draw.SimpleText("Quantum Coherence: " .. math.floor(quantumCoherence * 100) .. "%", "DermaDefault", x + 10, y + yOffset + 65, Color(0, 255, 255))
+        draw.SimpleText("Tunnel Stability: 98%", "DermaDefault", x + 10, y + yOffset + 85, Color(0, 255, 0))
+        draw.SimpleText("Time Distortion: 15%", "DermaDefault", x + 10, y + yOffset + 105, Color(255, 200, 100))
+
+        yOffset = yOffset + 140
+
+        -- Spatial folding toggle
+        local foldingColor = spatialFolding and Color(0, 150, 0) or Color(150, 0, 0)
+        local foldingX, foldingY = x, y + yOffset
+
+        if input.IsMouseDown(MOUSE_LEFT) and
+           gui.MouseX() >= foldingX and gui.MouseX() <= foldingX + 200 and
+           gui.MouseY() >= foldingY and gui.MouseY() <= foldingY + 30 then
+
+            if CurTime() - computerInterface.lastUpdate > 0.2 then
+                computerInterface.lastUpdate = CurTime()
+
+                net.Start("hyperdrive_spatial_folding")
+                net.WriteEntity(computerInterface.entity)
+                net.WriteBool(not spatialFolding)
+                net.SendToServer()
+            end
+        end
+
+        draw.RoundedBox(4, foldingX, foldingY, 200, 30, foldingColor)
+        draw.SimpleText("TOGGLE SPATIAL FOLDING", "DermaDefault", foldingX + 100, foldingY + 15, Color(255, 255, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+
+        yOffset = yOffset + 50
+
+        -- Emergency protocols
+        draw.SimpleText("EMERGENCY PROTOCOLS", "DermaDefaultBold", x, y + yOffset, Color(255, 100, 100))
+        yOffset = yOffset + 30
+
+        local emergencyTypes = {"abort", "reroute", "shutdown"}
+        local emergencyNames = {"EMERGENCY ABORT", "EMERGENCY REROUTE", "EMERGENCY SHUTDOWN"}
+        local emergencyColors = {Color(200, 0, 0), Color(200, 100, 0), Color(100, 0, 0)}
+
+        for i, emergType in ipairs(emergencyTypes) do
+            local emergX = x + (i - 1) * 150
+            local emergY = y + yOffset
+            local emergColor = emergencyColors[i]
+
+            if input.IsMouseDown(MOUSE_LEFT) and
+               gui.MouseX() >= emergX and gui.MouseX() <= emergX + 140 and
+               gui.MouseY() >= emergY and gui.MouseY() <= emergY + 25 then
+
+                if CurTime() - computerInterface.lastUpdate > 0.2 then
+                    computerInterface.lastUpdate = CurTime()
+
+                    net.Start("hyperdrive_emergency_protocol")
+                    net.WriteEntity(computerInterface.entity)
+                    net.WriteString(emergType)
+                    net.SendToServer()
+                end
+            end
+
+            draw.RoundedBox(4, emergX, emergY, 140, 25, emergColor)
+            draw.SimpleText(emergencyNames[i], "DermaDefault", emergX + 70, emergY + 12, Color(255, 255, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        end
+    end
+end

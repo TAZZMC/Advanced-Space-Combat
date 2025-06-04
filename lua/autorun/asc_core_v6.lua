@@ -145,17 +145,25 @@ end
 function ASC.Performance.ScheduleUpdate(func, priority, interval)
     priority = priority or "Medium"
     interval = interval or 0.1
-    
+
+    -- Safety check to prevent scheduling non-functions
+    if type(func) ~= "function" then
+        print("[ASC Core] Warning: Attempted to schedule a " .. type(func) .. " value instead of a function")
+        return false
+    end
+
     local scheduler = ASC.Performance.UpdateScheduler
     local queue = scheduler[priority .. "Priority"]
-    
+
     if queue then
         table.insert(queue, {
             func = func,
             interval = interval,
             lastRun = 0
         })
+        return true
     end
+    return false
 end
 
 -- Process scheduled updates
@@ -167,9 +175,13 @@ function ASC.Performance.ProcessUpdates()
     if currentTime - scheduler.LastUpdate.High > 0 then
         for _, update in ipairs(scheduler.HighPriority) do
             if currentTime - update.lastRun >= update.interval then
-                local success, result = pcall(update.func)
-                if not success then
-                    print("[ASC Core] High priority update error: " .. tostring(result))
+                if type(update.func) == "function" then
+                    local success, result = pcall(update.func)
+                    if not success then
+                        print("[ASC Core] High priority update error: " .. tostring(result))
+                    end
+                else
+                    print("[ASC Core] High priority update error: attempt to call a " .. type(update.func) .. " value")
                 end
                 update.lastRun = currentTime
             end
@@ -181,9 +193,13 @@ function ASC.Performance.ProcessUpdates()
     if currentTime - scheduler.LastUpdate.Medium > 0.1 then
         for _, update in ipairs(scheduler.MediumPriority) do
             if currentTime - update.lastRun >= update.interval then
-                local success, result = pcall(update.func)
-                if not success then
-                    print("[ASC Core] Medium priority update error: " .. tostring(result))
+                if type(update.func) == "function" then
+                    local success, result = pcall(update.func)
+                    if not success then
+                        print("[ASC Core] Medium priority update error: " .. tostring(result))
+                    end
+                else
+                    print("[ASC Core] Medium priority update error: attempt to call a " .. type(update.func) .. " value")
                 end
                 update.lastRun = currentTime
             end
@@ -195,9 +211,13 @@ function ASC.Performance.ProcessUpdates()
     if currentTime - scheduler.LastUpdate.Low > 1.0 then
         for _, update in ipairs(scheduler.LowPriority) do
             if currentTime - update.lastRun >= update.interval then
-                local success, result = pcall(update.func)
-                if not success then
-                    print("[ASC Core] Low priority update error: " .. tostring(result))
+                if type(update.func) == "function" then
+                    local success, result = pcall(update.func)
+                    if not success then
+                        print("[ASC Core] Low priority update error: " .. tostring(result))
+                    end
+                else
+                    print("[ASC Core] Low priority update error: attempt to call a " .. type(update.func) .. " value")
                 end
                 update.lastRun = currentTime
             end
@@ -257,7 +277,7 @@ function ASC.Initialize()
     
     -- Set up performance monitoring
     ASC.Performance.ScheduleUpdate(ASC.Performance.Monitor, "High", 0)
-    ASC.Performance.ScheduleUpdate(ASC.Performance.ProcessUpdates, "High", 0)
+    -- Note: ProcessUpdates is called from Think hook, not scheduled to avoid recursion
     
     -- Fire initialization event
     ASC.Events.Fire("CoreInitialized")

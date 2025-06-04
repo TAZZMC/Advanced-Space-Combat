@@ -1329,7 +1329,7 @@ ASC.AI.FindPlayerShipCore = function(player)
     local closestDistance = math.huge
 
     -- Search for ship cores owned by the player
-    for _, ent in ipairs(ents.FindByClass("ship_core")) do
+    for _, ent in ipairs(ents.FindByClass("asc_ship_core")) do
         if IsValid(ent) then
             -- Check ownership using CPPI if available
             local owner = nil
@@ -7047,9 +7047,9 @@ ASC.AI.AddonIntegration.InitializeSystemIntegrations = function()
             local class = entity:GetClass()
 
             -- Integrate ship cores
-            if class == "ship_core" then
+            if class == "asc_ship_core" then
                 ASC.AI.AddonIntegration.IntegrateWithShipCore(entity)
-                print("[ARIA-3] Integrated with ship core: " .. entity:EntIndex())
+                print("[ARIA-4] Integrated with ASC ship core: " .. entity:EntIndex())
             end
 
             -- Integrate weapons (expanded detection)

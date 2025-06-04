@@ -158,10 +158,11 @@ function ASC.ModernUI.Components.CreateButton(parent, config)
         -- Draw background
         draw.RoundedBox(ASC.ModernUI.Config.DesignSystem.BorderRadius.Medium, 0, 0, w, h, bgColor)
         
-        -- Draw border for outlined variant
+        -- Draw border for outlined variant (2px thick)
         if borderColor then
             surface.SetDrawColor(borderColor)
-            surface.DrawOutlinedRect(0, 0, w, h, 2)
+            surface.DrawOutlinedRect(0, 0, w, h)
+            surface.DrawOutlinedRect(1, 1, w - 2, h - 2)
         end
         
         -- Draw text
@@ -175,10 +176,12 @@ function ASC.ModernUI.Components.CreateButton(parent, config)
             surface.DrawText(config.text)
         end
         
-        -- Draw focus indicator
+        -- Draw focus indicator (3px thick)
         if ASC.ModernUI.Config.Accessibility.FocusIndicators and self:HasFocus() then
             surface.SetDrawColor(colors.Primary)
-            surface.DrawOutlinedRect(0, 0, w, h, 3)
+            surface.DrawOutlinedRect(0, 0, w, h)
+            surface.DrawOutlinedRect(1, 1, w - 2, h - 2)
+            surface.DrawOutlinedRect(2, 2, w - 4, h - 4)
         end
     end
     
@@ -218,7 +221,7 @@ function ASC.ModernUI.Components.CreateCard(parent, config)
         
         -- Draw border
         surface.SetDrawColor(colors.GlassBorder)
-        surface.DrawOutlinedRect(0, 0, w, h, 1)
+        surface.DrawOutlinedRect(0, 0, w, h)
     end
     
     return card
@@ -249,9 +252,12 @@ function ASC.ModernUI.Components.CreateInput(parent, config)
         -- Draw background
         draw.RoundedBox(radius, 0, 0, w, h, bgColor)
         
-        -- Draw border
+        -- Draw border (variable thickness based on focus)
         surface.SetDrawColor(borderColor)
-        surface.DrawOutlinedRect(0, 0, w, h, state.focused and 2 or 1)
+        surface.DrawOutlinedRect(0, 0, w, h)
+        if state.focused then
+            surface.DrawOutlinedRect(1, 1, w - 2, h - 2)
+        end
         
         -- Draw text
         self:DrawTextEntryText(colors.OnSurface, colors.Primary, colors.OnSurface)
@@ -309,9 +315,10 @@ function ASC.ModernUI.ApplyFrameTheme(frame)
         draw.RoundedBox(radius, 0, 0, w, h, colors.Background)
         draw.RoundedBox(radius, 0, 0, w, h, colors.Glass)
         
-        -- Draw border
+        -- Draw border (2px thick)
         surface.SetDrawColor(colors.GlassBorder)
-        surface.DrawOutlinedRect(0, 0, w, h, 2)
+        surface.DrawOutlinedRect(0, 0, w, h)
+        surface.DrawOutlinedRect(1, 1, w - 2, h - 2)
     end
 end
 

@@ -17,13 +17,7 @@ ASC.EntityRegistration.Entities = {
         description = "Central ship management and control system",
         spawnable = true
     },
-    {
-        class = "hyperdrive_engine",
-        name = "Hyperdrive Engine",
-        category = "Advanced Space Combat - Core Systems", 
-        description = "Standard FTL propulsion system",
-        spawnable = true
-    },
+
     {
         class = "hyperdrive_master_engine",
         name = "Master Hyperdrive Engine",

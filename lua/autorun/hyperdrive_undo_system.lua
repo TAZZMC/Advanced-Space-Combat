@@ -24,7 +24,6 @@ HYPERDRIVE.Undo.Config = {
     -- Entity Categories
     EntityCategories = {
         "ship_core",
-        "hyperdrive_engine",
         "hyperdrive_master_engine",
         "hyperdrive_computer",
         "hyperdrive_pulse_cannon",

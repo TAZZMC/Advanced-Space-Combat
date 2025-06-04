@@ -75,23 +75,16 @@ ASC.SpawnMenu.Config = {
 ASC.SpawnMenu.Entities = {
     ["Ship Components"] = {
         {
-            class = "ship_core",
-            name = "Ship Core",
+            class = "asc_ship_core",
+            name = "ASC Ship Core",
             description = "Central ship management and control system",
-            icon = "entities/ship_core.png",
-            category = "Ship Components"
-        },
-        {
-            class = "hyperdrive_engine",
-            name = "Hyperdrive Engine",
-            description = "Standard FTL propulsion system",
-            icon = "entities/hyperdrive_engine.png",
+            icon = "entities/asc_ship_core.png",
             category = "Ship Components"
         },
         {
             class = "hyperdrive_master_engine",
-            name = "Master Hyperdrive Engine",
-            description = "Advanced FTL propulsion with enhanced capabilities",
+            name = "Enhanced Hyperdrive Master Engine",
+            description = "Ultimate FTL propulsion with 4-stage travel, quantum coordination, and fleet management",
             icon = "entities/hyperdrive_master_engine.png",
             category = "Ship Components"
         },
@@ -341,8 +334,8 @@ function ASC.SpawnMenu.PopulateShipSystems()
         })
 
         panel:AddControl("Button", {
-            Label = "Spawn Ship Core",
-            Command = "asc_spawn_entity ship_core"
+            Label = "Spawn ASC Ship Core",
+            Command = "asc_spawn_entity asc_ship_core"
         })
 
         panel:AddControl("TextBox", {
@@ -366,12 +359,7 @@ function ASC.SpawnMenu.PopulateShipSystems()
         })
 
         panel:AddControl("Button", {
-            Label = "Spawn Standard Engine",
-            Command = "asc_spawn_entity hyperdrive_engine"
-        })
-
-        panel:AddControl("Button", {
-            Label = "Spawn Master Engine",
+            Label = "Spawn Enhanced Master Engine",
             Command = "asc_spawn_entity hyperdrive_master_engine"
         })
 

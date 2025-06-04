@@ -51,8 +51,8 @@ ASC.CAP.EntityIntegration.EntityMappings = {
         }
     },
 
-    -- Hyperdrive Engine mappings
-    hyperdrive_engine = {
+    -- Hyperdrive Master Engine mappings
+    hyperdrive_master_engine = {
         Ancient = {
             models = {"zpm", "crystal", "platform"},
             materials = {"energy", "crystal", "metal"},

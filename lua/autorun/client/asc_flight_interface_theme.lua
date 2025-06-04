@@ -571,19 +571,9 @@ function ASC.FlightTheme.RequestFlightData()
     end
 end
 
--- Hook into HUD painting
-hook.Add("HUDPaint", "ASC_FlightTheme", function()
-    ASC.FlightTheme.DrawFlightHUD()
-end)
+-- HUD functionality removed
 
--- Console commands
-concommand.Add("asc_flight_hud_test", function()
-    ASC.FlightTheme.ActivateFlightHUD(LocalPlayer())
-end)
-
-concommand.Add("asc_flight_hud_hide", function()
-    ASC.FlightTheme.DeactivateFlightHUD()
-end)
+-- HUD console commands removed
 
 -- Initialize on client
 hook.Add("Initialize", "ASC_FlightTheme_Init", function()

@@ -350,13 +350,7 @@ concommand.Add("asc_character_menu", function()
     ASC.CharacterTheme.CreatePlayerModelMenu()
 end)
 
--- Hook into HUD painting
-hook.Add("HUDPaint", "ASC_CharacterTheme", function()
-    if not GetConVar("asc_character_theme_enabled"):GetBool() then return end
-    
-    ASC.CharacterTheme.DrawHealthArmor()
-    ASC.CharacterTheme.DrawSpaceSuitHUD()
-end)
+-- HUD functionality removed
 
 -- Initialize on client
 hook.Add("Initialize", "ASC_CharacterTheme_Init", function()

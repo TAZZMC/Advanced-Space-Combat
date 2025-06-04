@@ -31,7 +31,7 @@ local entityCategories = {
     engines = {
         name = "Hyperdrive Engines",
         icon = "🚀",
-        classes = {"hyperdrive_engine", "hyperdrive_master_engine"}
+        classes = {"hyperdrive_master_engine"}
     },
     cores = {
         name = "Ship Cores",

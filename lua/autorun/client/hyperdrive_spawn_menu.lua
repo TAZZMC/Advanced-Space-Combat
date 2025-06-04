@@ -20,10 +20,10 @@ HYPERDRIVE.SpawnMenu.Config = {
 HYPERDRIVE.SpawnMenu.Entities = {
     ["Ship Cores"] = {
         {
-            class = "ship_core",
-            name = "Ship Core",
+            class = "asc_ship_core",
+            name = "ASC Ship Core",
             description = "Central ship command and control system",
-            icon = "entities/ship_core.png"
+            icon = "entities/asc_ship_core.png"
         },
         {
             class = "hyperdrive_computer",
@@ -35,15 +35,9 @@ HYPERDRIVE.SpawnMenu.Entities = {
     
     ["Engines"] = {
         {
-            class = "hyperdrive_engine",
-            name = "Hyperdrive Engine",
-            description = "Standard faster-than-light propulsion system",
-            icon = "entities/hyperdrive_engine.png"
-        },
-        {
             class = "hyperdrive_master_engine",
-            name = "Master Engine",
-            description = "Advanced hyperdrive with enhanced capabilities",
+            name = "Enhanced Hyperdrive Master Engine",
+            description = "Ultimate hyperdrive with all features - 4-stage travel, quantum coordination, fleet management",
             icon = "entities/hyperdrive_master_engine.png"
         }
     },

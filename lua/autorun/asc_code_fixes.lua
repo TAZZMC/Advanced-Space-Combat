@@ -81,7 +81,12 @@ function ASC.CodeFixes.FixNetworkStrings()
         "asc_entity_update",
         "asc_system_status",
         "asc_ai_response",
-        "asc_notification"
+        "asc_notification",
+        "asc_ship_core_open_ui",
+        "asc_ship_core_update_ui",
+        "asc_ship_core_command",
+        "asc_ship_core_close_ui",
+        "asc_ship_core_name_dialog"
     }
     
     for _, str in ipairs(networkStrings) do

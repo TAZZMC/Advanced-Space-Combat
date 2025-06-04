@@ -104,19 +104,19 @@ function ENT:InitializeFlightSystem()
     -- Find nearby ship core
     local nearbyEnts = ents.FindInSphere(self:GetPos(), 2000)
     for _, ent in ipairs(nearbyEnts) do
-        if IsValid(ent) and ent:GetClass() == "ship_core" then
+        if IsValid(ent) and ent:GetClass() == "asc_ship_core" then
             self:SetShipCore(ent)
-            
+
             -- Get or create flight system
             self.flightSystem = HYPERDRIVE.Flight.GetFlightSystem(ent)
             if not self.flightSystem then
                 self.flightSystem = HYPERDRIVE.Flight.CreateFlightSystem(ent)
             end
-            
+
             if self.flightSystem then
                 self:SetFlightActive(true)
                 self:SetFlightStatus("Flight system online")
-                print("[Flight Console] Connected to ship core: " .. ent:EntIndex())
+                print("[Flight Console] Connected to ASC ship core: " .. ent:EntIndex())
             else
                 self:SetFlightStatus("Failed to initialize flight system")
             end

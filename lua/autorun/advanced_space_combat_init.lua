@@ -292,7 +292,7 @@ if CLIENT then
     include("autorun/client/asc_ui_system.lua")
     include("autorun/client/asc_loading_screen.lua")
     include("autorun/client/asc_character_theme.lua")
-    include("autorun/client/asc_player_hud_theme.lua")
+
     include("autorun/client/asc_comprehensive_theme.lua")
     include("autorun/client/asc_weapon_interface_theme.lua")
     include("autorun/client/asc_flight_interface_theme.lua")
@@ -300,7 +300,7 @@ if CLIENT then
     include("autorun/client/asc_vgui_theme_integration.lua")
     include("autorun/client/asc_game_interface_theme.lua")
     include("autorun/client/asc_advanced_theme_effects.lua")
-    include("autorun/client/asc_hud_overlay_system.lua")
+    -- include("autorun/client/asc_hud_overlay_system.lua") -- File removed as per user request to remove all HUD systems
     include("autorun/client/asc_settings_menu_theme.lua")
     include("autorun/client/asc_master_theme_controller.lua")
 end
@@ -313,7 +313,7 @@ if SERVER then
     AddCSLuaFile("autorun/client/asc_ui_system.lua")
     AddCSLuaFile("autorun/client/asc_loading_screen.lua")
     AddCSLuaFile("autorun/client/asc_character_theme.lua")
-    AddCSLuaFile("autorun/client/asc_player_hud_theme.lua")
+
     AddCSLuaFile("autorun/client/asc_comprehensive_theme.lua")
     AddCSLuaFile("autorun/client/asc_weapon_interface_theme.lua")
     AddCSLuaFile("autorun/client/asc_flight_interface_theme.lua")
@@ -321,7 +321,7 @@ if SERVER then
     AddCSLuaFile("autorun/client/asc_vgui_theme_integration.lua")
     AddCSLuaFile("autorun/client/asc_game_interface_theme.lua")
     AddCSLuaFile("autorun/client/asc_advanced_theme_effects.lua")
-    AddCSLuaFile("autorun/client/asc_hud_overlay_system.lua")
+
     AddCSLuaFile("autorun/client/asc_settings_menu_theme.lua")
     AddCSLuaFile("autorun/client/asc_master_theme_controller.lua")
 
@@ -331,8 +331,7 @@ if SERVER then
     AddCSLuaFile("autorun/client/hyperdrive_effects_v2.lua")
     AddCSLuaFile("autorun/client/hyperdrive_hyperspace_effects.lua")
     AddCSLuaFile("autorun/client/hyperdrive_sound_system.lua")
-    AddCSLuaFile("autorun/client/hyperdrive_hud.lua")
-    AddCSLuaFile("autorun/client/hyperdrive_shield_hud.lua")
+
     AddCSLuaFile("autorun/client/asc_menu_organization.lua")
     AddCSLuaFile("autorun/client/asc_spawn_menu_complete.lua")
     AddCSLuaFile("autorun/client/asc_simple_organization.lua")

@@ -824,16 +824,67 @@ function ENT:ExecuteJumpMaster()
         return
     end
 
-    -- Check for Stargate 4-stage travel system (no technology requirement)
+    -- Check for Enhanced Hyperspace System v3.0 (priority over legacy systems)
+    if ASC and ASC.EnhancedHyperspace and ASC.EnhancedHyperspace.StartAdvanced4StageTravel then
+        -- Get entities to transport
+        local entitiesToMove = self:GetEntitiesToTransport()
+
+        -- Register engine for coordination if not already registered
+        if ASC.MasterEngineCoord and ASC.MasterEngineCoord.RegisterEngine then
+            ASC.MasterEngineCoord.RegisterEngine(self)
+        end
+
+        -- Find and coordinate with nearby engines
+        local coordinatedEngines = {self}
+        if ASC.MasterEngineCoord and ASC.MasterEngineCoord.CoordinateMasterEngines then
+            coordinatedEngines = ASC.MasterEngineCoord.CoordinateMasterEngines(self, destination)
+        end
+
+        -- Calculate efficiency bonus from coordination
+        local efficiencyBonus = 1.0
+        if ASC.MasterEngineCoord and ASC.MasterEngineCoord.CalculateEfficiencyBonus then
+            efficiencyBonus = ASC.MasterEngineCoord.CalculateEfficiencyBonus(coordinatedEngines)
+        end
+
+        -- Try enhanced 4-stage Stargate travel
+        local success, message = ASC.EnhancedHyperspace.StartAdvanced4StageTravel(self, destination, entitiesToMove)
+        if success then
+            if GetConVar("developer"):GetInt() > 0 then
+                print("[Hyperdrive Master] Using Enhanced Hyperspace System v3.0")
+                print("[Hyperdrive Master] Coordinated engines: " .. #coordinatedEngines)
+                print("[Hyperdrive Master] Efficiency bonus: " .. math.floor(efficiencyBonus * 100) .. "%")
+                if self.IntegrationData.stargate.active then
+                    print("[Hyperdrive Master] Enhanced with Stargate technology bonuses")
+                else
+                    print("[Hyperdrive Master] Using enhanced 4-stage travel system")
+                end
+            end
+
+            -- Apply efficiency bonus to cooldown
+            local cooldownTime = (HYPERDRIVE.Config and HYPERDRIVE.Config.CooldownTime) or 10
+            cooldownTime = cooldownTime / (self:GetEfficiencyRating() * efficiencyBonus)
+            self:SetCooldown(CurTime() + cooldownTime)
+            self:SetCharging(false)
+            self:SetJumpReady(false)
+            return
+        else
+            if GetConVar("developer"):GetInt() > 0 then
+                print("[Hyperdrive Master] Enhanced hyperspace travel failed: " .. (message or "Unknown error"))
+                print("[Hyperdrive Master] Falling back to legacy systems")
+            end
+        end
+    end
+
+    -- Fallback: Check for legacy Stargate 4-stage travel system
     if HYPERDRIVE.Stargate and HYPERDRIVE.Stargate.StartFourStageTravel then
         -- Get entities to transport
         local entitiesToMove = self:GetEntitiesToTransport()
 
-        -- Try 4-stage Stargate travel (works with any master engine)
+        -- Try legacy 4-stage Stargate travel
         local success, message = HYPERDRIVE.Stargate.StartFourStageTravel(self, destination, entitiesToMove)
         if success then
             if GetConVar("developer"):GetInt() > 0 then
-                print("[Hyperdrive Master] Using 4-stage Stargate travel system")
+                print("[Hyperdrive Master] Using legacy 4-stage Stargate travel system")
                 if self.IntegrationData.stargate.active then
                     print("[Hyperdrive Master] Enhanced with Stargate technology bonuses")
                 else
@@ -850,8 +901,8 @@ function ENT:ExecuteJumpMaster()
             return
         else
             if GetConVar("developer"):GetInt() > 0 then
-                print("[Hyperdrive Master] 4-stage Stargate travel failed: " .. (message or "Unknown error"))
-                print("[Hyperdrive Master] Falling back to standard travel")
+                print("[Hyperdrive Master] Legacy 4-stage travel failed: " .. (message or "Unknown error"))
+                print("[Hyperdrive Master] Falling back to direct travel")
             end
         end
     end

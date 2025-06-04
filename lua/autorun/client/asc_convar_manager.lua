@@ -39,15 +39,7 @@ ASC.ConVarManager.ConVarDefinitions = {
     ["asc_effects_quality"] = {default = "high", description = "Effect quality (low/medium/high/ultra)"},
     ["asc_effects_performance"] = {default = "1", description = "Enable performance optimizations"},
     
-    -- HUD Overlay
-    ["asc_hud_targeting"] = {default = "1", description = "Enable targeting system"},
-    ["asc_hud_radar"] = {default = "1", description = "Enable radar overlay"},
-    ["asc_hud_threats"] = {default = "1", description = "Enable threat indicators"},
-    ["asc_hud_navigation"] = {default = "1", description = "Enable navigation overlay"},
-    ["asc_hud_crosshair"] = {default = "1", description = "Enable enhanced crosshair"},
-    ["asc_hud_damage"] = {default = "1", description = "Enable damage indicators"},
-    ["asc_hud_shields"] = {default = "1", description = "Enable shield visualizer"},
-    ["asc_hud_overlay_alpha"] = {default = "0.8", description = "HUD overlay transparency"},
+
     
     -- Settings Menu Theme
     ["asc_settings_theme_enabled"] = {default = "1", description = "Enable settings menu theming"},
@@ -62,12 +54,7 @@ ASC.ConVarManager.ConVarDefinitions = {
     ["asc_theme_performance_mode"] = {default = "0", description = "Enable performance mode"},
     ["asc_theme_auto_performance"] = {default = "1", description = "Automatically adjust for performance"},
     
-    -- Player HUD Theme
-    ["asc_hud_enabled"] = {default = "1", description = "Enable custom HUD"},
-    ["asc_hud_health_bar"] = {default = "1", description = "Enable health bar"},
-    ["asc_hud_armor_bar"] = {default = "1", description = "Enable armor bar"},
-    ["asc_hud_ammo_display"] = {default = "1", description = "Enable ammo display"},
-    ["asc_hud_crosshair_enabled"] = {default = "1", description = "Enable custom crosshair"},
+
     
     -- Comprehensive Theme
     ["asc_theme_entity_interfaces"] = {default = "1", description = "Enable entity interface theming"},

@@ -299,7 +299,7 @@ function ASC.Missions.Mission:CalculateDifficulty()
     
     -- Player skill scaling
     if ASC.Missions.Config.Generation.PlayerSkillScaling and IsValid(self.player) then
-        local playerProfile = ASC.Analytics and ASC.Analytics.Data.UserProfiles[self.player:SteamID()]
+        local playerProfile = ASC.Analytics and ASC.Analytics.Data and ASC.Analytics.Data.UserProfiles and ASC.Analytics.Data.UserProfiles[self.player:SteamID()]
         if playerProfile then
             local skillMultiplier = 1.0
             if playerProfile.skillLevel == "expert" then

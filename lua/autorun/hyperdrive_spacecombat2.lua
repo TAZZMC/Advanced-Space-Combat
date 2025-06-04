@@ -178,7 +178,7 @@ function HYPERDRIVE.SpaceCombat2.FindShipCore(engine)
     local nearbyEnts = ents.FindInSphere(engine:GetPos(), searchRadius)
 
     for _, ent in ipairs(nearbyEnts) do
-        if IsValid(ent) and (ent:GetClass() == "sc_ship_core" or ent:GetClass() == "sb3_ship_core") then
+        if IsValid(ent) and (ent:GetClass() == "asc_ship_core" or ent:GetClass() == "sc_ship_core" or ent:GetClass() == "sb3_ship_core") then
             return ent
         end
     end

@@ -7,7 +7,7 @@ HYPERDRIVE.Wire = HYPERDRIVE.Wire or {}
 
 -- Wire input/output definitions for each entity type
 HYPERDRIVE.Wire.Definitions = {
-    hyperdrive_engine = {
+    hyperdrive_master_engine = {
         inputs = {
             "Jump [NORMAL]",
             "SetDestinationX [NORMAL]",

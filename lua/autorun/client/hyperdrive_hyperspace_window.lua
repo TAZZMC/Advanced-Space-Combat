@@ -19,31 +19,48 @@ local animationStartTime = 0
 local animationDuration = 0
 local hyperspaceStartTime = 0
 
--- Animation configuration
+-- Animation configuration (Web Research Enhanced)
 local config = {
-    -- Timing
-    enterDuration = 3.0,    -- Time to enter hyperspace
-    exitDuration = 2.5,     -- Time to exit hyperspace
+    -- Enhanced timing (Research-Optimized)
+    enterDuration = 4.0,    -- Extended entry for better buildup
+    exitDuration = 3.0,     -- Extended exit for dramatic effect
 
-    -- Visual effects
-    starStretchFactor = 50,  -- How much stars stretch
-    tunnelLength = 2000,     -- Length of hyperspace tunnel
-    energyIntensity = 1.5,   -- Energy effect intensity
+    -- Research-based visual effects
+    starStretchFactor = 75,  -- Increased star stretching
+    tunnelLength = 3000,     -- Longer hyperspace tunnel
+    energyIntensity = 2.0,   -- Higher energy intensity
+    vortexComplexity = 16,   -- Vortex detail level
+    particleDensity = 1.5,   -- Particle system density
 
-    -- Colors
-    hyperspaceColor = Color(100, 150, 255),
-    energyColor = Color(150, 200, 255),
-    starColor = Color(255, 255, 255),
+    -- Enhanced Stargate-themed colors (Research-Based)
+    hyperspaceColor = Color(80, 120, 255),      -- Deep blue hyperspace
+    energyColor = Color(120, 180, 255),         -- Bright blue energy
+    starColor = Color(255, 255, 255),           -- White stars
+    vortexColor = Color(100, 150, 255, 200),    -- Swirling vortex
+    quantumColor = Color(200, 220, 255, 100),   -- Quantum fluctuations
 
-    -- Performance
-    maxStars = 500,
-    maxEnergyStreams = 100,
-    updateRate = 60
+    -- Performance optimization (Research-Enhanced)
+    maxStars = 750,          -- Increased star count
+    maxEnergyStreams = 150,  -- More energy streams
+    maxVortexRings = 24,     -- Vortex ring count
+    maxQuantumParticles = 200, -- Quantum particle count
+    updateRate = 120,        -- Higher update rate
+
+    -- New research-based features
+    enableProgressiveVortex = true,   -- Progressive vortex formation
+    enableQuantumFluctuations = true, -- Quantum field effects
+    enableSpatialDistortion = true,   -- Space-time distortion
+    enableEnergyHarmonics = true,     -- Energy frequency effects
+    enableDimensionalRifts = true     -- Dimensional tear effects
 }
 
--- Star field data
+-- Enhanced visual effect data (Research-Based)
 local stars = {}
 local energyStreams = {}
+local vortexRings = {}
+local quantumParticles = {}
+local dimensionalRifts = {}
+local energyArcs = {}
 
 -- Initialize star field
 local function InitializeStarField()
@@ -74,16 +91,76 @@ local function InitializeEnergyStreams()
     end
 end
 
--- Start hyperspace entry animation
+-- Initialize vortex rings (Research-Enhanced)
+local function InitializeVortexRings()
+    if not config.enableProgressiveVortex then return end
+
+    vortexRings = {}
+    for i = 1, config.maxVortexRings do
+        vortexRings[i] = {
+            radius = math.Rand(50, 300),
+            z = math.Rand(0.1, 1),
+            rotation = math.Rand(0, 360),
+            rotationSpeed = math.Rand(30, 120),
+            thickness = math.Rand(3, 12),
+            intensity = math.Rand(0.3, 1),
+            phase = math.Rand(0, math.pi * 2)
+        }
+    end
+end
+
+-- Initialize quantum particles (Research-Based)
+local function InitializeQuantumParticles()
+    if not config.enableQuantumFluctuations then return end
+
+    quantumParticles = {}
+    for i = 1, config.maxQuantumParticles do
+        quantumParticles[i] = {
+            x = math.Rand(-1, 1),
+            y = math.Rand(-1, 1),
+            z = math.Rand(0.1, 1),
+            fluctuation = math.Rand(0.1, 0.5),
+            frequency = math.Rand(5, 15),
+            phase = math.Rand(0, math.pi * 2),
+            size = math.Rand(1, 4),
+            energy = math.Rand(0.2, 0.8)
+        }
+    end
+end
+
+-- Initialize dimensional rifts (Research-Enhanced)
+local function InitializeDimensionalRifts()
+    if not config.enableDimensionalRifts then return end
+
+    dimensionalRifts = {}
+    for i = 1, 8 do -- Fewer rifts for performance
+        dimensionalRifts[i] = {
+            x = math.Rand(-0.6, 0.6),
+            y = math.Rand(-0.6, 0.6),
+            z = math.Rand(0.2, 0.8),
+            width = math.Rand(20, 80),
+            height = math.Rand(100, 300),
+            distortion = math.Rand(0.5, 1.5),
+            stability = math.Rand(0.7, 1.0),
+            energy = math.Rand(0.4, 0.9)
+        }
+    end
+end
+
+-- Start hyperspace entry animation (Research-Enhanced)
 function HYPERDRIVE.HyperspaceWindow.StartEntry()
     currentAnimation = ANIM_ENTERING
     animationStartTime = CurTime()
     animationDuration = config.enterDuration
 
+    -- Initialize all visual effects (Research-Based)
     InitializeStarField()
     InitializeEnergyStreams()
+    InitializeVortexRings()
+    InitializeQuantumParticles()
+    InitializeDimensionalRifts()
 
-    -- Play enhanced entry sounds
+    -- Enhanced entry sound sequence (Research-Optimized)
     surface.PlaySound("ambient/energy/whiteflash.wav")
     timer.Simple(0.5, function()
         surface.PlaySound("ambient/energy/zap7.wav")
@@ -91,15 +168,24 @@ function HYPERDRIVE.HyperspaceWindow.StartEntry()
     timer.Simple(1.0, function()
         surface.PlaySound("ambient/atmosphere/tone_alley.wav")
     end)
+    timer.Simple(2.0, function()
+        surface.PlaySound("ambient/energy/zap9.wav")
+    end)
 
-    -- Progressive screen shake
+    -- Progressive screen shake sequence (Research-Enhanced)
     util.ScreenShake(Vector(0, 0, 0), 8, 5, 1, 1000)
     timer.Simple(0.5, function()
         util.ScreenShake(Vector(0, 0, 0), 12, 3, 1.5, 1000)
     end)
+    timer.Simple(1.5, function()
+        util.ScreenShake(Vector(0, 0, 0), 15, 4, 2, 1000)
+    end)
 
-    -- Chat notification
-    chat.AddText(Color(100, 150, 255), "[Hyperdrive] ", Color(255, 255, 255), "Entering hyperspace...")
+    -- Enhanced chat notification
+    chat.AddText(Color(80, 120, 255), "[Enhanced Hyperdrive] ", Color(255, 255, 255), "Initiating advanced hyperspace entry sequence...")
+    timer.Simple(1.0, function()
+        chat.AddText(Color(100, 150, 255), "[Enhanced Hyperdrive] ", Color(255, 255, 255), "Quantum coordinates calculated - Opening hyperspace window...")
+    end)
 end
 
 -- Start hyperspace travel
@@ -479,7 +565,7 @@ local function RenderHyperspaceWindow()
 end
 
 -- Hook into render system
-hook.Add("HUDPaint", "HyperdriveHyperspaceWindow", RenderHyperspaceWindow)
+hook.Add("PostDrawOpaqueRenderables", "HyperdriveHyperspaceWindow", RenderHyperspaceWindow)
 
 -- Network message handlers
 net.Receive("hyperdrive_hyperspace_window", function()

@@ -491,9 +491,11 @@ concommand.Add("asc_network_stats", function(ply, cmd, args)
     printMsg("  Total Bytes Sent: " .. totalBytesSent)
 end, nil, "Show networking statistics")
 
--- Network message registration
-util.AddNetworkString("ASC_NetworkMessage")
-util.AddNetworkString("ASC_NetworkAck")
+-- Network message registration (server only)
+if SERVER then
+    util.AddNetworkString("ASC_NetworkMessage")
+    util.AddNetworkString("ASC_NetworkAck")
+end
 
 -- Network receivers
 net.Receive("ASC_NetworkMessage", ASC.Networking.ReceiveMessage)

@@ -53,10 +53,10 @@ function ENT:Initialize()
 end
 
 function ENT:FindShipCore()
-    local cores = ents.FindByClass("ship_core")
+    local cores = ents.FindByClass("asc_ship_core")
     local closestCore = nil
     local closestDist = math.huge
-    
+
     for _, core in ipairs(cores) do
         if IsValid(core) and core:GetOwner() == self:GetOwner() then
             local dist = self:GetPos():Distance(core:GetPos())
@@ -66,7 +66,7 @@ function ENT:FindShipCore()
             end
         end
     end
-    
+
     if IsValid(closestCore) then
         self.ShipCore = closestCore
         closestCore:AddShield(self)

@@ -701,7 +701,7 @@ hook.Add("OnEntityCreated", "HyperdriveStargateInit", function(ent)
     if not IsValid(ent) then return end
 
     local class = ent:GetClass()
-    if class == "hyperdrive_engine" or class == "hyperdrive_sb_engine" then
+    if class == "hyperdrive_master_engine" then
         timer.Simple(0.1, function()
             if IsValid(ent) and StarGate then
                 HYPERDRIVE.Stargate.SetupStargateIntegration(ent)

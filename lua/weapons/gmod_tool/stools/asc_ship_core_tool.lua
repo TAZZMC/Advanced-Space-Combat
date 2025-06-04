@@ -31,9 +31,9 @@ function TOOL:LeftClick(trace)
     if trace.HitSky then return false end
     
     -- Create ship core entity
-    local ent = ents.Create("ship_core")
+    local ent = ents.Create("asc_ship_core")
     if not IsValid(ent) then
-        ply:ChatPrint("Failed to create ship core entity!")
+        ply:ChatPrint("Failed to create ASC ship core entity!")
         return false
     end
     
@@ -64,12 +64,12 @@ function TOOL:LeftClick(trace)
     end
     
     -- Add to undo
-    undo.Create("Ship Core")
+    undo.Create("ASC Ship Core")
     undo.AddEntity(ent)
     undo.SetPlayer(ply)
     undo.Finish()
     
-    ply:ChatPrint("Ship core '" .. ship_name .. "' spawned successfully!")
+    ply:ChatPrint("ASC ship core '" .. ship_name .. "' spawned successfully!")
     
     return true
 end
@@ -80,13 +80,13 @@ function TOOL:RightClick(trace)
     local ply = self:GetOwner()
     local ent = trace.Entity
     
-    if not IsValid(ent) or ent:GetClass() ~= "ship_core" then
-        ply:ChatPrint("Right click on a ship core to configure it!")
+    if not IsValid(ent) or ent:GetClass() ~= "asc_ship_core" then
+        ply:ChatPrint("Right click on an ASC ship core to configure it!")
         return false
     end
-    
+
     -- Open configuration menu (would be implemented with net messages)
-    ply:ChatPrint("Ship core configuration menu would open here!")
+    ply:ChatPrint("ASC ship core configuration menu would open here!")
     
     return true
 end
@@ -97,10 +97,10 @@ function TOOL:Reload(trace)
     local ply = self:GetOwner()
     local ent = trace.Entity
     
-    if IsValid(ent) and ent:GetClass() == "ship_core" then
+    if IsValid(ent) and ent:GetClass() == "asc_ship_core" then
         if ent.Recalculate then
             ent:Recalculate()
-            ply:ChatPrint("Ship core recalculated!")
+            ply:ChatPrint("ASC ship core recalculated!")
         end
     end
     
@@ -110,8 +110,8 @@ end
 if CLIENT then
     function TOOL.BuildCPanel(CPanel)
         CPanel:AddControl("Header", {
-            Text = "Ship Core Tool",
-            Description = "Spawn and configure ship cores for your vessels"
+            Text = "ASC Ship Core Tool",
+            Description = "Spawn and configure ASC ship cores for your vessels"
         })
         
         CPanel:AddControl("ComboBox", {
@@ -147,11 +147,11 @@ if CLIENT then
         })
         
         CPanel:AddControl("Label", {
-            Text = "Left click: Spawn ship core"
+            Text = "Left click: Spawn ASC ship core"
         })
-        
+
         CPanel:AddControl("Label", {
-            Text = "Right click: Configure ship core"
+            Text = "Right click: Configure ASC ship core"
         })
         
         CPanel:AddControl("Label", {

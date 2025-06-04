@@ -212,7 +212,8 @@ end
 
 -- Set up memory management
 function ASC.Performance.SetupMemoryManagement()
-    timer.Create("ASC_MemoryManager", ASC.Performance.Config.GarbageCollectionInterval, 0, function()
+    local interval = ASC.Performance.Config.GarbageCollectionInterval or 15
+    timer.Create("ASC_MemoryManager", interval, 0, function()
         ASC.Performance.TriggerMemoryCleanup()
     end)
 end

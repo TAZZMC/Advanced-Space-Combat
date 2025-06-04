@@ -42,7 +42,7 @@ function HYPERDRIVE.RealTime.CollectMetrics()
     -- Collect entity type counts
     metrics.entityTypes = {
         shipCores = #ents.FindByClass("ship_core"),
-        engines = #ents.FindByClass("hyperdrive_engine") + #ents.FindByClass("hyperdrive_master_engine"),
+        engines = #ents.FindByClass("hyperdrive_master_engine"),
         weapons = #ents.FindByClass("asc_pulse_cannon") + #ents.FindByClass("asc_plasma_cannon") + 
                  #ents.FindByClass("asc_railgun") + #ents.FindByClass("hyperdrive_beam_weapon") + 
                  #ents.FindByClass("hyperdrive_torpedo_launcher"),

@@ -118,7 +118,7 @@ function WeaponClass:FindShipCore()
     -- Search for nearby ship core
     local nearbyEnts = ents.FindInSphere(self.entity:GetPos(), 2000)
     for _, ent in ipairs(nearbyEnts) do
-        if IsValid(ent) and ent:GetClass() == "ship_core" then
+        if IsValid(ent) and ent:GetClass() == "asc_ship_core" then
             local ship = HYPERDRIVE.ShipCore.GetShip(ent)
             if ship then
                 self.ship = ship

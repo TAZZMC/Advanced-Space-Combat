@@ -320,8 +320,8 @@ function ASC.MenuOrganization.PopulateCoreTools()
         })
         
         panel:AddControl("Button", {
-            Label = "Spawn Hyperdrive Engine",
-            Command = "gmod_tool asc_main_tool; asc_main_tool_entity_type hyperdrive_engine"
+            Label = "Spawn Enhanced Master Engine",
+            Command = "gmod_tool asc_main_tool; asc_main_tool_entity_type hyperdrive_master_engine"
         })
         
         panel:AddControl("Button", {

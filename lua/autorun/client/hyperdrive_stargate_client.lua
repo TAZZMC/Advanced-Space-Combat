@@ -173,7 +173,21 @@ function HYPERDRIVE.Stargate.Client.DrawHyperspaceTunnel()
 
         if ringSize > 0 and ringAlpha > 0 then
             surface.SetDrawColor(100, 150, 255, ringAlpha * 255)
-            surface.DrawOutlinedCircle(ScrW() / 2, ScrH() / 2, ringSize, 3)
+            -- Draw circle using line segments since DrawOutlinedCircle doesn't exist
+            local segments = math.max(16, ringSize / 10)
+            local centerX, centerY = ScrW() / 2, ScrH() / 2
+
+            for i = 0, segments do
+                local angle1 = (i / segments) * math.pi * 2
+                local angle2 = ((i + 1) / segments) * math.pi * 2
+
+                local x1 = centerX + math.cos(angle1) * ringSize
+                local y1 = centerY + math.sin(angle1) * ringSize
+                local x2 = centerX + math.cos(angle2) * ringSize
+                local y2 = centerY + math.sin(angle2) * ringSize
+
+                surface.DrawLine(x1, y1, x2, y2)
+            end
         end
     end
 

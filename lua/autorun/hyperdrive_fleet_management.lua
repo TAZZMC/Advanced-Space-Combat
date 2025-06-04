@@ -250,9 +250,7 @@ end
 function FleetMeta:FindShipEngine(shipCore)
     if not IsValid(shipCore) then return nil end
     
-    local engines = {}
-    table.Add(engines, ents.FindByClass("hyperdrive_engine"))
-    table.Add(engines, ents.FindByClass("hyperdrive_master_engine"))
+    local engines = ents.FindByClass("hyperdrive_master_engine")
     
     local closestEngine = nil
     local closestDist = math.huge

@@ -595,4 +595,3 @@ end)
 hook.Add("Initialize", "ASC_Countermeasures_Init", function()
     print("[Advanced Space Combat] Countermeasures & ECM System v3.0.0 loaded")
 end)
-}

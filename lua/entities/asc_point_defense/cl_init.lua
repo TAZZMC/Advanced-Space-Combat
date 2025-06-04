@@ -139,23 +139,7 @@ function ENT:RenderTargetingBeam()
     render.DrawBeam(startPos, endPos, 2, 0, 1, Color(255, 0, 0, 100))
 end
 
-function ENT:UpdateHUD()
-    local player = LocalPlayer()
-    if not IsValid(player) then return end
-    
-    local distance = player:GetPos():Distance(self:GetPos())
-    local shouldShowHUD = distance < 500 and player:GetEyeTrace().Entity == self
-    
-    -- Smooth HUD fade in/out
-    if shouldShowHUD then
-        self.HUDTargetAlpha = 255
-    else
-        self.HUDTargetAlpha = 0
-    end
-    
-    self.HUDAlpha = Lerp(FrameTime() * 5, self.HUDAlpha, self.HUDTargetAlpha)
-    self.ShowHUD = self.HUDAlpha > 10
-end
+-- HUD functionality removed
 
 function ENT:UpdateSounds()
     -- Play targeting sound when acquiring target
@@ -211,64 +195,7 @@ function ENT:DrawStatusIndicators()
     cam.End3D2D()
 end
 
-function ENT:DrawHUD()
-    local scrW, scrH = ScrW(), ScrH()
-    local alpha = self.HUDAlpha
-    
-    -- HUD background
-    local hudX, hudY = scrW - 300, scrH - 200
-    local hudW, hudH = 280, 180
-    
-    draw.RoundedBox(8, hudX, hudY, hudW, hudH, Color(0, 0, 0, alpha * 0.8))
-    draw.RoundedBox(8, hudX, hudY, hudW, 30, Color(50, 50, 50, alpha))
-    
-    -- Title
-    draw.SimpleText("POINT DEFENSE SYSTEM", "DermaDefaultBold", hudX + hudW/2, hudY + 15, Color(255, 255, 255, alpha), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
-    
-    -- Status information
-    local yOffset = hudY + 40
-    local lineHeight = 15
-    
-    local diagnostics = self:GetDiagnosticInfo()
-    
-    -- Status
-    draw.SimpleText("Status: " .. diagnostics.status, "DermaDefault", hudX + 10, yOffset, diagnostics.statusColor, TEXT_ALIGN_LEFT)
-    yOffset = yOffset + lineHeight
-    
-    -- Energy
-    local energyColor = diagnostics.energy > 50 and Color(0, 255, 0, alpha) or Color(255, 255, 0, alpha)
-    draw.SimpleText("Energy: " .. math.floor(diagnostics.energy) .. "% (" .. diagnostics.energyLevel .. ")", "DermaDefault", hudX + 10, yOffset, energyColor, TEXT_ALIGN_LEFT)
-    yOffset = yOffset + lineHeight
-    
-    -- Heat
-    local heatColor = diagnostics.heat < 70 and Color(0, 255, 0, alpha) or Color(255, 0, 0, alpha)
-    draw.SimpleText("Heat: " .. math.floor(diagnostics.heat) .. "% (" .. diagnostics.heatLevel .. ")", "DermaDefault", hudX + 10, yOffset, heatColor, TEXT_ALIGN_LEFT)
-    yOffset = yOffset + lineHeight
-    
-    -- Ammunition
-    local ammoColor = diagnostics.ammoPercentage > 25 and Color(0, 255, 0, alpha) or Color(255, 165, 0, alpha)
-    draw.SimpleText("Ammo: " .. diagnostics.ammo .. "/" .. diagnostics.maxAmmo .. " (" .. diagnostics.ammoPercentage .. "%)", "DermaDefault", hudX + 10, yOffset, ammoColor, TEXT_ALIGN_LEFT)
-    yOffset = yOffset + lineHeight
-    
-    -- Current target
-    local targetColor = diagnostics.currentTarget ~= "None" and Color(255, 0, 0, alpha) or Color(255, 255, 255, alpha)
-    draw.SimpleText("Target: " .. diagnostics.currentTarget, "DermaDefault", hudX + 10, yOffset, targetColor, TEXT_ALIGN_LEFT)
-    yOffset = yOffset + lineHeight
-    
-    -- Target count
-    draw.SimpleText("Contacts: " .. diagnostics.targetCount, "DermaDefault", hudX + 10, yOffset, Color(255, 255, 255, alpha), TEXT_ALIGN_LEFT)
-    yOffset = yOffset + lineHeight
-    
-    -- Performance metrics
-    draw.SimpleText("Accuracy: " .. diagnostics.accuracy .. "%", "DermaDefault", hudX + 10, yOffset, Color(255, 255, 255, alpha), TEXT_ALIGN_LEFT)
-    yOffset = yOffset + lineHeight
-    
-    draw.SimpleText("Efficiency: " .. diagnostics.efficiency .. "%", "DermaDefault", hudX + 10, yOffset, Color(255, 255, 255, alpha), TEXT_ALIGN_LEFT)
-    yOffset = yOffset + lineHeight
-    
-    -- Range and fire rate
-    draw.SimpleText("Range: " .. math.floor(diagnostics.range) .. " units", "DermaDefault", hudX + 10, yOffset, Color(255, 255, 255, alpha), TEXT_ALIGN_LEFT)
-end
+-- HUD drawing functionality removed as per user request
 
 -- Network message handlers
 net.Receive("ASC_PointDefense_MuzzleFlash", function()

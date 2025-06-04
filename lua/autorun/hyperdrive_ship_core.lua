@@ -1026,7 +1026,7 @@ function HYPERDRIVE.ShipCore.DetectShipForEngine(engine)
     local shipCores = {}
 
     for _, ent in ipairs(cores) do
-        if IsValid(ent) and ent:GetClass() == "ship_core" then
+        if IsValid(ent) and ent:GetClass() == "asc_ship_core" then
             table.insert(shipCores, ent)
         end
     end

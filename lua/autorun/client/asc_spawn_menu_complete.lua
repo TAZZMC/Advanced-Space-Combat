@@ -81,10 +81,10 @@ ASC.SpawnMenu.Config = {
 ASC.SpawnMenu.Entities = {
     ["Ship Cores"] = {
         {
-            class = "ship_core",
-            name = "Ship Core",
+            class = "asc_ship_core",
+            name = "ASC Ship Core",
             description = "Central command and control system with advanced features",
-            icon = "entities/ship_core.png",
+            icon = "entities/asc_ship_core.png",
             model = "models/hunter/blocks/cube025x025x025.mdl"
         }
     },

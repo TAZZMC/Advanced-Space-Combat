@@ -77,6 +77,8 @@ ASC.Analytics.Session = {
             errors = {}
         }
         
+        -- Ensure Sessions table exists
+        ASC.Analytics.Data.Sessions = ASC.Analytics.Data.Sessions or {}
         ASC.Analytics.Data.Sessions[sessionId] = ASC.Analytics.Session.Current
         
         -- Track session start event
@@ -424,7 +426,8 @@ function ASC.Analytics.Initialize()
         end)
         
         -- Performance tracking hook
-        timer.Create("ASC_Analytics_Performance", ASC.Analytics.Config.Intervals.RealTime, 0, function()
+        local interval = ASC.Analytics.Config.Intervals and ASC.Analytics.Config.Intervals.RealTime or 1.0
+        timer.Create("ASC_Analytics_Performance", interval, 0, function()
             if ASC.Performance and ASC.Performance.State then
                 ASC.Analytics.TrackPerformance(
                     ASC.Performance.State.CurrentFPS,

@@ -19,7 +19,16 @@ function ENT:Initialize()
     -- Initialize computer properties
     self:SetPowered(true)
     self:SetLinkedEngine(NULL)
-    self:SetComputerMode(1) -- 1 = Navigation, 2 = Planets, 3 = Status
+    self:SetComputerMode(1) -- 1 = Enhanced Navigation, 2 = Fleet Coordination, 3 = Quantum Systems, 4 = Planets, 5 = Status
+
+    -- Enhanced Hyperspace properties
+    self:SetQuantumEntangled(false)
+    self:SetSpatialFoldingEnabled(true)
+    self:SetFleetCoordination(false)
+    self:SetFleetSize(0)
+    self:SetHyperspaceStage(0)
+    self:SetFleetFormation("Diamond")
+    self:SetQuantumCoherence(0.0)
 
     self.LinkedEngines = {}
     self.LastUse = 0
@@ -45,7 +54,7 @@ function ENT:Initialize()
     self.PlanetLinkRadius = 100000 -- 100km auto-link radius
     self.QuickJumpTargets = self.QuickJumpTargets or {} -- Fast access planet targets
 
-    -- Master Engine Control System
+    -- Enhanced Master Engine Control System
     self.ControlledMasterEngine = NULL
     self.MasterEngineDestination = Vector(0, 0, 0)
     self.LastMasterEngineCheck = 0
@@ -53,6 +62,21 @@ function ENT:Initialize()
     self.FourStageJumpInProgress = false
     self.CurrentJumpStage = 0
     self.StageStartTime = 0
+
+    -- Enhanced Hyperspace features
+    self.QuantumEntanglementNetwork = {}
+    self.FleetEngines = {}
+    self.SpatialFoldingActive = false
+    self.DimensionalLayerActive = 0
+    self.QuantumTunnelStability = 0.98
+    self.TimeDistortionFactor = 0.15
+    self.EnergyHarmonicsFreq = 304.8 -- Stargate frequency
+    self.LastQuantumSync = 0
+    self.FleetFormationData = {
+        type = "Diamond",
+        spacing = 500,
+        positions = {}
+    }
 
     -- Ship Core Integration
     self.DetectedShip = nil
@@ -198,22 +222,187 @@ function ENT:SetupDataTables()
 end
 
 function ENT:AutoLinkEngines()
-    local engines = ents.FindInSphere(self:GetPos(), 1000)
+    local engines = ents.FindInSphere(self:GetPos(), 3000) -- Extended range for fleet coordination
     self.LinkedEngines = {}
+    self.FleetEngines = {}
 
     for _, ent in ipairs(engines) do
         -- Only link to master engines (which have all features)
         if ent:GetClass() == "hyperdrive_master_engine" then
             table.insert(self.LinkedEngines, ent)
+            table.insert(self.FleetEngines, ent)
         end
     end
 
     if #self.LinkedEngines > 0 then
         self:SetLinkedEngine(self.LinkedEngines[1])
-        print("[Hyperdrive Computer] Linked to " .. #self.LinkedEngines .. " Master Engines")
+        self:SetFleetSize(#self.FleetEngines)
+
+        -- Enable fleet coordination if multiple engines
+        if #self.FleetEngines > 1 then
+            self:SetFleetCoordination(true)
+            self:EstablishQuantumEntanglement()
+        end
+
+        print("[Enhanced Hyperdrive Computer] Linked to " .. #self.LinkedEngines .. " Master Engines")
+        print("[Enhanced Hyperdrive Computer] Fleet coordination: " .. (self:GetFleetCoordination() and "Enabled" or "Disabled"))
     else
-        print("[Hyperdrive Computer] No Master Engines found within 1000 units")
+        print("[Enhanced Hyperdrive Computer] No Master Engines found within 3000 units")
     end
+end
+
+-- Enhanced Hyperspace Functions
+
+function ENT:EstablishQuantumEntanglement()
+    if #self.FleetEngines < 2 then return false end
+
+    -- Create quantum entanglement network
+    local networkId = "QE_" .. self:EntIndex() .. "_" .. os.time()
+    self.QuantumEntanglementNetwork = {
+        id = networkId,
+        engines = self.FleetEngines,
+        coherence = 0.95,
+        established = CurTime(),
+        stability = 1.0
+    }
+
+    -- Apply quantum entanglement to engines
+    for _, engine in ipairs(self.FleetEngines) do
+        if IsValid(engine) then
+            engine.QuantumEntanglement = {
+                networkId = networkId,
+                computer = self,
+                coherence = 0.95,
+                lastSync = CurTime()
+            }
+        end
+    end
+
+    self:SetQuantumEntangled(true)
+    self:SetQuantumCoherence(0.95)
+
+    print("[Enhanced Hyperdrive Computer] Quantum entanglement established: " .. #self.FleetEngines .. " engines")
+    return true
+end
+
+function ENT:SetFleetFormation(formationType)
+    local validFormations = {"Diamond", "V-Formation", "Line", "Sphere"}
+    if not table.HasValue(validFormations, formationType) then
+        formationType = "Diamond"
+    end
+
+    self:SetFleetFormation(formationType)
+    self.FleetFormationData.type = formationType
+
+    -- Calculate formation positions
+    self:CalculateFormationPositions()
+
+    print("[Enhanced Hyperdrive Computer] Fleet formation set to: " .. formationType)
+end
+
+function ENT:CalculateFormationPositions()
+    if #self.FleetEngines < 2 then return end
+
+    local spacing = self.FleetFormationData.spacing
+    local positions = {}
+    local formationType = self.FleetFormationData.type
+
+    if formationType == "Diamond" then
+        -- Diamond formation
+        for i, engine in ipairs(self.FleetEngines) do
+            local angle = (i - 1) * (360 / #self.FleetEngines)
+            local offset = Vector(
+                math.cos(math.rad(angle)) * spacing,
+                math.sin(math.rad(angle)) * spacing,
+                0
+            )
+            positions[i] = engine:GetPos() + offset
+        end
+
+    elseif formationType == "V-Formation" then
+        -- V formation
+        local leader = self.FleetEngines[1]
+        positions[1] = leader:GetPos()
+
+        for i = 2, #self.FleetEngines do
+            local side = (i % 2 == 0) and -1 or 1
+            local distance = math.floor((i - 1) / 2) * spacing
+            positions[i] = leader:GetPos() + Vector(-distance, side * distance, 0)
+        end
+
+    elseif formationType == "Line" then
+        -- Line formation
+        for i, engine in ipairs(self.FleetEngines) do
+            positions[i] = engine:GetPos() + Vector(0, (i - 1) * spacing, 0)
+        end
+
+    elseif formationType == "Sphere" then
+        -- Spherical formation
+        for i, engine in ipairs(self.FleetEngines) do
+            local phi = math.acos(1 - 2 * (i - 1) / #self.FleetEngines)
+            local theta = math.pi * (1 + math.sqrt(5)) * (i - 1)
+
+            local offset = Vector(
+                spacing * math.sin(phi) * math.cos(theta),
+                spacing * math.sin(phi) * math.sin(theta),
+                spacing * math.cos(phi)
+            )
+            positions[i] = engine:GetPos() + offset
+        end
+    end
+
+    self.FleetFormationData.positions = positions
+
+    -- Apply formation data to engines
+    for i, engine in ipairs(self.FleetEngines) do
+        if IsValid(engine) and positions[i] then
+            engine.FormationData = {
+                targetPosition = positions[i],
+                formationType = formationType,
+                spacing = spacing,
+                role = i == 1 and "Formation Leader" or "Formation Member"
+            }
+        end
+    end
+end
+
+function ENT:StartEnhanced4StageTravel(destination)
+    if not IsValid(self.ControlledMasterEngine) then
+        return false, "No master engine controlled"
+    end
+
+    if not destination or not isvector(destination) then
+        return false, "Invalid destination"
+    end
+
+    -- Use Enhanced Hyperspace system if available
+    if ASC.EnhancedHyperspace and ASC.EnhancedHyperspace.StartFourStageTravel then
+        local entities = {}
+        if self.DetectedShip and self.DetectedShip.entities then
+            entities = self.DetectedShip.entities
+        end
+
+        local success, message = ASC.EnhancedHyperspace.StartFourStageTravel(
+            self.ControlledMasterEngine,
+            destination,
+            entities
+        )
+
+        if success then
+            self.FourStageJumpInProgress = true
+            self.CurrentJumpStage = 1
+            self.StageStartTime = CurTime()
+            self:SetHyperspaceStage(1)
+
+            print("[Enhanced Hyperdrive Computer] Enhanced 4-stage travel initiated")
+            return true, "Enhanced 4-stage travel initiated"
+        else
+            return false, message or "Enhanced travel system failed"
+        end
+    end
+
+    -- Fallback to standard travel
+    return false, "Enhanced hyperspace system not available"
 end
 
 function ENT:Use(activator, caller)
@@ -2325,4 +2514,118 @@ net.Receive("hyperdrive_auto_detect_front", function(len, ply)
     end
 end)
 
-print("[Hyperdrive Computer] Enhanced computer system with UI integration loaded")
+-- Enhanced Hyperspace Network Message Handlers
+
+net.Receive("hyperdrive_enhanced_destination", function(len, ply)
+    local computer = net.ReadEntity()
+    local destination = net.ReadVector()
+
+    if not IsValid(computer) or not IsValid(ply) then return end
+    if computer:GetClass() ~= "hyperdrive_computer" then return end
+
+    computer.MasterEngineDestination = destination
+    ply:ChatPrint("[Enhanced Hyperdrive Computer] Destination set: " .. tostring(destination))
+end)
+
+net.Receive("hyperdrive_quantum_entangle", function(len, ply)
+    local computer = net.ReadEntity()
+
+    if not IsValid(computer) or not IsValid(ply) then return end
+    if computer:GetClass() ~= "hyperdrive_computer" then return end
+
+    local success = computer:EstablishQuantumEntanglement()
+    if success then
+        ply:ChatPrint("[Enhanced Hyperdrive Computer] Quantum entanglement established")
+    else
+        ply:ChatPrint("[Enhanced Hyperdrive Computer] Quantum entanglement failed - need at least 2 engines")
+    end
+end)
+
+net.Receive("hyperdrive_fleet_formation", function(len, ply)
+    local computer = net.ReadEntity()
+    local formation = net.ReadString()
+
+    if not IsValid(computer) or not IsValid(ply) then return end
+    if computer:GetClass() ~= "hyperdrive_computer" then return end
+
+    computer:SetFleetFormation(formation)
+    ply:ChatPrint("[Enhanced Hyperdrive Computer] Fleet formation set to: " .. formation)
+end)
+
+net.Receive("hyperdrive_spatial_folding", function(len, ply)
+    local computer = net.ReadEntity()
+    local enabled = net.ReadBool()
+
+    if not IsValid(computer) or not IsValid(ply) then return end
+    if computer:GetClass() ~= "hyperdrive_computer" then return end
+
+    computer:SetSpatialFoldingEnabled(enabled)
+    computer.SpatialFoldingActive = enabled
+    ply:ChatPrint("[Enhanced Hyperdrive Computer] Spatial folding " .. (enabled and "enabled" or "disabled"))
+end)
+
+net.Receive("hyperdrive_emergency_protocol", function(len, ply)
+    local computer = net.ReadEntity()
+    local protocolType = net.ReadString()
+
+    if not IsValid(computer) or not IsValid(ply) then return end
+    if computer:GetClass() ~= "hyperdrive_computer" then return end
+
+    if protocolType == "abort" then
+        local success, message = computer:AbortMasterEngineJump()
+        ply:ChatPrint("[Enhanced Hyperdrive Computer] " .. message)
+    elseif protocolType == "reroute" then
+        -- Emergency rerouting
+        if ASC.MasterEngineCoord and ASC.MasterEngineCoord.EmergencyRerouting then
+            local engine = computer.ControlledMasterEngine
+            if IsValid(engine) then
+                local originalDest = computer.MasterEngineDestination
+                local newDest = ASC.MasterEngineCoord.EmergencyRerouting(engine, originalDest, "computer")
+                computer.MasterEngineDestination = newDest
+                ply:ChatPrint("[Enhanced Hyperdrive Computer] Emergency rerouting completed")
+            end
+        else
+            ply:ChatPrint("[Enhanced Hyperdrive Computer] Emergency rerouting not available")
+        end
+    elseif protocolType == "shutdown" then
+        -- Emergency shutdown
+        if IsValid(computer.ControlledMasterEngine) then
+            local engine = computer.ControlledMasterEngine
+            if engine.SetCharging then engine:SetCharging(false) end
+            if engine.SetJumpReady then engine:SetJumpReady(false) end
+            computer.FourStageJumpInProgress = false
+            computer.CurrentJumpStage = 0
+            computer:SetHyperspaceStage(0)
+            ply:ChatPrint("[Enhanced Hyperdrive Computer] Emergency shutdown completed")
+        end
+    end
+end)
+
+net.Receive("hyperdrive_4stage_travel", function(len, ply)
+    local computer = net.ReadEntity()
+
+    if not IsValid(computer) or not IsValid(ply) then return end
+    if computer:GetClass() ~= "hyperdrive_computer" then return end
+
+    local success, message = computer:StartEnhanced4StageTravel(computer.MasterEngineDestination)
+    ply:ChatPrint("[Enhanced Hyperdrive Computer] " .. message)
+end)
+
+net.Receive("hyperdrive_fleet_sync", function(len, ply)
+    local computer = net.ReadEntity()
+
+    if not IsValid(computer) or not IsValid(ply) then return end
+    if computer:GetClass() ~= "hyperdrive_computer" then return end
+
+    -- Force fleet synchronization
+    computer:AutoLinkEngines()
+
+    if #computer.FleetEngines > 1 then
+        computer:EstablishQuantumEntanglement()
+        ply:ChatPrint("[Enhanced Hyperdrive Computer] Fleet synchronized: " .. #computer.FleetEngines .. " engines")
+    else
+        ply:ChatPrint("[Enhanced Hyperdrive Computer] Need at least 2 engines for fleet synchronization")
+    end
+end)
+
+print("[Enhanced Hyperdrive Computer] Enhanced computer system with web research improvements loaded")

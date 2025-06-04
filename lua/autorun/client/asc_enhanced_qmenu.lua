@@ -156,8 +156,8 @@ ASC.QMenu.Core = {
             })
             
             panel:AddControl("Button", {
-                Label = "Spawn Ship Core",
-                Command = "asc_spawn_entity ship_core"
+                Label = "Spawn ASC Ship Core",
+                Command = "asc_spawn_entity asc_ship_core"
             })
             
             -- Ship Configuration
@@ -201,8 +201,8 @@ ASC.QMenu.Core = {
             })
             
             panel:AddControl("Button", {
-                Label = "Spawn Hyperdrive Engine",
-                Command = "asc_spawn_entity hyperdrive_engine"
+                Label = "Spawn Enhanced Master Engine",
+                Command = "asc_spawn_entity hyperdrive_master_engine"
             })
             
             -- Hyperdrive Configuration

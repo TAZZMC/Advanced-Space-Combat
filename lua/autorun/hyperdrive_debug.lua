@@ -19,10 +19,18 @@ HYPERDRIVE.Debug.Log = {}
 -- Log function
 function HYPERDRIVE.Debug.Log(level, message, category)
     if not HYPERDRIVE.Debug.Config.EnableLogging then return end
-    if level > HYPERDRIVE.Debug.Config.LogLevel then return end
+
+    -- Convert string level to number if needed
+    local numLevel = level
+    if type(level) == "string" then
+        local levelMap = {ERROR = 1, WARN = 2, INFO = 3, DEBUG = 4}
+        numLevel = levelMap[level] or 3
+    end
+
+    if numLevel > HYPERDRIVE.Debug.Config.LogLevel then return end
 
     local levelNames = {"ERROR", "WARN", "INFO", "DEBUG"}
-    local levelName = levelNames[level] or "UNKNOWN"
+    local levelName = levelNames[numLevel] or (type(level) == "string" and level or "UNKNOWN")
     local timestamp = os.date("%H:%M:%S")
 
     local logEntry = {

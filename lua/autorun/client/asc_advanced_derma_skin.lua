@@ -66,9 +66,10 @@ function SKIN.tex.Window(x, y, w, h)
     surface.SetDrawColor(20, 30, 50, 240)
     surface.DrawRect(x, y, w, h)
     
-    -- Draw border
+    -- Draw border (2px thick)
     surface.SetDrawColor(100, 150, 255, 200)
-    surface.DrawOutlinedRect(x, y, w, h, 2)
+    surface.DrawOutlinedRect(x, y, w, h)
+    surface.DrawOutlinedRect(x + 1, y + 1, w - 2, h - 2)
     
     -- Draw title bar gradient
     local gradient = Material("gui/gradient")
@@ -93,7 +94,7 @@ function SKIN.tex.Button(x, y, w, h, state)
     
     -- Draw border
     surface.SetDrawColor(100, 150, 255, 150)
-    surface.DrawOutlinedRect(x, y, w, h, 1)
+    surface.DrawOutlinedRect(x, y, w, h)
     
     -- Draw highlight effect for hover/down states
     if state == "hover" or state == "down" then
@@ -158,7 +159,7 @@ function SKIN:PaintTab(panel, w, h)
     
     -- Draw border
     surface.SetDrawColor(100, 150, 255, 150)
-    surface.DrawOutlinedRect(0, 0, w, h, 1)
+    surface.DrawOutlinedRect(0, 0, w, h)
 end
 
 function SKIN:PaintPanel(panel, w, h)
@@ -192,7 +193,7 @@ function SKIN:PaintTextEntry(panel, w, h)
     -- Draw border
     local borderColor = state == "focus" and Color(100, 200, 255, 200) or Color(100, 150, 255, 150)
     surface.SetDrawColor(borderColor)
-    surface.DrawOutlinedRect(0, 0, w, h, 1)
+    surface.DrawOutlinedRect(0, 0, w, h)
 end
 
 function SKIN:PaintScrollBar(panel, w, h)
@@ -202,7 +203,7 @@ function SKIN:PaintScrollBar(panel, w, h)
     
     -- Draw border
     surface.SetDrawColor(100, 150, 255, 100)
-    surface.DrawOutlinedRect(0, 0, w, h, 1)
+    surface.DrawOutlinedRect(0, 0, w, h)
 end
 
 function SKIN:PaintScrollBarGrip(panel, w, h)
@@ -230,7 +231,7 @@ function SKIN:PaintScrollBarGrip(panel, w, h)
     
     -- Draw border
     surface.SetDrawColor(100, 150, 255, 150)
-    surface.DrawOutlinedRect(0, 0, w, h, 1)
+    surface.DrawOutlinedRect(0, 0, w, h)
 end
 
 function SKIN:PaintProgress(panel, w, h)
@@ -247,7 +248,7 @@ function SKIN:PaintProgress(panel, w, h)
     
     -- Draw border
     surface.SetDrawColor(100, 150, 255, 150)
-    surface.DrawOutlinedRect(0, 0, w, h, 1)
+    surface.DrawOutlinedRect(0, 0, w, h)
 end
 
 -- Hook functions for different panel types
@@ -256,7 +257,7 @@ function SKIN:PaintListView(panel, w, h)
     surface.DrawRect(0, 0, w, h)
     
     surface.SetDrawColor(100, 150, 255, 100)
-    surface.DrawOutlinedRect(0, 0, w, h, 1)
+    surface.DrawOutlinedRect(0, 0, w, h)
 end
 
 function SKIN:PaintTree(panel, w, h)
@@ -271,7 +272,7 @@ function SKIN:PaintPropertySheet(panel, w, h)
     surface.DrawRect(0, 0, w, h)
     
     surface.SetDrawColor(100, 150, 255, 100)
-    surface.DrawOutlinedRect(0, 0, w, h, 1)
+    surface.DrawOutlinedRect(0, 0, w, h)
 end
 
 -- Register the skin

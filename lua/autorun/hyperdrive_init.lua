@@ -338,7 +338,7 @@ if SERVER then
     print("[Hyperdrive] Server-side initialization...")
 
     -- Add enhanced client-side files to download
-    AddCSLuaFile("autorun/client/hyperdrive_hud.lua")
+    -- AddCSLuaFile("autorun/client/hyperdrive_hud.lua") -- File removed as per user request to remove all HUD systems
     AddCSLuaFile("autorun/client/hyperdrive_effects_v2.lua")
     AddCSLuaFile("autorun/client/hyperdrive_sounds.lua")
     AddCSLuaFile("autorun/client/hyperdrive_materials.lua")
@@ -652,7 +652,7 @@ if SERVER then
 
         -- Update entity counts
         HYPERDRIVE.SystemStatus.EntityCounts.ShipCores = #ents.FindByClass("ship_core")
-        HYPERDRIVE.SystemStatus.EntityCounts.Engines = #ents.FindByClass("hyperdrive_engine") + #ents.FindByClass("hyperdrive_master_engine")
+        HYPERDRIVE.SystemStatus.EntityCounts.Engines = #ents.FindByClass("hyperdrive_master_engine")
         HYPERDRIVE.SystemStatus.EntityCounts.Weapons = #ents.FindByClass("hyperdrive_pulse_cannon") + #ents.FindByClass("hyperdrive_beam_weapon") +
                                                        #ents.FindByClass("hyperdrive_torpedo_launcher") + #ents.FindByClass("hyperdrive_railgun") +
                                                        #ents.FindByClass("hyperdrive_plasma_cannon")
@@ -684,7 +684,6 @@ elseif CLIENT then
     print("[Hyperdrive] Client-side initialization...")
 
     HYPERDRIVE = HYPERDRIVE or {}
-    HYPERDRIVE.HUD = {}
     HYPERDRIVE.Effects = {}
 
     -- Initialize UI system first
@@ -713,8 +712,8 @@ elseif CLIENT then
         -- Core UI theme system (load first)
         "autorun/client/hyperdrive_ui_theme.lua",
 
-        -- Enhanced HUD and effects
-        "autorun/client/hyperdrive_hud.lua",
+        -- Enhanced HUD and effects (HUD removed as per user request)
+        -- "autorun/client/hyperdrive_hud.lua", -- File removed
         "autorun/client/hyperdrive_effects_v2.lua",
         "autorun/client/hyperdrive_sounds.lua",
         "autorun/client/hyperdrive_materials.lua",

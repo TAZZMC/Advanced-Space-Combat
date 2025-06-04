@@ -90,7 +90,7 @@ end
 function ENT:TriggerInput(iname, value)
     if not WireLib then return end
     
-    if iname == "TargetEngine" and IsValid(value) and value:GetClass() == "hyperdrive_engine" then
+    if iname == "TargetEngine" and IsValid(value) and value:GetClass() == "hyperdrive_master_engine" then
         self:SetTargetEntity(value)
         self:SetControllerMode(1)
         self.LastCommand = "Target Engine Set"
@@ -208,7 +208,7 @@ function ENT:UpdateWireOutputs()
     if IsValid(target) then
         WireLib.TriggerOutput(self, "TargetType", target:GetClass())
         
-        if target:GetClass() == "hyperdrive_engine" then
+        if target:GetClass() == "hyperdrive_master_engine" then
             WireLib.TriggerOutput(self, "TargetEnergy", target:GetEnergy())
             local status = target:GetCharging() and "CHARGING" or target:CanJump() and "READY" or "NOT_READY"
             WireLib.TriggerOutput(self, "TargetStatus", status)
@@ -232,7 +232,7 @@ function ENT:UpdateWireOutputs()
     
     local engines, computers, beacons = 0, 0, 0
     for _, ent in ipairs(nearbyEnts) do
-        if ent:GetClass() == "hyperdrive_engine" then
+        if ent:GetClass() == "hyperdrive_master_engine" then
             engines = engines + 1
         elseif ent:GetClass() == "hyperdrive_computer" then
             computers = computers + 1

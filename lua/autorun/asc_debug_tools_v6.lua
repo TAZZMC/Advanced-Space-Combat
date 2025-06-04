@@ -203,7 +203,7 @@ ASC.Debug.MemoryTracker = {
     
     -- Take memory snapshot
     TakeSnapshot = function(name)
-        if not ASC.Debug.Config.Features.MemoryTracking then return end
+        if not (ASC.Debug.Config and ASC.Debug.Config.Features and ASC.Debug.Config.Features.MemoryTracking) then return end
         
         local snapshot = {
             name = name or "unnamed",
@@ -450,7 +450,8 @@ end, nil, "Show memory usage report")
 
 -- Initialize debug system
 function ASC.Debug.Initialize()
-    ASC.Debug.Log("INFO", "Debug system initialized v" .. ASC.Debug.Config.Version)
+    local version = ASC.Debug.Config and ASC.Debug.Config.Version or "6.0.0"
+    ASC.Debug.Log("INFO", "Debug system initialized v" .. version)
     
     -- Take initial memory snapshot
     ASC.Debug.MemoryTracker.TakeSnapshot("initialization")

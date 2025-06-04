@@ -57,10 +57,10 @@ function ENT:Initialize()
 end
 
 function ENT:FindShipCore()
-    local shipCores = ents.FindByClass("ship_core")
+    local shipCores = ents.FindByClass("asc_ship_core")
     local closestCore = nil
     local closestDist = 2000
-    
+
     for _, core in ipairs(shipCores) do
         local dist = self:GetPos():Distance(core:GetPos())
         if dist < closestDist then
@@ -68,11 +68,11 @@ function ENT:FindShipCore()
             closestDist = dist
         end
     end
-    
+
     if IsValid(closestCore) then
         self.ShipCore = closestCore
         self:SetNWEntity("ShipCore", closestCore)
-        
+
         -- Add to ship's weapon list
         if closestCore.LinkedWeapons then
             table.insert(closestCore.LinkedWeapons, self)

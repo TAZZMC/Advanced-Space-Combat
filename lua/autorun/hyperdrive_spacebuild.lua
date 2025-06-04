@@ -1320,7 +1320,7 @@ end
 
 -- Create Spacebuild-compatible hyperdrive engine
 function HYPERDRIVE.Spacebuild.CreateSpacebuildEngine(pos, ang, ply)
-    local engine = ents.Create("hyperdrive_engine")
+    local engine = ents.Create("hyperdrive_master_engine")
     if not IsValid(engine) then return nil end
 
     engine:SetPos(pos)

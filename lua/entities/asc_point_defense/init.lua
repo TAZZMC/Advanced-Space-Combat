@@ -103,10 +103,10 @@ function ENT:FindShipCore()
     local nearbyEntities = ents.FindInSphere(self:GetPos(), 2000)
     
     for _, ent in ipairs(nearbyEntities) do
-        if IsValid(ent) and ent:GetClass() == "ship_core" then
+        if IsValid(ent) and ent:GetClass() == "asc_ship_core" then
             self.shipCore = ent
-            self:SetStatus("Linked to ship core")
-            
+            self:SetStatus("Linked to ASC ship core")
+
             -- Register with ship core's point defense system
             if ASC.PointDefense and ASC.PointDefense.Core then
                 local shipID = ent:EntIndex()
@@ -114,8 +114,8 @@ function ENT:FindShipCore()
                     ASC.PointDefense.Core.Initialize(ent, "STANDARD")
                 end
             end
-            
-            print("[Point Defense] Linked to ship core " .. ent:EntIndex())
+
+            print("[Point Defense] Linked to ASC ship core " .. ent:EntIndex())
             break
         end
     end

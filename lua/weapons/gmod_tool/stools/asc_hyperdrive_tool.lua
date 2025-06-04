@@ -2,19 +2,19 @@
 -- Comprehensive hyperdrive engine spawning and configuration tool
 
 TOOL.Category = "Advanced Space Combat"
-TOOL.Name = "ASC Hyperdrive Engine Tool v5.1.0"
+TOOL.Name = "ASC Enhanced Master Engine Tool v6.0.0"
 TOOL.Command = nil
 TOOL.ConfigName = ""
 
-TOOL.ClientConVar["model"] = "models/asc/hyperdrive_engine.mdl"
-TOOL.ClientConVar["engine_type"] = "standard"
+TOOL.ClientConVar["model"] = "models/asc/hyperdrive_master_engine.mdl"
+TOOL.ClientConVar["engine_type"] = "master"
 TOOL.ClientConVar["auto_link"] = "1"
 TOOL.ClientConVar["thrust_power"] = "100"
 
 if CLIENT then
-    language.Add("tool.asc_hyperdrive_tool.name", "ASC Hyperdrive Engine Tool v5.1.0")
-    language.Add("tool.asc_hyperdrive_tool.desc", "Spawn and configure Advanced Space Combat hyperdrive engines")
-    language.Add("tool.asc_hyperdrive_tool.0", "Left click to spawn engine, Right click to link to ship core")
+    language.Add("tool.asc_hyperdrive_tool.name", "ASC Enhanced Master Engine Tool v6.0.0")
+    language.Add("tool.asc_hyperdrive_tool.desc", "Spawn and configure Enhanced Hyperdrive Master Engines with 4-stage travel")
+    language.Add("tool.asc_hyperdrive_tool.0", "Left click to spawn enhanced master engine, Right click to link to ship core")
 end
 
 function TOOL:LeftClick(trace)

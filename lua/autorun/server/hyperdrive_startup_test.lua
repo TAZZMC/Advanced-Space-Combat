@@ -149,7 +149,7 @@ function HYPERDRIVE.StartupTest.TestEntitySystems()
         -- First try scripted_ents.GetStored()
         local storedEnts = scripted_ents.GetStored()
         if storedEnts then
-            local requiredEntities = {"ship_core", "hyperdrive_engine", "hyperdrive_master_engine"}
+            local requiredEntities = {"ship_core", "hyperdrive_master_engine"}
             local found = {}
             local missing = {}
 
@@ -168,7 +168,6 @@ function HYPERDRIVE.StartupTest.TestEntitySystems()
 
         -- Fallback: Check if entity files exist
         local entityFiles = {
-            {"lua/entities/hyperdrive_engine/init.lua", "hyperdrive_engine"},
             {"lua/entities/hyperdrive_master_engine/init.lua", "hyperdrive_master_engine"},
             {"lua/entities/ship_core/init.lua", "ship_core"},
             {"lua/entities/hyperdrive_shield_generator/init.lua", "hyperdrive_shield_generator"}
