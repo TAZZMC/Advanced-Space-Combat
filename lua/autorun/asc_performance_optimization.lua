@@ -1,55 +1,89 @@
--- Advanced Space Combat - Performance Optimization System v1.0.0
--- Based on GMod performance best practices and optimization research
+-- Advanced Space Combat - Performance Optimization System v3.0.0
+-- Based on 2024-2025 GMod performance best practices and research
 
-print("[Advanced Space Combat] Performance Optimization System v1.0.0 - Loading...")
+print("[Advanced Space Combat] Performance Optimization System v3.0.0 - Ultimate Edition Loading...")
 
 -- Initialize namespace
 ASC = ASC or {}
 ASC.Performance = ASC.Performance or {}
 
--- Performance configuration based on research
+-- Performance configuration based on latest research
 ASC.Performance.Config = {
-    -- Entity optimization
-    MaxEntityUpdateDistance = 2000,
-    EntityUpdateInterval = 0.1,
-    MaxSimultaneousEffects = 50,
-    
-    -- Network optimization
-    NetworkUpdateRate = 20, -- Updates per second
-    MaxNetworkEntities = 100,
-    NetworkCompressionLevel = 9,
-    
-    -- Rendering optimization
-    MaxRenderDistance = 5000,
+    -- Entity optimization (Research-based values)
+    MaxEntityUpdateDistance = 1500, -- Reduced for better performance
+    EntityUpdateInterval = 0.05, -- Faster updates for responsiveness
+    MaxSimultaneousEffects = 25, -- Reduced for stability
+    EntityLODSystem = true, -- Enable Level of Detail system
+
+    -- Network optimization (2024 standards)
+    NetworkUpdateRate = 30, -- Increased for better sync
+    MaxNetworkEntities = 50, -- Reduced for stability
+    NetworkCompressionLevel = 6, -- Balanced compression
+    NetworkBatching = true, -- Enable message batching
+    NetworkPrediction = true, -- Enable client prediction
+
+    -- Rendering optimization (Modern standards)
+    MaxRenderDistance = 3000, -- Reduced for performance
     LODDistances = {
-        High = 1000,
-        Medium = 2500,
-        Low = 5000
+        High = 500,    -- High detail close up
+        Medium = 1500, -- Medium detail mid-range
+        Low = 3000     -- Low detail far away
     },
-    
-    -- Memory management
-    GarbageCollectionInterval = 30, -- seconds
-    MaxMemoryUsage = 512, -- MB
-    EntityCleanupThreshold = 1000,
-    
-    -- Performance monitoring
+    CullingEnabled = true, -- Enable frustum culling
+    OcclusionCulling = true, -- Enable occlusion culling
+
+    -- Memory management (Aggressive cleanup)
+    GarbageCollectionInterval = 15, -- More frequent cleanup
+    MaxMemoryUsage = 256, -- Reduced limit
+    EntityCleanupThreshold = 500, -- Lower threshold
+    ConversationHistoryLimit = 50, -- Limit AI conversation history
+    UserProfileCleanupInterval = 300, -- Clean old profiles
+
+    -- Performance monitoring (Enhanced)
     EnablePerformanceMonitoring = true,
-    PerformanceLogInterval = 60,
+    PerformanceLogInterval = 30, -- More frequent logging
     FPSThresholds = {
+        Excellent = 120,
         Good = 60,
         Acceptable = 30,
-        Poor = 15
-    }
+        Poor = 15,
+        Critical = 10
+    },
+
+    -- Adaptive quality system
+    AdaptiveQuality = true,
+    QualityAdjustmentThreshold = 5, -- Seconds before adjusting
+    AutoOptimization = true
 }
 
--- Performance state tracking
+-- Enhanced performance state tracking
 ASC.Performance.State = {
     LastGarbageCollection = 0,
     LastPerformanceLog = 0,
+    LastProfileCleanup = 0,
     EntityCount = 0,
     MemoryUsage = 0,
     AverageFPS = 60,
-    PerformanceLevel = "Good"
+    PerformanceLevel = "Good",
+    QualityLevel = "High",
+    NetworkLatency = 0,
+    ServerLoad = 0,
+
+    -- Performance history for trend analysis
+    PerformanceHistory = {},
+    MemoryHistory = {},
+    FPSHistory = {},
+
+    -- Optimization flags
+    LODEnabled = true,
+    CullingEnabled = true,
+    EffectsReduced = false,
+    NetworkOptimized = false,
+
+    -- Statistics
+    TotalOptimizations = 0,
+    MemoryFreed = 0,
+    EntitiesOptimized = 0
 }
 
 -- Initialize performance optimization

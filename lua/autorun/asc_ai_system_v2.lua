@@ -163,13 +163,23 @@ ASC.AI.Performance = {
 ASC.AI.NLP = {
     Version = "5.1.0",
 
-    -- Intent recognition patterns (multilingual)
+    -- Enhanced intent recognition patterns with confidence scoring
     IntentPatterns = {
         question = {
-            -- English
-            "what", "how", "why", "when", "where", "which", "who", "can", "is", "are", "do", "does", "will", "would", "could", "should",
-            -- Czech
-            "co", "jak", "proč", "kdy", "kde", "který", "kdo", "můžu", "můžeš", "může", "je", "jsou", "dělá", "bude", "mohl", "měl"
+            -- English patterns with weights
+            patterns = {
+                {words = {"what", "how", "why", "when", "where", "which", "who"}, weight = 1.0},
+                {words = {"can", "is", "are", "do", "does", "will", "would", "could", "should"}, weight = 0.8},
+                {words = {"explain", "tell", "show", "describe"}, weight = 0.9}
+            },
+            -- Czech patterns with weights
+            czech_patterns = {
+                {words = {"co", "jak", "proč", "kdy", "kde", "který", "kdo"}, weight = 1.0},
+                {words = {"můžu", "můžeš", "může", "je", "jsou", "dělá", "bude", "mohl", "měl"}, weight = 0.8},
+                {words = {"vysvětli", "řekni", "ukaž", "popiš"}, weight = 0.9}
+            },
+            confidence_threshold = 0.6,
+            response_type = "informational"
         },
         command = {
             -- English

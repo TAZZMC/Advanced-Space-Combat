@@ -17,16 +17,26 @@ HYPERDRIVE = ASC -- Backward compatibility alias
 
 -- System information
 ASC.VERSION = "5.1.0"
-ASC.BUILD = "2025.01.15.STARGATE.ULTIMATE"
+ASC.BUILD = "2025.01.15.STARGATE.ULTIMATE.OPTIMIZED"
 ASC.NAME = "Advanced Space Combat - ARIA-4 Ultimate Edition with Enhanced Stargate Hyperspace"
 ASC.AUTHOR = "Advanced Space Combat Team"
-ASC.STATUS = "Production Ready - Ultimate Stargate Edition"
-ASC.DESCRIPTION = "Ultimate space combat with ARIA-4 AI, 4-stage Stargate hyperspace, complete integrations, and all code updated"
+ASC.STATUS = "Production Ready - Ultimate Optimized Edition"
+ASC.DESCRIPTION = "Ultimate space combat with ARIA-4 AI v5.1.0, 4-stage Stargate hyperspace, comprehensive optimizations, and complete integrations"
 ASC.LICENSE = "MIT License"
 ASC.REPOSITORY = "https://github.com/advanced-space-combat/asc-stargate-hyperspace"
 ASC.DOCUMENTATION = "https://docs.advanced-space-combat.com/stargate-hyperspace"
 ASC.SUPPORT = "https://discord.gg/advanced-space-combat-stargate"
 ASC.WEBSITE = "https://advanced-space-combat.com"
+
+-- Optimization system flags
+ASC.OPTIMIZATIONS = {
+    Performance = true,
+    AI = true,
+    Theme = true,
+    Network = true,
+    Branding = true,
+    Integration = true
+}
 ASC.LAST_UPDATED = os.date("%Y-%m-%d %H:%M:%S")
 ASC.UPDATE_NOTES = "Complete code update - All systems optimized, enhanced Stargate hyperspace, improved integrations"
 
