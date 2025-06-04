@@ -276,6 +276,7 @@ end
 
 -- Load organization and UI systems on client
 if CLIENT then
+    include("autorun/client/asc_convar_manager.lua")
     include("autorun/client/asc_spawn_menu_organization.lua")
     include("autorun/client/asc_entity_categories.lua")
     include("autorun/client/asc_ui_system.lua")
@@ -287,10 +288,16 @@ if CLIENT then
     include("autorun/client/asc_flight_interface_theme.lua")
     include("autorun/client/asc_ai_interface_theme.lua")
     include("autorun/client/asc_vgui_theme_integration.lua")
+    include("autorun/client/asc_game_interface_theme.lua")
+    include("autorun/client/asc_advanced_theme_effects.lua")
+    include("autorun/client/asc_hud_overlay_system.lua")
+    include("autorun/client/asc_settings_menu_theme.lua")
+    include("autorun/client/asc_master_theme_controller.lua")
 end
 
 -- Add organization and UI systems to client download
 if SERVER then
+    AddCSLuaFile("autorun/client/asc_convar_manager.lua")
     AddCSLuaFile("autorun/client/asc_spawn_menu_organization.lua")
     AddCSLuaFile("autorun/client/asc_entity_categories.lua")
     AddCSLuaFile("autorun/client/asc_ui_system.lua")
@@ -302,12 +309,18 @@ if SERVER then
     AddCSLuaFile("autorun/client/asc_flight_interface_theme.lua")
     AddCSLuaFile("autorun/client/asc_ai_interface_theme.lua")
     AddCSLuaFile("autorun/client/asc_vgui_theme_integration.lua")
+    AddCSLuaFile("autorun/client/asc_game_interface_theme.lua")
+    AddCSLuaFile("autorun/client/asc_advanced_theme_effects.lua")
+    AddCSLuaFile("autorun/client/asc_hud_overlay_system.lua")
+    AddCSLuaFile("autorun/client/asc_settings_menu_theme.lua")
+    AddCSLuaFile("autorun/client/asc_master_theme_controller.lua")
 end
 
 -- Load debug, error recovery, and multilingual systems first
 include("autorun/asc_debug_system.lua")
 include("autorun/asc_error_recovery.lua")
 include("autorun/asc_multilingual_system.lua")
+include("autorun/asc_czech_localization.lua")
 
 -- Load resource manifest early for loading screen integration
 include("autorun/asc_resource_manifest.lua")
@@ -340,6 +353,7 @@ if SERVER then
     AddCSLuaFile("autorun/asc_debug_system.lua")
     AddCSLuaFile("autorun/asc_error_recovery.lua")
     AddCSLuaFile("autorun/asc_multilingual_system.lua")
+    AddCSLuaFile("autorun/asc_czech_localization.lua")
     AddCSLuaFile("autorun/asc_documentation_system.lua")
     AddCSLuaFile("autorun/asc_console_commands.lua")
     AddCSLuaFile("autorun/asc_stargate_technology.lua")

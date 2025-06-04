@@ -8,6 +8,14 @@ print("[Advanced Space Combat] Ultimate UI System v5.1.0 - Ultimate Edition Load
 ASC = ASC or {}
 ASC.UI = ASC.UI or {}
 
+-- UI Localization helper
+ASC.UI.GetText = function(key, fallback)
+    if ASC.Czech and ASC.Czech.GetText then
+        return ASC.Czech.GetText(key, fallback)
+    end
+    return fallback or key
+end
+
 -- UI Configuration
 ASC.UI.Config = {
     -- Theme Settings

@@ -165,6 +165,8 @@ asc_character_menu      - Open character selection menu
 ### HUD Theme Commands
 ```
 asc_toggle_hud          - Toggle custom HUD on/off
+asc_hud_reset_errors    - Reset HUD theme error tracking
+asc_hud_status          - Check HUD theme system status
 ```
 
 ### Comprehensive Theme Commands
@@ -194,6 +196,8 @@ asc_ai_test_message     - Send test message from AI
 ```
 asc_vgui_rescan         - Rescan all VGUI elements for theming
 asc_vgui_clear_theme    - Clear VGUI theme cache
+asc_vgui_reset_errors   - Reset error count and re-enable system
+asc_vgui_status         - Show VGUI theme system status
 ```
 
 ## Configuration ConVars
@@ -253,9 +257,10 @@ asc_ai_sounds "1"                 // Enable AI sound effects
 
 ### VGUI Theme Integration
 ```
-asc_vgui_theme_enabled "1"        // Enable VGUI auto-theming
+asc_vgui_theme_enabled "0"        // Enable VGUI auto-theming (disabled by default for safety)
 asc_vgui_theme_all "0"            // Theme all VGUI elements (not just ASC)
 asc_vgui_performance_mode "1"     // Enable performance optimizations
+asc_vgui_safe_mode "1"            // Enable safe mode with error protection
 ```
 
 ## Color Scheme
@@ -368,10 +373,40 @@ ASC.HUDTheme = {
 2. Verify client-side files are loaded
 3. Check console for error messages
 
+### VGUI Theme Errors
+**Symptoms**: Errors like "attempt to index field 'btnClose' (a nil value)"
+**Solutions**:
+1. VGUI theming is disabled by default for safety
+2. Enable carefully: `asc_vgui_theme_enabled 1`
+3. If errors occur, reset: `asc_vgui_reset_errors`
+4. Check status: `asc_vgui_status`
+5. Disable if problematic: `asc_vgui_theme_enabled 0`
+
+**Error Protection Features**:
+- Automatic error counting and system disable after 5 errors
+- Safe mode with pcall protection around all theming functions
+- Fallback rendering when theming fails
+- Console commands to reset and monitor system status
+
+### HUD Theme Errors
+**Symptoms**: Errors like "attempt to index global 'config' (a nil value)"
+**Solutions**:
+1. Check HUD status: `asc_hud_status`
+2. Reset error tracking: `asc_hud_reset_errors`
+3. Toggle HUD: `asc_toggle_hud`
+4. Disable if problematic: `asc_hud_enabled 0`
+
+**Error Protection Features**:
+- Config existence checks in all drawing functions
+- pcall protection around main HUD drawing
+- Error rate limiting (max 1 error per 5 seconds in console)
+- Graceful degradation when config is missing
+
 ### Performance Issues
 1. Disable animations: `asc_hud_animations 0`
 2. Reduce HUD scale: `asc_hud_scale 0.8`
 3. Disable particles in loading screen
+4. Disable VGUI theming: `asc_vgui_theme_enabled 0`
 
 ## Support
 

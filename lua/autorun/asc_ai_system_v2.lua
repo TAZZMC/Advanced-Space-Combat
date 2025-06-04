@@ -57,13 +57,38 @@ ASC.AI.LearningData = {}
 ASC.AI.NLP = {
     Version = "5.0.0",
 
-    -- Intent recognition patterns
+    -- Intent recognition patterns (multilingual)
     IntentPatterns = {
-        question = {"what", "how", "why", "when", "where", "which", "who", "can", "is", "are", "do", "does", "will", "would", "could", "should"},
-        command = {"spawn", "create", "build", "make", "dial", "jump", "take", "save", "load", "wire", "link", "configure", "set", "enable", "disable"},
-        help = {"help", "assist", "guide", "tutorial", "explain", "show", "teach", "learn", "understand"},
-        status = {"status", "check", "monitor", "report", "info", "information", "details", "stats", "health"},
-        problem = {"problem", "issue", "error", "broken", "not working", "failed", "fix", "repair", "troubleshoot"}
+        question = {
+            -- English
+            "what", "how", "why", "when", "where", "which", "who", "can", "is", "are", "do", "does", "will", "would", "could", "should",
+            -- Czech
+            "co", "jak", "proč", "kdy", "kde", "který", "kdo", "můžu", "můžeš", "může", "je", "jsou", "dělá", "bude", "mohl", "měl"
+        },
+        command = {
+            -- English
+            "spawn", "create", "build", "make", "dial", "jump", "take", "save", "load", "wire", "link", "configure", "set", "enable", "disable",
+            -- Czech
+            "spawn", "vytvoř", "postav", "udělej", "vytvoř", "vytočit", "skoč", "vezmi", "ulož", "načti", "propoj", "nastav", "zapni", "vypni", "aktivuj", "deaktivuj"
+        },
+        help = {
+            -- English
+            "help", "assist", "guide", "tutorial", "explain", "show", "teach", "learn", "understand",
+            -- Czech
+            "pomoc", "nápověda", "asistence", "průvodce", "tutoriál", "vysvětli", "ukaž", "nauč", "naučit", "rozumět", "porozumět"
+        },
+        status = {
+            -- English
+            "status", "check", "monitor", "report", "info", "information", "details", "stats", "health",
+            -- Czech
+            "status", "stav", "zkontroluj", "kontrola", "monitor", "zpráva", "info", "informace", "detaily", "statistiky", "zdraví"
+        },
+        problem = {
+            -- English
+            "problem", "issue", "error", "broken", "not working", "failed", "fix", "repair", "troubleshoot",
+            -- Czech
+            "problém", "chyba", "error", "nefunguje", "rozbité", "selhalo", "oprav", "oprava", "řešení", "diagnostika"
+        }
     },
 
     -- Sentiment analysis
@@ -3086,7 +3111,8 @@ ASC.AI.Languages = {
             suggestion = "Suggestion:"
         },
         czech = {
-            greeting = "Ahoj! Jsem ARIA-3, váš asistent AI pro pokročilý vesmírný boj.",
+            -- Basic AI responses
+            greeting = "Ahoj! Jsem ARIA-3, váš pokročilý asistent AI pro vesmírný boj.",
             help_prompt = "Jak vám dnes mohu pomoci?",
             error_message = "Promiňte, nerozuměl jsem tomu. Mohli byste to přeformulovat?",
             goodbye = "Na shledanou! Neváhejte se mě zeptat na cokoliv kdykoliv.",
@@ -3094,7 +3120,59 @@ ASC.AI.Languages = {
             success = "Úkol úspěšně dokončen!",
             warning = "Varování: Zkontrolujte prosím svou konfiguraci.",
             tip = "Tip:",
-            suggestion = "Návrh:"
+            suggestion = "Návrh:",
+
+            -- Ship systems
+            ship_core = "Jádro lodi je centrální řídící centrum všech lodí. Automaticky detekuje komponenty do 2000 jednotek, spravuje distribuci energie a koordinuje všechny systémy lodi.",
+            auto_linking = "Automatické propojení spojuje komponenty s blízkými jádry lodí automaticky. Umístěte komponenty do 2000 jednotek od jádra lodi a propojí se automaticky!",
+            energy_management = "Energii spravují jádra lodí a zdroje energie jako ZPM. Jádra lodí regenerují 5 energie/sec. ZPM poskytují neomezenou energii.",
+
+            -- Stargate technology
+            ancient_tech = "Starověká technologie je Tier 10 - nejpokročilejší. Funkce: ZPM (neomezená energie), dronové zbraně, městské štíty, kontrolní křesla a okamžité hyperpoháněče.",
+            asgard_tech = "Asgardská technologie je Tier 8 - vysoce pokročilá. Funkce: iontové kanóny, počítačová jádra, transportní technologie a efektivní hyperpoháněče.",
+            goauld_tech = "Goa'uldská technologie je Tier 5 - střední úroveň. Funkce: žezlové kanóny, sarkofág, ruční zařízení, prstencové transportéry a naquadahové reaktory.",
+            wraith_tech = "Wraith technologie je Tier 6 - bio-organická. Funkce: dart zbraně, culling paprsky, úlové štíty, regenerační komory a úlové rozhraní.",
+            ori_tech = "Ori technologie je Tier 9 - technologie povznesených bytostí. Funkce: pulsní zbraně, superbrány, žezla priorů a satelitní zbraně.",
+            tauri_tech = "Tau'ri technologie je Tier 3 - lidské inženýrství. Funkce: stíhačky F-302, railguny, nukleární střely a zpětně zkonstruované mimozemské technologie.",
+
+            -- Combat systems
+            weapons = "5 typů zbraní k dispozici: Pulsní kanón (rychlá energie), Paprskové zbraně (kontinuální), Torpédové odpalovače (naváděné), Railgun (kinetické), Plazmové kanóny (plošný efekt).",
+            tactical_ai = "Taktická AI má 3 režimy: Agresivní (maximální palebná síla), Obranný (zaměření na ochranu), Vyvážený (adaptivní). AI řídí zaměřování a koordinaci zbraní automaticky.",
+            shields = "Štítové systémy poskytují energetické bariéry. K dispozici jsou štíty integrované s CAP. Štíty se automaticky dobíjejí a poskytují vícevrstvou ochranu.",
+
+            -- Commands and help
+            commands = "Klíčové příkazy: asc_help (systém nápovědy), asc_status (informace o systému), asc_stargate_spawn <kultura> <typ> (spawn technologie), asc_config (nastavení). Použijte !ai <otázka> pro dotazy!",
+            spawning = "Použijte nástroje Advanced Space Combat v Q menu! K dispozici jsou nástroje pro jádro lodi, hyperpohon, zbraně a štíty. Všechny entity se automaticky propojí s jádry lodí do 2000 jednotek.",
+            organization = "Kompletní organizační systém v3.1.0! Q menu: záložka Advanced Space Combat s nástroji, stavbou lodí, zbraněmi, obranou, transportem, konfigurací a nápovědou.",
+
+            -- Error messages
+            command_not_found = "Příkaz nenalezen. Zkuste 'aria pomoc' pro seznam dostupných příkazů.",
+            invalid_target = "Neplatný cíl. Ujistěte se, že cíl existuje a je platný.",
+            system_error = "Systémová chyba. Zkuste to znovu nebo kontaktujte administrátora.",
+            access_denied = "Přístup odepřen. Nemáte dostatečná oprávnění pro tento příkaz.",
+
+            -- Status messages
+            system_online = "Systém online",
+            system_offline = "Systém offline",
+            weapons_online = "Zbraně online",
+            shields_active = "Štíty aktivní",
+            flight_system = "Letový systém",
+            tactical_ai_active = "Taktická AI aktivní",
+            mission_complete = "Mise dokončena",
+
+            -- AI personality responses
+            thinking = "Přemýšlím...",
+            analyzing = "Analyzuji data...",
+            processing = "Zpracovávám informace...",
+            understanding = "Rozumím vašemu dotazu...",
+            searching = "Hledám v databázi znalostí...",
+
+            -- Help categories
+            help_ship_systems = "Systémy lodí",
+            help_weapons = "Zbraně",
+            help_stargate_tech = "Stargate technologie",
+            help_commands = "Příkazy",
+            help_troubleshooting = "Řešení problémů"
         }
     },
 
@@ -3156,6 +3234,139 @@ ASC.AI.Languages = {
         return ASC.AI.Languages.LanguageMapping[langCode] or "english"
     end,
 
+    -- Translate Czech commands to English for processing
+    TranslateCzechCommand = function(query)
+        local lowerQuery = string.lower(query)
+
+        -- Czech to English command mapping
+        local czechCommands = {
+            ["pomoc"] = "help",
+            ["nápověda"] = "help",
+            ["stav"] = "status",
+            ["status"] = "status",
+            ["vytvoř"] = "spawn",
+            ["spawn"] = "spawn",
+            ["nastav"] = "configure",
+            ["konfiguruj"] = "configure",
+            ["aktivuj"] = "activate",
+            ["zapni"] = "enable",
+            ["vypni"] = "disable",
+            ["deaktivuj"] = "deactivate",
+            ["skoč"] = "jump",
+            ["teleportuj"] = "teleport",
+            ["vytočit"] = "dial",
+            ["oprav"] = "fix",
+            ["diagnostika"] = "diagnostic",
+            ["řešení"] = "troubleshoot",
+            ["jádro lodi"] = "ship core",
+            ["zbraně"] = "weapons",
+            ["štíty"] = "shields",
+            ["hyperpohon"] = "hyperdrive",
+            ["stargate"] = "stargate",
+            ["energie"] = "energy",
+            ["letový systém"] = "flight system",
+            ["taktická ai"] = "tactical ai"
+        }
+
+        -- Replace Czech terms with English equivalents
+        local translatedQuery = lowerQuery
+        for czech, english in pairs(czechCommands) do
+            translatedQuery = string.gsub(translatedQuery, czech, english)
+        end
+
+        return translatedQuery
+    end,
+
+    -- Translate English responses to Czech
+    TranslateResponseToCzech = function(response)
+        if not response or response == "" then return response end
+
+        local lowerResponse = string.lower(response)
+
+        -- Common response patterns to Czech
+        local responseTranslations = {
+            -- Basic responses
+            ["hello"] = "Ahoj",
+            ["hi"] = "Ahoj",
+            ["welcome"] = "Vítejte",
+            ["goodbye"] = "Na shledanou",
+            ["thank you"] = "Děkuji",
+            ["you're welcome"] = "Není zač",
+            ["yes"] = "Ano",
+            ["no"] = "Ne",
+            ["ok"] = "OK",
+            ["done"] = "Hotovo",
+            ["success"] = "Úspěch",
+            ["failed"] = "Selhalo",
+            ["error"] = "Chyba",
+            ["warning"] = "Varování",
+
+            -- AI responses
+            ["i'm aria"] = "Jsem ARIA",
+            ["how can i help"] = "Jak mohu pomoci",
+            ["processing"] = "Zpracovávám",
+            ["analyzing"] = "Analyzuji",
+            ["searching"] = "Hledám",
+            ["thinking"] = "Přemýšlím",
+
+            -- Ship systems
+            ["ship core"] = "jádro lodi",
+            ["weapons"] = "zbraně",
+            ["shields"] = "štíty",
+            ["energy"] = "energie",
+            ["hyperdrive"] = "hyperpohon",
+            ["flight system"] = "letový systém",
+            ["tactical ai"] = "taktická AI",
+
+            -- Status
+            ["online"] = "online",
+            ["offline"] = "offline",
+            ["active"] = "aktivní",
+            ["inactive"] = "neaktivní",
+            ["ready"] = "připraven",
+            ["not ready"] = "nepřipraven",
+
+            -- Commands
+            ["teleported"] = "Teleportován",
+            ["spawned"] = "Vytvořen",
+            ["activated"] = "Aktivován",
+            ["deactivated"] = "Deaktivován",
+            ["configured"] = "Nakonfigurován",
+
+            -- Common phrases
+            ["try again"] = "zkuste znovu",
+            ["make sure"] = "ujistěte se",
+            ["not found"] = "nenalezen",
+            ["invalid"] = "neplatný",
+            ["available"] = "dostupný",
+            ["not available"] = "nedostupný"
+        }
+
+        -- Apply translations
+        local translatedResponse = response
+        for english, czech in pairs(responseTranslations) do
+            translatedResponse = string.gsub(translatedResponse, english, czech)
+        end
+
+        -- If significant translation occurred, return it
+        if translatedResponse ~= response then
+            return translatedResponse
+        end
+
+        -- For complex responses, try to get localized text from database
+        local playerLang = "czech"
+        for key, text in pairs(ASC.AI.Languages.Database.english) do
+            if string.find(lowerResponse, string.lower(text)) then
+                local czechText = ASC.AI.Languages.Database.czech[key]
+                if czechText then
+                    translatedResponse = string.gsub(translatedResponse, text, czechText)
+                end
+            end
+        end
+
+        return translatedResponse
+    end,
+
     -- Set user language preference
     SetLanguage = function(playerID, language)
         if not ASC.AI.UserProfiles[playerID] then
@@ -3198,8 +3409,22 @@ ASC.AI.Languages = {
             end
         end
 
-        -- Czech detection
-        local czechWords = {"jak", "kde", "co", "proč", "když", "ale", "nebo", "že", "být", "mít", "loď", "zbraň", "let", "ahoj", "děkuji", "prosím"}
+        -- Czech detection (enhanced)
+        local czechWords = {
+            -- Basic words
+            "jak", "kde", "co", "proč", "když", "ale", "nebo", "že", "být", "mít",
+            "ahoj", "děkuji", "prosím", "ano", "ne", "dobře", "špatně",
+            -- Space combat related
+            "loď", "zbraň", "let", "štít", "energie", "hyperpohon", "jádro", "systém",
+            "stargate", "brána", "cestování", "vesmír", "boj", "útok", "obrana",
+            -- Commands in Czech
+            "pomoc", "nápověda", "status", "stav", "spawn", "vytvoř", "nastav",
+            "aktivuj", "deaktivuj", "zapni", "vypni", "skoč", "teleportuj",
+            -- Common Czech words
+            "jsem", "jsi", "je", "jsme", "jste", "jsou", "byl", "byla", "bylo",
+            "můžu", "můžeš", "může", "můžeme", "můžete", "mohou", "chci", "chceš",
+            "potřebuji", "potřebuješ", "potřebuje", "funguje", "nefunguje", "problém"
+        }
         local czechCount = 0
         for _, word in ipairs(czechWords) do
             if string.find(lowerQuery, word) then
@@ -3911,16 +4136,32 @@ function ASC.AI.GenerateAdvancedResponse(player, query, analysis)
     -- Detect and handle multilingual input
     local playerLang = "en"
     local originalQuery = query
+    local detectedLang = ASC.AI.Languages.DetectLanguage(query)
+
+    -- Handle Czech language input
+    if detectedLang == "czech" then
+        playerLang = "cs"
+        -- Translate Czech commands to English for processing
+        local translatedQuery = ASC.AI.Languages.TranslateCzechCommand(query)
+        if translatedQuery ~= string.lower(query) then
+            query = translatedQuery
+            queryLower = string.lower(query)
+            print("[ARIA-4] Translated Czech query: " .. originalQuery .. " -> " .. query)
+        end
+    end
 
     if ASC.Multilingual and ASC.Multilingual.Core then
-        playerLang = ASC.Multilingual.Core.GetPlayerLanguage(player)
+        local multilingualLang = ASC.Multilingual.Core.GetPlayerLanguage(player)
+        if multilingualLang ~= "en" then
+            playerLang = multilingualLang
+        end
 
         -- If query is not in English, translate it for processing
-        if playerLang ~= "en" then
-            local detectedLang = ASC.Multilingual.Core.DetectLanguage(query)
-            if detectedLang ~= "en" then
+        if playerLang ~= "en" and detectedLang ~= "czech" then
+            local multiDetectedLang = ASC.Multilingual.Core.DetectLanguage(query)
+            if multiDetectedLang ~= "en" then
                 -- Translate query to English for processing
-                local translatedQuery = ASC.Multilingual.Core.TranslateText(query, "en", detectedLang)
+                local translatedQuery = ASC.Multilingual.Core.TranslateText(query, "en", multiDetectedLang)
                 if translatedQuery and translatedQuery ~= query then
                     query = translatedQuery
                     queryLower = string.lower(query)
@@ -5064,15 +5305,39 @@ end
 function ASC.AI.SendAdvancedResponse(player, response, analysis)
     if not IsValid(player) then return end
 
-    -- Translate response to player's language if multilingual system is available
+    -- Get player's language preference
+    local playerID = player:SteamID()
+    local playerLang = "en"
+
+    -- Check AI language preference first
+    if ASC.AI.UserProfiles[playerID] and ASC.AI.UserProfiles[playerID].language_preference then
+        local aiLang = ASC.AI.UserProfiles[playerID].language_preference
+        if aiLang == "czech" then
+            playerLang = "cs"
+        end
+    end
+
+    -- Check multilingual system
     if ASC.Multilingual and ASC.Multilingual.Core then
-        local playerLang = ASC.Multilingual.Core.GetPlayerLanguage(player)
-        if playerLang ~= "en" then
-            local translatedResponse = ASC.Multilingual.Core.TranslateText(response, playerLang, "en")
-            if translatedResponse and translatedResponse ~= response then
-                response = translatedResponse
-                print("[ARIA-4] Translated response to " .. playerLang .. " for " .. player:Name())
-            end
+        local multiLang = ASC.Multilingual.Core.GetPlayerLanguage(player)
+        if multiLang ~= "en" then
+            playerLang = multiLang
+        end
+    end
+
+    -- Translate response to Czech if needed
+    if playerLang == "cs" then
+        local czechResponse = ASC.AI.Languages.TranslateResponseToCzech(response)
+        if czechResponse and czechResponse ~= response then
+            response = czechResponse
+            print("[ARIA-4] Translated response to Czech for " .. player:Name())
+        end
+    elseif ASC.Multilingual and ASC.Multilingual.Core and playerLang ~= "en" then
+        -- Use multilingual system for other languages
+        local translatedResponse = ASC.Multilingual.Core.TranslateText(response, playerLang, "en")
+        if translatedResponse and translatedResponse ~= response then
+            response = translatedResponse
+            print("[ARIA-4] Translated response to " .. playerLang .. " for " .. player:Name())
         end
     end
 
@@ -5593,6 +5858,21 @@ concommand.Add("asc_ai_language", function(player, cmd, args)
         player:ChatPrint("[ARIA-3] Language preference updated to: " .. language)
     else
         player:ChatPrint("[ARIA-3] ❌ Unsupported language. Available: english (en), spanish (es), french (fr), czech (cs)")
+    end
+end)
+
+-- Czech language shortcut command
+concommand.Add("aria_cestina", function(player, cmd, args)
+    if not IsValid(player) then return end
+
+    local playerID = player:SteamID()
+    if ASC.AI.Languages.SetLanguage(playerID, "czech") then
+        local greeting = ASC.AI.Languages.GetText(playerID, "greeting")
+        player:ChatPrint("[ARIA-3] " .. greeting)
+        player:ChatPrint("[ARIA-3] Jazyk nastaven na češtinu! 🇨🇿")
+        player:ChatPrint("[ARIA-3] Nyní můžete používat české příkazy jako 'aria pomoc', 'aria stav', 'aria vytvoř loď'")
+    else
+        player:ChatPrint("[ARIA-3] ❌ Chyba při nastavování českého jazyka.")
     end
 end)
 

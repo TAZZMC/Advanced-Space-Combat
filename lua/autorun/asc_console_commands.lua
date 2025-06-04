@@ -76,44 +76,102 @@ end
 -- General Commands
 ASC.Commands.Register("help", function(ply, cmd, args)
     if not IsValid(ply) then return end
-    
+
     local category = args[1]
-    
+
+    -- Get localized text function
+    local function GetText(key, fallback)
+        if ASC.Czech and ASC.Czech.GetText then
+            return ASC.Czech.GetText(key, fallback)
+        end
+        return fallback or key
+    end
+
     if category then
         -- Show commands in specific category
-        ply:ChatPrint("[Advanced Space Combat] Commands in category: " .. category)
+        local categoryText = GetText("Commands in category", "Commands in category")
+        ply:ChatPrint("[" .. GetText("Advanced Space Combat", "Advanced Space Combat") .. "] " .. categoryText .. ": " .. GetText(category, category))
         for name, cmdData in pairs(ASC.Commands.Registry) do
             if cmdData.category == category then
-                ply:ChatPrint("• " .. cmdData.fullName .. " - " .. cmdData.description)
+                ply:ChatPrint("• " .. cmdData.fullName .. " - " .. GetText(cmdData.description, cmdData.description))
             end
         end
     else
         -- Show all categories and ARIA-4 info
-        ply:ChatPrint("[Advanced Space Combat] v4.0.0 - ARIA-4 Ultimate Edition")
-        ply:ChatPrint("Available command categories:")
+        ply:ChatPrint("[" .. GetText("Advanced Space Combat", "Advanced Space Combat") .. "] v4.0.0 - ARIA-4 Ultimate Edition")
+        ply:ChatPrint(GetText("Available command categories", "Available command categories") .. ":")
         for _, cat in ipairs(ASC.Commands.Categories) do
-            ply:ChatPrint("• " .. cat .. " (use 'asc_help " .. cat .. "' for commands)")
+            local localizedCat = GetText(cat, cat)
+            ply:ChatPrint("• " .. localizedCat .. " (use 'asc_help " .. cat .. "' for commands)")
         end
         ply:ChatPrint("")
-        ply:ChatPrint("ARIA-4 AI Commands:")
-        ply:ChatPrint("• aria help - AI assistance")
-        ply:ChatPrint("• aria <question> - Ask anything")
-        ply:ChatPrint("• aria system status - System overview")
-        ply:ChatPrint("• aria ship status - Ship information")
-        ply:ChatPrint("• Legacy: !ai commands still supported")
+        ply:ChatPrint("ARIA-4 AI " .. GetText("Commands", "Commands") .. ":")
+        ply:ChatPrint("• aria " .. GetText("help", "help") .. " - " .. GetText("AI assistance", "AI assistance"))
+        ply:ChatPrint("• aria <" .. GetText("question", "question") .. "> - " .. GetText("Ask anything", "Ask anything"))
+        ply:ChatPrint("• aria " .. GetText("system status", "system status") .. " - " .. GetText("System overview", "System overview"))
+        ply:ChatPrint("• aria " .. GetText("ship status", "ship status") .. " - " .. GetText("Ship information", "Ship information"))
+        ply:ChatPrint("• Legacy: !ai " .. GetText("commands", "commands") .. " " .. GetText("still supported", "still supported"))
         ply:ChatPrint("")
-        ply:ChatPrint("Use 'asc_help <category>' to see commands in that category")
+        ply:ChatPrint(GetText("Use", "Use") .. " 'asc_help <" .. GetText("category", "category") .. ">' " .. GetText("to see commands in that category", "to see commands in that category"))
     end
 end, "Show help for commands", "General")
 
 ASC.Commands.Register("version", function(ply, cmd, args)
-    local msg = "[Advanced Space Combat] Version: " .. ASC.VERSION .. " Build: " .. ASC.BUILD
+    -- Get localized text function
+    local function GetText(key, fallback)
+        if ASC.Czech and ASC.Czech.GetText then
+            return ASC.Czech.GetText(key, fallback)
+        end
+        return fallback or key
+    end
+
+    local msg = "[" .. GetText("Advanced Space Combat", "Advanced Space Combat") .. "] " ..
+                GetText("Version", "Version") .. ": " .. ASC.VERSION .. " " ..
+                GetText("Build", "Build") .. ": " .. ASC.BUILD
     if IsValid(ply) then
         ply:ChatPrint(msg)
     else
         print(msg)
     end
 end, "Show addon version information", "General")
+
+-- Czech localization command
+ASC.Commands.Register("czech", function(ply, cmd, args)
+    if not IsValid(ply) then return end
+
+    local action = args[1] or "enable"
+
+    if action == "enable" or action == "on" or action == "1" then
+        if ASC.Czech then
+            ASC.Czech.SetEnabled(true)
+            ply:ChatPrint("[" .. ASC.Czech.GetText("Advanced Space Combat", "Advanced Space Combat") .. "] " ..
+                         ASC.Czech.GetText("Czech localization enabled", "Česká lokalizace povolena") .. " 🇨🇿")
+            ply:ChatPrint("[ASC] " .. ASC.Czech.GetText("All text will now be displayed in Czech", "Veškerý text bude nyní zobrazen v češtině"))
+        else
+            ply:ChatPrint("[Advanced Space Combat] Czech localization system not loaded!")
+        end
+    elseif action == "disable" or action == "off" or action == "0" then
+        if ASC.Czech then
+            ASC.Czech.SetEnabled(false)
+            ply:ChatPrint("[Advanced Space Combat] Czech localization disabled")
+        else
+            ply:ChatPrint("[Advanced Space Combat] Czech localization system not loaded!")
+        end
+    elseif action == "status" then
+        if ASC.Czech then
+            local enabled = ASC.Czech.IsEnabled()
+            local status = enabled and "enabled" or "disabled"
+            local statusCzech = enabled and "povolena" or "zakázána"
+            ply:ChatPrint("[Advanced Space Combat] Czech localization: " .. status .. " / Česká lokalizace: " .. statusCzech)
+            ply:ChatPrint("[ASC] Available translations: " .. table.Count(ASC.Czech.Translations))
+        else
+            ply:ChatPrint("[Advanced Space Combat] Czech localization system not loaded!")
+        end
+    else
+        ply:ChatPrint("[Advanced Space Combat] Usage: asc_czech [enable|disable|status]")
+        ply:ChatPrint("[ASC] Použití: asc_czech [enable|disable|status]")
+    end
+end, "Enable/disable Czech localization for the entire addon", "Configuration")
 
 ASC.Commands.Register("status", function(ply, cmd, args)
     if not IsValid(ply) then return end

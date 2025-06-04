@@ -7,6 +7,14 @@ print("[Advanced Space Combat] Spawn Menu Organization v3.0.0 - Loading...")
 ASC = ASC or {}
 ASC.SpawnMenu = ASC.SpawnMenu or {}
 
+-- Localization helper
+ASC.SpawnMenu.GetText = function(key, fallback)
+    if ASC.Czech and ASC.Czech.GetText then
+        return ASC.Czech.GetText(key, fallback)
+    end
+    return fallback or key
+end
+
 -- Spawn menu configuration
 ASC.SpawnMenu.Config = {
     -- Main category settings

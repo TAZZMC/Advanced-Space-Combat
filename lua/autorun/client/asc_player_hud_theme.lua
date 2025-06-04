@@ -199,6 +199,9 @@ end
 
 -- Draw health and armor bars
 function ASC.HUDTheme.DrawHealthArmor()
+    -- Ensure config exists
+    if not ASC.HUDTheme.Config then return end
+
     local config = ASC.HUDTheme.Config
     local state = ASC.HUDTheme.State
     local scale = GetConVar("asc_hud_scale"):GetFloat()
@@ -255,11 +258,14 @@ end
 
 -- Draw weapon information
 function ASC.HUDTheme.DrawWeaponInfo()
-    if not GetConVar("asc_hud_enabled"):GetBool() or not config.EnableWeaponDisplay then return end
-    
+    -- Ensure config exists
+    if not ASC.HUDTheme.Config then return end
+
     local config = ASC.HUDTheme.Config
     local state = ASC.HUDTheme.State
     local scale = GetConVar("asc_hud_scale"):GetFloat()
+
+    if not GetConVar("asc_hud_enabled"):GetBool() or not config.EnableWeaponDisplay then return end
     
     if state.WeaponName == "" then return end
     
@@ -318,7 +324,10 @@ end
 -- Draw custom crosshair
 function ASC.HUDTheme.DrawCrosshair()
     if not GetConVar("asc_crosshair_enabled"):GetBool() then return end
-    
+
+    -- Ensure config exists
+    if not ASC.HUDTheme.Config then return end
+
     local config = ASC.HUDTheme.Config
     local state = ASC.HUDTheme.State
     local scale = GetConVar("asc_hud_scale"):GetFloat()
@@ -347,13 +356,24 @@ end
 -- Main HUD drawing function
 function ASC.HUDTheme.DrawHUD()
     if not GetConVar("asc_hud_enabled"):GetBool() then return end
-    
-    ASC.HUDTheme.UpdateData()
-    ASC.HUDTheme.UpdateAnimations()
-    
-    ASC.HUDTheme.DrawHealthArmor()
-    ASC.HUDTheme.DrawWeaponInfo()
-    ASC.HUDTheme.DrawCrosshair()
+
+    -- Protect against errors in HUD drawing
+    local success, err = pcall(function()
+        ASC.HUDTheme.UpdateData()
+        ASC.HUDTheme.UpdateAnimations()
+
+        ASC.HUDTheme.DrawHealthArmor()
+        ASC.HUDTheme.DrawWeaponInfo()
+        ASC.HUDTheme.DrawCrosshair()
+    end)
+
+    if not success then
+        -- Log error but don't spam console
+        if not ASC.HUDTheme.LastError or CurTime() - ASC.HUDTheme.LastError > 5 then
+            print("[Advanced Space Combat] HUD Theme Error: " .. tostring(err))
+            ASC.HUDTheme.LastError = CurTime()
+        end
+    end
 end
 
 -- Hook into HUD painting
@@ -363,7 +383,9 @@ end)
 
 -- Hide default HUD elements when custom HUD is enabled
 hook.Add("HUDShouldDraw", "ASC_HUDTheme_HideDefault", function(name)
-    if not GetConVar("asc_hud_enabled"):GetBool() then return end
+    -- Check if ConVar exists before using it
+    local hudConVar = GetConVar("asc_hud_enabled")
+    if not hudConVar or not hudConVar:GetBool() then return end
     
     local hideElements = {
         "CHudHealth",
@@ -382,9 +404,34 @@ end)
 
 -- Console command to toggle HUD
 concommand.Add("asc_toggle_hud", function()
-    local current = GetConVar("asc_hud_enabled"):GetBool()
+    local hudConVar = GetConVar("asc_hud_enabled")
+    if not hudConVar then
+        print("[Advanced Space Combat] HUD ConVar not found")
+        return
+    end
+
+    local current = hudConVar:GetBool()
     RunConsoleCommand("asc_hud_enabled", current and "0" or "1")
     print("[Advanced Space Combat] Custom HUD " .. (current and "disabled" or "enabled"))
+end)
+
+-- Console command to reset HUD theme errors
+concommand.Add("asc_hud_reset_errors", function()
+    ASC.HUDTheme.LastError = nil
+    print("[Advanced Space Combat] HUD theme error tracking reset")
+end)
+
+-- Console command to check HUD theme status
+concommand.Add("asc_hud_status", function()
+    print("[Advanced Space Combat] HUD Theme Status:")
+
+    local hudConVar = GetConVar("asc_hud_enabled")
+    local enabled = hudConVar and hudConVar:GetBool() or false
+
+    print("  Enabled: " .. tostring(enabled))
+    print("  Config Exists: " .. tostring(ASC.HUDTheme.Config ~= nil))
+    print("  State Exists: " .. tostring(ASC.HUDTheme.State ~= nil))
+    print("  Last Error: " .. tostring(ASC.HUDTheme.LastError or "None"))
 end)
 
 -- Initialize on client

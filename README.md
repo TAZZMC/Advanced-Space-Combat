@@ -1,8 +1,8 @@
-# Advanced Space Combat v5.2.0 - Professional UI Edition
+# Advanced Space Combat v5.1.0 - Enhanced Stargate Hyperspace Edition
 
-**Professional-grade space combat simulation for Garry's Mod with enhanced Stargate hyperspace technology, ARIA-4 AI assistant, comprehensive ship management systems, and complete professional UI theming.**
+**Professional-grade space combat simulation for Garry's Mod with enhanced Stargate hyperspace technology, ARIA-4 AI assistant, comprehensive ship management systems, complete Czech localization, and advanced UI theming.**
 
-[![Version](https://img.shields.io/badge/Version-5.2.0-blue.svg)](https://github.com/your-repo/advanced-space-combat)
+[![Version](https://img.shields.io/badge/Version-5.1.0-blue.svg)](https://github.com/your-repo/advanced-space-combat)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Garry's Mod](https://img.shields.io/badge/Garry's%20Mod-Compatible-orange.svg)](https://store.steampowered.com/app/4000/Garrys_Mod/)
 [![Quality](https://img.shields.io/badge/Quality-Enterprise%20Grade-gold.svg)](README.md)
@@ -21,6 +21,8 @@ Advanced Space Combat is a comprehensive space simulation addon that transforms 
 - **🔧 Professional Tools** - Comprehensive spawn menu organization and Q menu configuration
 - **🎭 Professional Loading Screen & Theme System** - Complete UI theming with space combat aesthetics throughout all interfaces
 - **🖥️ Advanced Interface Design** - Modern glassmorphism effects, holographic styling, and immersive visual experience
+- **🌍 Complete Czech Localization** - Comprehensive Czech language support with automatic detection and web-based translation
+- **⚙️ Advanced Configuration System** - 50+ ConVars for complete customization and performance optimization
 
 ---
 
@@ -28,16 +30,17 @@ Advanced Space Combat is a comprehensive space simulation addon that transforms 
 
 1. [Installation & Setup](#-installation--setup)
 2. [Loading Screen & Theme System](#-loading-screen--theme-system)
-3. [Enhanced CAP Integration](#-enhanced-cap-integration)
-4. [Core Systems](#-core-systems)
-5. [Ship Management](#-ship-management)
-6. [Hyperspace System](#-hyperspace-system)
-7. [Combat Systems](#-combat-systems)
-8. [AI Assistant (ARIA-4)](#-ai-assistant-aria-4)
-9. [Configuration](#-configuration)
-10. [Technical Documentation](#-technical-documentation)
-11. [API Reference](#-api-reference)
-12. [Troubleshooting](#-troubleshooting)
+3. [Czech Localization System](#-czech-localization-system)
+4. [Enhanced CAP Integration](#-enhanced-cap-integration)
+5. [Core Systems](#-core-systems)
+6. [Ship Management](#-ship-management)
+7. [Hyperspace System](#-hyperspace-system)
+8. [Combat Systems](#-combat-systems)
+9. [AI Assistant (ARIA-4)](#-ai-assistant-aria-4)
+10. [Configuration](#-configuration)
+11. [Technical Documentation](#-technical-documentation)
+12. [API Reference](#-api-reference)
+13. [Troubleshooting](#-troubleshooting)
 
 ---
 
@@ -240,12 +243,24 @@ asc_vgui_rescan         # Rescan all VGUI elements for theming
 asc_theme_enabled "1"             // Enable comprehensive theme system
 asc_theme_animations "1"          // Enable theme animations
 asc_theme_sounds "1"              // Enable theme sound effects
+asc_master_theme_enabled "1"      // Enable master theme system
+asc_theme_preset "Standard"       // Theme preset (Minimal/Standard/Full/Performance)
+asc_theme_intensity "1.0"         // Global theme intensity (0.0-1.0)
 
 -- Component-Specific Controls
 asc_weapon_theme_enabled "1"      // Enable weapon interface theming
 asc_flight_hud_enabled "1"        // Enable flight HUD
 asc_ai_chat_enabled "1"           // Enable AI chat interface
 asc_character_theme_enabled "1"   // Enable character theme system
+
+-- Game Interface Theme
+asc_theme_spawn_menu "1"          // Enable spawn menu theming
+asc_theme_context_menu "1"        // Enable context menu theming
+asc_theme_chat "1"                // Enable chat theming
+asc_theme_console "1"             // Enable console theming
+asc_theme_notifications "1"       // Enable notification theming
+asc_theme_scoreboard "1"          // Enable scoreboard theming
+asc_game_theme_enabled "1"        // Enable game interface theming
 
 -- Visual Options
 asc_weapon_holo_style "1"         // Enable holographic weapon displays
@@ -254,8 +269,9 @@ asc_ai_holo_style "1"             // Enable holographic AI displays
 
 -- VGUI Integration
 asc_vgui_theme_enabled "1"        // Enable VGUI auto-theming
-asc_vgui_theme_all "0"            // Theme all VGUI elements (not just ASC)
+asc_vgui_theme_all "1"            // Theme all VGUI elements (not just ASC)
 asc_vgui_performance_mode "1"     // Enable performance optimizations
+asc_vgui_safe_mode "1"            // Enable safe mode with error protection
 ```
 
 ### 🎨 Design Philosophy
@@ -275,7 +291,132 @@ asc_vgui_performance_mode "1"     // Enable performance optimizations
 
 ---
 
-## �🎨 Enhanced CAP Integration
+## � Czech Localization System
+
+### Comprehensive Czech Language Support v1.0.0
+
+Advanced Space Combat features complete Czech localization with automatic language detection and web-based translation support, making the addon fully accessible to Czech-speaking players.
+
+#### 🌟 Key Features
+
+- **🔍 Automatic Language Detection** - Smart detection via Steam, system locale, and chat analysis
+- **📝 Complete Translation Coverage** - 1000+ translated strings covering all addon features
+- **🌐 Web-Based Translation** - AI-powered translation for dynamic content
+- **⚙️ Automatic Language Setting** - Seamlessly switches to Czech when detected
+- **🔄 Fallback System** - Graceful fallback to English when translations unavailable
+- **🎯 Context-Aware Translation** - Different translations for different contexts
+
+### 🔍 Language Detection System
+
+#### Detection Methods
+1. **Steam Language** - Detects Steam client language settings
+2. **System Locale** - Checks operating system language
+3. **Garry's Mod Language** - Uses GMod language preference
+4. **Chat Analysis** - Analyzes player chat for Czech words and characters
+5. **Manual Override** - Players can manually set language preference
+
+#### Smart Chat Detection
+```lua
+-- Automatic Czech detection via chat analysis
+-- Analyzes 5 messages for Czech content
+-- Switches to Czech if 60%+ messages contain Czech words/characters
+```
+
+### 📝 Translation Coverage
+
+#### Core Systems
+- **Ship Management** - Ship cores, resources, life support
+- **Hyperspace System** - Jump mechanics, navigation, coordinates
+- **Combat Systems** - Weapons, targeting, tactical AI
+- **AI Assistant** - ARIA-4 commands and responses
+- **Configuration** - All ConVars and settings
+
+#### User Interface
+- **Console Commands** - All command descriptions and outputs
+- **Error Messages** - System errors and warnings
+- **Status Messages** - System status and notifications
+- **Help Text** - Comprehensive help system
+
+#### Technical Terms
+- **Units and Measurements** - Distance, energy, time, weight
+- **Technology Names** - Stargate technologies and components
+- **Status Indicators** - Online, offline, charging, ready states
+
+### 🎮 Console Commands
+
+#### Language Management
+```bash
+asc_czech enable           # Enable Czech localization
+asc_czech disable          # Disable Czech localization
+asc_czech status           # Show localization status
+asc_czech test             # Test translation system
+asc_czech auto_detect      # Run automatic language detection
+```
+
+#### Translation Commands
+```bash
+asc_czech_translate <text> # Translate text to Czech
+asc_czech_fallback <on/off> # Enable/disable English fallback
+asc_czech_log <on/off>     # Enable/disable translation logging
+```
+
+### ⚙️ Configuration Options
+
+#### Czech System ConVars
+```lua
+-- Master Czech Controls
+asc_czech_enabled "1"              // Enable Czech localization
+asc_czech_auto_detect "1"          // Enable automatic detection
+asc_czech_auto_set_language "1"    // Automatically set language
+asc_czech_fallback_english "1"     // Enable English fallback
+
+-- Detection Settings
+asc_czech_steam_detection "1"      // Use Steam language detection
+asc_czech_chat_detection "1"       // Use chat analysis detection
+asc_czech_system_detection "1"     // Use system locale detection
+
+-- Advanced Options
+asc_czech_log_translations "0"     // Log all translations
+asc_czech_web_translation "1"      // Enable web-based translation
+asc_czech_context_aware "1"        // Enable context-aware translation
+```
+
+### 🔧 Technical Implementation
+
+#### Translation System Architecture
+```lua
+ASC.Czech = {
+    Config = {
+        Enabled = true,
+        AutoDetect = true,
+        AutoSetLanguage = true,
+        FallbackToEnglish = true
+    },
+
+    Translations = {
+        -- 1000+ Czech translations
+        ["Ship Core"] = "Jádro Lodi",
+        ["Hyperspace Jump"] = "Hyperprostorový Skok",
+        ["Weapon System"] = "Zbraňový Systém"
+    },
+
+    Detection = {
+        Methods = {"steam", "locale", "chat", "manual"},
+        ChatAnalysis = true,
+        SteamIntegration = true
+    }
+}
+```
+
+#### Automatic Integration
+- **AI System Integration** - ARIA-4 responds in Czech when detected
+- **Console Command Localization** - All commands show Czech descriptions
+- **Error Message Translation** - System errors displayed in Czech
+- **Status Update Translation** - Real-time status updates in Czech
+
+---
+
+## ��🎨 Enhanced CAP Integration
 
 ### Complete Carter Addon Pack Integration v2.0.0
 
@@ -505,7 +646,7 @@ HYPERDRIVE = {
 
 ### ConVar System
 
-The addon uses 25+ ConVars for comprehensive configuration:
+The addon uses 50+ ConVars for comprehensive configuration:
 
 ```lua
 -- Core System ConVars
@@ -1018,6 +1159,8 @@ asc_diagnostics             - Run full system diagnostics
 asc_health                  - Quick health check
 asc_status                  - System status report
 asc_quick_fix               - Automatic problem resolution
+asc_debug_mode <0/1>        - Enable/disable debug mode
+asc_version                 - Show addon version information
 ```
 
 #### Ship Core Commands
@@ -1026,6 +1169,8 @@ asc_ship_core_volume <0.0-1.0>    - Adjust volume for all ship cores
 asc_ship_core_sound <path>        - Change sound for all ship cores
 asc_ship_core_mute               - Mute all ship cores
 asc_ship_core_randomize          - Randomize sounds with improved selection
+asc_show_front_indicators        - Show ship direction arrows
+asc_hide_front_indicators        - Hide ship direction arrows
 ```
 
 #### Weapon System Commands
@@ -1033,6 +1178,27 @@ asc_ship_core_randomize          - Randomize sounds with improved selection
 asc_weapon_status               - Display weapon system status
 asc_weapon_groups               - List all weapon groups
 asc_tactical_ai <mode>          - Set tactical AI mode (DEFENSIVE/AGGRESSIVE/SUPPORT)
+```
+
+#### Czech Localization Commands
+```
+asc_czech enable                - Enable Czech localization
+asc_czech disable               - Disable Czech localization
+asc_czech status                - Show localization status
+asc_czech test                  - Test translation system
+asc_czech auto_detect           - Run automatic language detection
+```
+
+#### Theme System Commands
+```
+asc_theme_test                  - Test comprehensive theme system
+asc_character_menu              - Open character selection menu
+asc_weapon_interface            - Open weapon interface
+asc_flight_hud_test             - Test flight HUD display
+asc_ai_chat                     - Open ARIA-4 AI chat interface
+asc_vgui_rescan                 - Rescan all VGUI elements for theming
+asc_show_loading                - Show loading screen manually
+asc_hide_loading                - Hide loading screen
 ```
 
 ### Performance Optimization
@@ -1072,12 +1238,21 @@ advanced-space-combat/
 │   │   ├── asc_weapon_system.lua              -- Weapon management
 │   │   ├── asc_tactical_ai_system.lua         -- Tactical AI
 │   │   ├── asc_system_diagnostics.lua         -- Diagnostic system
+│   │   ├── asc_czech_localization.lua         -- Czech language support
+│   │   ├── asc_console_commands.lua           -- Console command system
+│   │   ├── asc_debug_system.lua               -- Debug and error handling
 │   │   ├── hyperdrive_init.lua                -- Hyperdrive initialization
 │   │   ├── hyperdrive_core_v2.lua             -- Hyperdrive core system
-│   │   └── hyperdrive_ship_core.lua           -- Ship core management
+│   │   ├── hyperdrive_ship_core.lua           -- Ship core management
+│   │   └── hyperdrive_sb3_steam_integration.lua -- Spacebuild 3 integration
 │   │   └── client/
 │   │       ├── asc_spawn_menu_complete.lua    -- Spawn menu organization
 │   │       ├── asc_ui_system.lua              -- UI system
+│   │       ├── asc_loading_screen.lua         -- Loading screen system
+│   │       ├── asc_comprehensive_theme.lua    -- Master theme system
+│   │       ├── asc_character_theme.lua        -- Character theme system
+│   │       ├── asc_player_hud_theme.lua       -- Enhanced HUD theme
+│   │       ├── asc_convar_manager.lua         -- ConVar management
 │   │       └── hyperdrive_qmenu_config.lua    -- Q menu configuration
 │   ├── entities/                  -- Entity definitions
 │   │   ├── ship_core/            -- Ship core entity
@@ -1087,6 +1262,8 @@ advanced-space-combat/
 │   ├── effects/                   -- Visual effects
 │   └── weapons/                   -- Weapon definitions
 ├── materials/                     -- Textures and materials
+│   └── asc/                      -- ASC-specific materials
+│       └── ui/                   -- UI materials and textures
 ├── models/                        -- 3D models
 └── sound/                         -- Audio files
 ```
@@ -1406,7 +1583,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Community**: Garry's Mod space simulation community
 
 ### Version History
-- **v5.2.0** - Professional UI & Theme System (Current)
+- **v5.1.0** - Enhanced Stargate Hyperspace Edition (Current)
+  - Complete Czech localization system with automatic detection
   - Comprehensive loading screen with real-time progress tracking
   - Complete theme system covering all UI elements
   - Professional weapon interface theming with holographic effects
@@ -1415,21 +1593,22 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
   - Automatic VGUI theming with smart element detection
   - Character theme system with space suit mode
   - Enhanced HUD with custom health, armor, and weapon displays
-  - 35+ console commands for theme management
-  - 20+ ConVars for comprehensive configuration
+  - 50+ ConVars for comprehensive configuration
+  - Advanced ConVar management system
+  - Enhanced CAP integration with Steam Workshop support
 
-- **v5.1.0** - Phase 3 Enhanced
+- **v5.0.0** - Phase 3 Enhanced
   - Advanced weapon targeting system
   - Enhanced UI configuration
   - Improved ship core indicators
   - Professional code quality
 
-- **v5.0.0** - Phase 2 Complete
+- **v4.0.0** - Phase 2 Complete
   - Enhanced ship core system
   - Improved sound management
   - AI command enhancements
 
-- **v4.0.0** - Phase 1 Foundation
+- **v3.0.0** - Phase 1 Foundation
   - Core system architecture
   - Basic functionality implementation
   - Initial AI integration
@@ -1442,6 +1621,6 @@ For support, bug reports, or feature requests:
 
 ---
 
-**🌌 Advanced Space Combat v5.2.0 - The Ultimate Space Simulation Experience for Garry's Mod 🚀**
+**🌌 Advanced Space Combat v5.1.0 - Enhanced Stargate Hyperspace Edition for Garry's Mod 🚀**
 
-*Professional-grade space combat • Authentic Stargate hyperspace • ARIA-4 AI assistant • Complete UI theming • Enterprise quality*
+*Professional-grade space combat • Authentic Stargate hyperspace • ARIA-4 AI assistant • Complete Czech localization • Complete UI theming • Enterprise quality*

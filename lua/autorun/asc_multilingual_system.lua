@@ -60,7 +60,18 @@ ASC.Multilingual.Config = {
     
     -- Language Detection Patterns
     LanguagePatterns = {
-        cs = {"jak", "kde", "co", "proč", "když", "ale", "nebo", "že", "být", "mít", "loď", "zbraň", "let"},
+        cs = {
+            -- Basic words
+            "jak", "kde", "co", "proč", "když", "ale", "nebo", "že", "být", "mít", "loď", "zbraň", "let",
+            -- Extended Czech vocabulary
+            "ahoj", "děkuji", "prosím", "ano", "ne", "dobře", "špatně", "jsem", "jsi", "je",
+            "můžu", "můžeš", "může", "chci", "chceš", "chce", "potřebuji", "funguje", "nefunguje",
+            -- Space combat terms
+            "štít", "energie", "hyperpohon", "jádro", "systém", "stargate", "brána",
+            "vesmír", "boj", "útok", "obrana", "cestování", "teleportovat", "skok",
+            -- Commands
+            "pomoc", "nápověda", "status", "stav", "spawn", "vytvoř", "nastav", "aktivuj", "vypni"
+        },
         de = {"wie", "wo", "was", "warum", "wenn", "aber", "oder", "dass", "sein", "haben", "schiff", "waffe"},
         fr = {"comment", "où", "quoi", "pourquoi", "quand", "mais", "ou", "que", "être", "avoir", "navire"},
         es = {"cómo", "dónde", "qué", "por qué", "cuando", "pero", "o", "que", "ser", "tener", "nave"},
@@ -147,13 +158,45 @@ ASC.Multilingual.Core = {
     SetPlayerLanguage = function(player, language)
         if not IsValid(player) then return false end
         if not ASC.Multilingual.Config.SupportedLanguages[language] then return false end
-        
+
         local steamID = player:SteamID()
         ASC.Multilingual.Core.PlayerLanguages[steamID] = language
-        
+
+        -- If setting to Czech, also enable Czech localization system
+        if language == "cs" and ASC.Czech then
+            ASC.Czech.SetEnabled(true)
+            print("[Multilingual] Enabled Czech localization system for " .. player:Name())
+        end
+
         -- Save to file
         ASC.Multilingual.Core.SavePlayerLanguages()
-        
+
+        return true
+    end,
+
+    -- Integration with Czech localization system
+    IntegrateWithCzechSystem = function()
+        if not ASC.Czech then return false end
+
+        print("[Multilingual] Integrating with Czech localization system...")
+
+        -- Import Czech translations from the Czech system
+        if ASC.Czech.Translations then
+            local imported = 0
+            for key, translation in pairs(ASC.Czech.Translations) do
+                if not ASC.Multilingual.Core.LocalizedStrings.cs[key] then
+                    ASC.Multilingual.Core.LocalizedStrings.cs[key] = translation
+                    imported = imported + 1
+                end
+            end
+            print("[Multilingual] Imported " .. imported .. " translations from Czech system")
+        end
+
+        -- Set up automatic synchronization
+        hook.Add("ASC_Czech_TranslationAdded", "Multilingual_SyncCzech", function(key, translation)
+            ASC.Multilingual.Core.LocalizedStrings.cs[key] = translation
+        end)
+
         return true
     end,
     
@@ -293,8 +336,9 @@ ASC.Multilingual.Core = {
             ["welcome_message"] = "Welcome to Advanced Space Combat!"
         }
         
-        -- Czech
+        -- Czech (comprehensive)
         ASC.Multilingual.Core.LocalizedStrings.cs = {
+            -- Basic system messages
             ["ship_status"] = "Stav Lodi",
             ["weapons_online"] = "Zbraně Online",
             ["shields_active"] = "Štíty Aktivní",
@@ -307,7 +351,101 @@ ASC.Multilingual.Core = {
             ["command_not_found"] = "Příkaz nenalezen",
             ["invalid_target"] = "Neplatný cíl",
             ["mission_complete"] = "Mise Dokončena",
-            ["welcome_message"] = "Vítejte v Advanced Space Combat!"
+            ["welcome_message"] = "Vítejte v Advanced Space Combat!",
+
+            -- Ship systems
+            ["ship_core"] = "Jádro Lodi",
+            ["hyperdrive"] = "Hyperpohon",
+            ["energy_system"] = "Energetický Systém",
+            ["shield_system"] = "Štítový Systém",
+            ["weapon_system"] = "Zbraňový Systém",
+            ["life_support"] = "Životní Podpora",
+            ["navigation"] = "Navigace",
+            ["sensors"] = "Senzory",
+
+            -- Stargate technology
+            ["stargate"] = "Stargate",
+            ["dhd"] = "DHD",
+            ["ancient_tech"] = "Starověká Technologie",
+            ["asgard_tech"] = "Asgardská Technologie",
+            ["goauld_tech"] = "Goa'uldská Technologie",
+            ["wraith_tech"] = "Wraith Technologie",
+            ["ori_tech"] = "Ori Technologie",
+            ["tauri_tech"] = "Tau'ri Technologie",
+
+            -- Combat
+            ["weapons"] = "Zbraně",
+            ["shields"] = "Štíty",
+            ["armor"] = "Pancéřování",
+            ["targeting"] = "Zaměřování",
+            ["fire_control"] = "Řízení Palby",
+            ["tactical_mode"] = "Taktický Režim",
+
+            -- Status messages
+            ["online"] = "Online",
+            ["offline"] = "Offline",
+            ["active"] = "Aktivní",
+            ["inactive"] = "Neaktivní",
+            ["ready"] = "Připraven",
+            ["charging"] = "Nabíjení",
+            ["cooldown"] = "Chlazení",
+            ["damaged"] = "Poškozeno",
+            ["destroyed"] = "Zničeno",
+
+            -- Commands
+            ["help"] = "Nápověda",
+            ["status"] = "Stav",
+            ["spawn"] = "Spawn",
+            ["configure"] = "Konfigurovat",
+            ["activate"] = "Aktivovat",
+            ["deactivate"] = "Deaktivovat",
+            ["jump"] = "Skok",
+            ["dial"] = "Vytočit",
+            ["teleport"] = "Teleportovat",
+
+            -- AI responses
+            ["ai_greeting"] = "Ahoj! Jsem ARIA-3, váš asistent AI.",
+            ["ai_help"] = "Jak vám mohu pomoci?",
+            ["ai_processing"] = "Zpracovávám...",
+            ["ai_error"] = "Promiňte, nerozuměl jsem.",
+            ["ai_success"] = "Úkol dokončen!",
+            ["ai_thinking"] = "Přemýšlím...",
+
+            -- Error messages
+            ["error_general"] = "Obecná chyba",
+            ["error_network"] = "Síťová chyba",
+            ["error_permission"] = "Chyba oprávnění",
+            ["error_resource"] = "Chyba prostředků",
+            ["access_denied"] = "Přístup odepřen",
+            ["insufficient_energy"] = "Nedostatek energie",
+            ["target_not_found"] = "Cíl nenalezen",
+
+            -- UI elements
+            ["button_ok"] = "OK",
+            ["button_cancel"] = "Zrušit",
+            ["button_apply"] = "Použít",
+            ["button_close"] = "Zavřít",
+            ["button_save"] = "Uložit",
+            ["button_load"] = "Načíst",
+            ["button_reset"] = "Reset",
+            ["button_help"] = "Nápověda",
+
+            -- === INTEGRATION WITH CZECH LOCALIZATION SYSTEM ===
+            ["czech_system_enabled"] = "Český systém povolen",
+            ["czech_system_disabled"] = "Český systém zakázán",
+            ["comprehensive_czech_support"] = "Komplexní česká podpora",
+            ["addon_fully_localized"] = "Addon plně lokalizován",
+            ["translation_count"] = "Počet překladů",
+            ["localization_active"] = "Lokalizace aktivní",
+            ["language_preference"] = "Jazyková preference",
+            ["auto_detection"] = "Automatická detekce",
+            ["fallback_enabled"] = "Záložní režim povolen",
+            ["system_integration"] = "Systémová integrace",
+            ["ui_localization"] = "Lokalizace UI",
+            ["command_localization"] = "Lokalizace příkazů",
+            ["entity_localization"] = "Lokalizace entit",
+            ["menu_localization"] = "Lokalizace menu",
+            ["ai_localization"] = "Lokalizace AI"
         }
         
         -- German
@@ -428,12 +566,27 @@ if SERVER then
     -- Initialize multilingual system
     timer.Simple(2, function()
         ASC.Multilingual.Core.Initialize()
+
+        -- Integrate with Czech system if available
+        timer.Simple(1, function()
+            if ASC.Czech then
+                ASC.Multilingual.Core.IntegrateWithCzechSystem()
+            end
+        end)
     end)
-    
+
     -- Update system status
     ASC.SystemStatus.MultilingualSupport = true
     ASC.SystemStatus.WebTranslation = true
     ASC.SystemStatus.LanguageDetection = true
-    
+    ASC.SystemStatus.CzechIntegration = ASC.Czech ~= nil
+
     print("[Advanced Space Combat] Multilingual System v3.0.0 loaded")
 end
+
+-- Hook for Czech system integration
+hook.Add("ASC_Czech_SystemLoaded", "Multilingual_IntegrateCzech", function()
+    if ASC.Multilingual and ASC.Multilingual.Core then
+        ASC.Multilingual.Core.IntegrateWithCzechSystem()
+    end
+end)

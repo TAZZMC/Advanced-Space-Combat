@@ -16,7 +16,12 @@ ASC.VGUITheme.Config = {
     EnablePanelTheming = true,
     EnableTextEntryTheming = true,
     EnableLabelTheming = true,
-    
+
+    -- Safety settings
+    EnableErrorProtection = true,
+    DisableOnError = true,
+    MaxErrors = 5,
+
     -- Auto-detection patterns
     ASCPatterns = {
         "Advanced Space Combat",
@@ -28,11 +33,11 @@ ASC.VGUITheme.Config = {
         "ARIA",
         "AI"
     },
-    
+
     -- Theme override settings
-    ForceThemeAll = false, -- Set to true to theme ALL VGUI elements
-    ThemeOnlyASC = true,   -- Only theme ASC-related panels
-    
+    ForceThemeAll = true,  -- Set to true to theme ALL VGUI elements
+    ThemeOnlyASC = false,  -- Only theme ASC-related panels
+
     -- Performance settings
     UpdateInterval = 0.1,
     MaxElementsPerFrame = 10
@@ -43,17 +48,16 @@ ASC.VGUITheme.State = {
     ThemedElements = {},
     LastUpdate = 0,
     ProcessingQueue = {},
-    OriginalPaintFunctions = {}
+    OriginalPaintFunctions = {},
+    ErrorCount = 0,
+    SystemDisabled = false
 }
 
 -- Initialize VGUI theme integration
 function ASC.VGUITheme.Initialize()
     print("[Advanced Space Combat] VGUI theme integration initialized")
-    
-    -- Create ConVars
-    CreateClientConVar("asc_vgui_theme_enabled", "1", true, false, "Enable VGUI auto-theming")
-    CreateClientConVar("asc_vgui_theme_all", "0", true, false, "Theme all VGUI elements (not just ASC)")
-    CreateClientConVar("asc_vgui_performance_mode", "1", true, false, "Enable performance optimizations")
+
+    -- ConVars are now managed centrally by ASC.ConVarManager
     
     -- Initialize hooks
     ASC.VGUITheme.InitializeHooks()
@@ -90,64 +94,150 @@ end
 function ASC.VGUITheme.OverrideVGUICreation()
     -- Store original vgui.Create function
     local originalCreate = vgui.Create
-    
+
     -- Override vgui.Create to automatically theme ASC elements
     vgui.Create = function(classname, parent, name)
         local element = originalCreate(classname, parent, name)
-        
+
         if IsValid(element) and GetConVar("asc_vgui_theme_enabled"):GetBool() then
-            -- Check if this should be themed
-            if ASC.VGUITheme.ShouldThemeElement(element) then
-                ASC.VGUITheme.QueueElementForTheming(element)
-            end
+            -- Use a timer to delay theming until element is fully initialized
+            -- Longer delay for DFrame elements to ensure lblTitle is created
+            local delay = (classname == "DFrame") and 0.1 or 0.01
+
+            timer.Simple(delay, function()
+                if IsValid(element) then
+                    -- Use pcall to safely check if element should be themed
+                    local success, shouldTheme = pcall(ASC.VGUITheme.ShouldThemeElement, element)
+                    if success and shouldTheme then
+                        ASC.VGUITheme.QueueElementForTheming(element)
+                    elseif not success then
+                        -- Log error but don't crash
+                        if ASC.VGUITheme.Config.EnableErrorProtection then
+                            ASC.VGUITheme.HandleError("Failed to check if element should be themed: " .. tostring(shouldTheme))
+                        end
+                    end
+                end
+            end)
         end
-        
+
         return element
     end
-    
+
     print("[Advanced Space Combat] VGUI creation override installed")
 end
 
 -- Check if element should be themed
 function ASC.VGUITheme.ShouldThemeElement(element)
     if not IsValid(element) then return false end
-    
+
+    -- Check if system is disabled due to errors
+    if ASC.VGUITheme.State.SystemDisabled then return false end
+
     local config = ASC.VGUITheme.Config
-    
-    -- Force theme all if enabled
+    local className = element:GetClassName()
+
+    -- Don't theme spawn menu icons and content to preserve visibility
+    if className == "SpawnIcon" or className == "ContentIcon" or
+       className == "DImageButton" or className == "DImage" or
+       className == "ModelImage" or className == "SpawnIcon" or
+       string.find(className:lower(), "icon") or
+       string.find(className:lower(), "image") then
+        return false
+    end
+
+    -- Force theme all if enabled (but still exclude icons)
     if GetConVar("asc_vgui_theme_all"):GetBool() or config.ForceThemeAll then
         return true
     end
-    
+
     -- Only theme ASC elements if configured
     if config.ThemeOnlyASC then
         return ASC.VGUITheme.IsASCElement(element)
     end
-    
+
     return false
+end
+
+-- Handle theming errors
+function ASC.VGUITheme.HandleError(errorMsg)
+    ASC.VGUITheme.State.ErrorCount = ASC.VGUITheme.State.ErrorCount + 1
+
+    print("[Advanced Space Combat] VGUI Theme Error #" .. ASC.VGUITheme.State.ErrorCount .. ": " .. tostring(errorMsg))
+
+    if ASC.VGUITheme.Config.DisableOnError and ASC.VGUITheme.State.ErrorCount >= ASC.VGUITheme.Config.MaxErrors then
+        ASC.VGUITheme.State.SystemDisabled = true
+        print("[Advanced Space Combat] VGUI theming system disabled due to repeated errors")
+
+        -- Disable the ConVar to prevent further issues
+        if GetConVar("asc_vgui_theme_enabled") then
+            RunConsoleCommand("asc_vgui_theme_enabled", "0")
+        end
+    end
+end
+
+-- Safely get title from element with error protection
+local function SafeGetTitle(element)
+    if not IsValid(element) then return "" end
+
+    local success, result = pcall(function()
+        if element.GetTitle then
+            return element:GetTitle() or ""
+        end
+        return ""
+    end)
+
+    return success and result or ""
+end
+
+-- Safely get text from element with error protection
+local function SafeGetText(element)
+    if not IsValid(element) then return "" end
+
+    local success, result = pcall(function()
+        if element.GetText then
+            return element:GetText() or ""
+        end
+        return ""
+    end)
+
+    return success and result or ""
+end
+
+-- Safely get name from element with error protection
+local function SafeGetName(element)
+    if not IsValid(element) then return "" end
+
+    local success, result = pcall(function()
+        if element.GetName then
+            return element:GetName() or ""
+        end
+        return ""
+    end)
+
+    return success and result or ""
 end
 
 -- Check if element is ASC-related
 function ASC.VGUITheme.IsASCElement(element)
     if not IsValid(element) then return false end
-    
+
     local config = ASC.VGUITheme.Config
-    
-    -- Check element title/text
+
+    -- Check element title/text with error protection
     local title = ""
-    if element.GetTitle then title = element:GetTitle() or "" end
-    if element.GetText then title = title .. " " .. (element:GetText() or "") end
-    if element.GetName then title = title .. " " .. (element:GetName() or "") end
-    
-    -- Check parent hierarchy
+    title = SafeGetTitle(element)
+    title = title .. " " .. SafeGetText(element)
+    title = title .. " " .. SafeGetName(element)
+
+    -- Check parent hierarchy with error protection
     local parent = element:GetParent()
-    while IsValid(parent) do
-        if parent.GetTitle then
-            title = title .. " " .. (parent:GetTitle() or "")
-        end
+    local depth = 0
+    while IsValid(parent) and depth < 10 do -- Limit depth to prevent infinite loops
+        title = title .. " " .. SafeGetTitle(parent)
         parent = parent:GetParent()
+        depth = depth + 1
     end
-    
+
     -- Check against ASC patterns
     title = string.lower(title)
     for _, pattern in ipairs(config.ASCPatterns) do
@@ -155,12 +245,12 @@ function ASC.VGUITheme.IsASCElement(element)
             return true
         end
     end
-    
+
     -- Check if element has ASCThemed flag
     if element.ASCThemed then
         return true
     end
-    
+
     return false
 end
 
@@ -221,6 +311,18 @@ function ASC.VGUITheme.ApplyThemeToElement(element)
         ASC.VGUITheme.ThemeCheckBox(element)
     elseif className == "DSlider" then
         ASC.VGUITheme.ThemeSlider(element)
+    elseif className == "DMenu" or className == "DMenuOption" then
+        ASC.VGUITheme.ThemeMenu(element)
+    elseif className == "DTree" or className == "DTree_Node" then
+        ASC.VGUITheme.ThemeTree(element)
+    elseif className == "DListView" or className == "DListView_Line" then
+        ASC.VGUITheme.ThemeListView(element)
+    elseif className == "DPropertySheet" or className == "DTab" then
+        ASC.VGUITheme.ThemePropertySheet(element)
+    elseif className == "DNumSlider" then
+        ASC.VGUITheme.ThemeNumSlider(element)
+    elseif className == "DCollapsibleCategory" then
+        ASC.VGUITheme.ThemeCollapsibleCategory(element)
     end
     
     -- Mark as themed
@@ -238,20 +340,53 @@ end
 -- Theme DFrame elements
 function ASC.VGUITheme.ThemeFrame(frame)
     if not IsValid(frame) then return end
-    
+
     -- Store original paint function
     if not ASC.VGUITheme.State.OriginalPaintFunctions[frame] then
         ASC.VGUITheme.State.OriginalPaintFunctions[frame] = frame.Paint
     end
-    
-    -- Apply themed paint function
+
+    -- Apply themed paint function with error protection
     frame.Paint = function(self, w, h)
-        if ASC and ASC.ComprehensiveTheme then
-            ASC.ComprehensiveTheme.DrawThemedFrame(self, w, h)
-        else
-            -- Fallback to original
-            local original = ASC.VGUITheme.State.OriginalPaintFunctions[self]
-            if original then original(self, w, h) end
+        -- Check if system is disabled
+        if ASC.VGUITheme.State.SystemDisabled then
+            -- Use basic fallback
+            draw.RoundedBox(0, 0, 0, w, h, Color(50, 50, 50, 200))
+            return
+        end
+
+        -- Protect against errors in theming
+        local success, err = pcall(function()
+            if ASC and ASC.ComprehensiveTheme and self.ASCThemed then
+                ASC.ComprehensiveTheme.DrawThemedFrame(self, w, h)
+            else
+                -- Fallback to original with error protection
+                local original = ASC.VGUITheme.State.OriginalPaintFunctions[self]
+                if original then
+                    local originalSuccess, originalErr = pcall(original, self, w, h)
+                    if not originalSuccess then
+                        -- If original fails, use basic fallback
+                        draw.RoundedBox(0, 0, 0, w, h, Color(50, 50, 50, 200))
+                        if ASC.VGUITheme.Config.EnableErrorProtection then
+                            ASC.VGUITheme.HandleError("Original DFrame paint failed: " .. tostring(originalErr))
+                        end
+                    end
+                else
+                    -- Basic fallback if no original function
+                    draw.RoundedBox(0, 0, 0, w, h, Color(50, 50, 50, 200))
+                end
+            end
+        end)
+
+        if not success then
+            -- Emergency fallback - just draw a basic frame
+            draw.RoundedBox(0, 0, 0, w, h, Color(50, 50, 50, 200))
+            surface.SetDrawColor(Color(100, 100, 100))
+            surface.DrawOutlinedRect(0, 0, w, h, 1)
+
+            if ASC.VGUITheme.Config.EnableErrorProtection then
+                ASC.VGUITheme.HandleError("DFrame theming failed: " .. tostring(err))
+            end
         end
     end
 end
@@ -486,6 +621,111 @@ concommand.Add("asc_vgui_clear_theme", function()
     ASC.VGUITheme.State.ProcessingQueue = {}
     print("[Advanced Space Combat] VGUI theme cache cleared")
 end)
+
+concommand.Add("asc_vgui_reset_errors", function()
+    ASC.VGUITheme.State.ErrorCount = 0
+    ASC.VGUITheme.State.SystemDisabled = false
+    print("[Advanced Space Combat] VGUI theme error count reset, system re-enabled")
+end)
+
+concommand.Add("asc_vgui_status", function()
+    print("[Advanced Space Combat] VGUI Theme Status:")
+    print("  Enabled: " .. tostring(GetConVar("asc_vgui_theme_enabled"):GetBool()))
+    print("  System Disabled: " .. tostring(ASC.VGUITheme.State.SystemDisabled))
+    print("  Error Count: " .. ASC.VGUITheme.State.ErrorCount)
+    print("  Themed Elements: " .. table.Count(ASC.VGUITheme.State.ThemedElements))
+    print("  Processing Queue: " .. #ASC.VGUITheme.State.ProcessingQueue)
+end)
+
+-- Theme DMenu elements
+function ASC.VGUITheme.ThemeMenu(menu)
+    if not IsValid(menu) then return end
+
+    if ASC and ASC.ComprehensiveTheme then
+        local config = ASC.ComprehensiveTheme.Config
+
+        menu.Paint = function(self, w, h)
+            draw.RoundedBox(config.BorderRadius.Small, 0, 0, w, h, config.Colors.Surface)
+            surface.SetDrawColor(config.Colors.Border)
+            surface.DrawOutlinedRect(0, 0, w, h, 1)
+        end
+    end
+end
+
+-- Theme DTree elements
+function ASC.VGUITheme.ThemeTree(tree)
+    if not IsValid(tree) then return end
+
+    if ASC and ASC.ComprehensiveTheme then
+        local config = ASC.ComprehensiveTheme.Config
+
+        tree.Paint = function(self, w, h)
+            draw.RoundedBox(config.BorderRadius.Small, 0, 0, w, h, config.Colors.Panel)
+            surface.SetDrawColor(config.Colors.Border)
+            surface.DrawOutlinedRect(0, 0, w, h, 1)
+        end
+    end
+end
+
+-- Theme DListView elements
+function ASC.VGUITheme.ThemeListView(listView)
+    if not IsValid(listView) then return end
+
+    if ASC and ASC.ComprehensiveTheme then
+        local config = ASC.ComprehensiveTheme.Config
+
+        listView.Paint = function(self, w, h)
+            draw.RoundedBox(config.BorderRadius.Small, 0, 0, w, h, config.Colors.Surface)
+            surface.SetDrawColor(config.Colors.Border)
+            surface.DrawOutlinedRect(0, 0, w, h, 1)
+        end
+    end
+end
+
+-- Theme DPropertySheet elements
+function ASC.VGUITheme.ThemePropertySheet(propertySheet)
+    if not IsValid(propertySheet) then return end
+
+    if ASC and ASC.ComprehensiveTheme then
+        local config = ASC.ComprehensiveTheme.Config
+
+        propertySheet.Paint = function(self, w, h)
+            draw.RoundedBox(config.BorderRadius.Medium, 0, 0, w, h, config.Colors.Surface)
+            surface.SetDrawColor(config.Colors.Border)
+            surface.DrawOutlinedRect(0, 0, w, h, 1)
+        end
+    end
+end
+
+-- Theme DNumSlider elements
+function ASC.VGUITheme.ThemeNumSlider(numSlider)
+    if not IsValid(numSlider) then return end
+
+    if ASC and ASC.ComprehensiveTheme then
+        local config = ASC.ComprehensiveTheme.Config
+
+        numSlider.Paint = function(self, w, h)
+            draw.RoundedBox(config.BorderRadius.Small, 0, 0, w, h, config.Colors.Panel)
+            surface.SetDrawColor(config.Colors.Border)
+            surface.DrawOutlinedRect(0, 0, w, h, 1)
+        end
+    end
+end
+
+-- Theme DCollapsibleCategory elements
+function ASC.VGUITheme.ThemeCollapsibleCategory(category)
+    if not IsValid(category) then return end
+
+    if ASC and ASC.ComprehensiveTheme then
+        local config = ASC.ComprehensiveTheme.Config
+
+        category.Paint = function(self, w, h)
+            draw.RoundedBox(config.BorderRadius.Medium, 0, 0, w, h, config.Colors.Secondary)
+            surface.SetDrawColor(config.Colors.Border)
+            surface.DrawOutlinedRect(0, 0, w, h, 1)
+        end
+    end
+end
 
 -- Initialize on client
 hook.Add("Initialize", "ASC_VGUITheme_Init", function()

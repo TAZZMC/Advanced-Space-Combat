@@ -347,7 +347,7 @@ function ASC.WeaponTheme.CreateTargetingDisplay(frame, weapon)
                 surface.DrawText(distanceText)
                 
                 -- Target health (if applicable)
-                if target:Health then
+                if target.Health then
                     local healthText = string.format("TARGET HEALTH: %d", target:Health())
                     surface.SetTextPos(10, 50)
                     surface.DrawText(healthText)
