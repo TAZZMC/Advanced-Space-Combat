@@ -35,6 +35,34 @@ ASC.Boss.Config = {
     BonusReward = 500,
     TeamReward = true,
     ExperienceReward = 100,
+
+    -- Reward Types
+    RewardTypes = {
+        CREDITS = {
+            name = "Credits",
+            baseAmount = 1000,
+            bonusMultiplier = 1.5,
+            teamBonus = 0.2
+        },
+        EXPERIENCE = {
+            name = "Experience Points",
+            baseAmount = 100,
+            bonusMultiplier = 2.0,
+            teamBonus = 0.3
+        },
+        MATERIALS = {
+            name = "Rare Materials",
+            baseAmount = 50,
+            bonusMultiplier = 1.8,
+            teamBonus = 0.25
+        },
+        TECHNOLOGY = {
+            name = "Technology Blueprints",
+            baseAmount = 1,
+            bonusMultiplier = 1.0,
+            teamBonus = 0.1
+        }
+    },
     
     -- Boss Types
     BossTypes = {
@@ -110,13 +138,24 @@ ASC.Boss.Config = {
 ASC.Boss.Core = {
     -- Active bosses
     ActiveBosses = {},
-    
+
     -- Voting system
     CurrentVote = nil,
     VoteResults = {},
-    
+
     -- Boss counter
     BossCounter = 0,
+
+    -- Player data storage
+    PlayerData = {},
+
+    -- Reward history
+    RewardHistory = {},
+
+    -- Performance tracking
+    TotalBossesSpawned = 0,
+    TotalBossesDefeated = 0,
+    TotalRewardsDistributed = 0,
     
     -- Initialize boss system
     Initialize = function()
@@ -174,6 +213,228 @@ ASC.Boss.Core = {
         
         print("[Boss System] Boss vote started by " .. initiator:Name())
         return true
+    end,
+
+    -- Distribute rewards to players
+    DistributeRewards = function(bossType, participants, bonusMultiplier)
+        bonusMultiplier = bonusMultiplier or 1.0
+        local bossConfig = ASC.Boss.Config.BossTypes[bossType]
+        if not bossConfig then return end
+
+        local teamSize = #participants
+        local teamBonus = teamSize > 1 and 1.0 or 0.0
+
+        for _, player in ipairs(participants) do
+            if IsValid(player) then
+                ASC.Boss.Core.GivePlayerRewards(player, bossConfig, bonusMultiplier, teamBonus, teamSize)
+            end
+        end
+
+        -- Broadcast reward notification
+        ASC.Boss.Core.BroadcastRewardDistribution(bossType, participants, bonusMultiplier)
+    end,
+
+    -- Give rewards to individual player
+    GivePlayerRewards = function(player, bossConfig, bonusMultiplier, teamBonus, teamSize)
+        local rewards = {}
+
+        for rewardType, rewardConfig in pairs(ASC.Boss.Config.RewardTypes) do
+            local baseAmount = rewardConfig.baseAmount
+            local finalAmount = math.floor(baseAmount * bonusMultiplier * rewardConfig.bonusMultiplier)
+
+            -- Apply team bonus
+            if teamSize > 1 then
+                finalAmount = math.floor(finalAmount * (1 + (rewardConfig.teamBonus * (teamSize - 1))))
+            end
+
+            -- Apply difficulty multiplier from boss config
+            if bossConfig.rewardMultiplier then
+                finalAmount = math.floor(finalAmount * bossConfig.rewardMultiplier)
+            end
+
+            rewards[rewardType] = finalAmount
+
+            -- Actually give the reward (integrate with economy systems if available)
+            ASC.Boss.Core.ApplyReward(player, rewardType, finalAmount)
+        end
+
+        -- Store reward history
+        ASC.Boss.Core.StoreRewardHistory(player, rewards, bossConfig.name)
+
+        -- Notify player
+        ASC.Boss.Core.NotifyPlayerRewards(player, rewards)
+    end,
+
+    -- Apply specific reward to player
+    ApplyReward = function(player, rewardType, amount)
+        local steamID = player:SteamID()
+
+        -- Initialize player data if needed
+        if not ASC.Boss.Core.PlayerData[steamID] then
+            ASC.Boss.Core.PlayerData[steamID] = {
+                credits = 0,
+                experience = 0,
+                materials = 0,
+                technology = 0,
+                bossesDefeated = 0,
+                totalRewards = 0
+            }
+        end
+
+        local playerData = ASC.Boss.Core.PlayerData[steamID]
+
+        -- Apply reward based on type
+        if rewardType == "CREDITS" then
+            playerData.credits = playerData.credits + amount
+            -- Integrate with DarkRP or other economy systems if available
+            if player.addMoney then
+                player:addMoney(amount)
+            end
+        elseif rewardType == "EXPERIENCE" then
+            playerData.experience = playerData.experience + amount
+            -- Integrate with leveling systems if available
+        elseif rewardType == "MATERIALS" then
+            playerData.materials = playerData.materials + amount
+            -- Could integrate with inventory systems
+        elseif rewardType == "TECHNOLOGY" then
+            playerData.technology = playerData.technology + amount
+            -- Could unlock new technologies or blueprints
+        end
+
+        playerData.totalRewards = playerData.totalRewards + amount
+
+        -- Save player data
+        ASC.Boss.Core.SavePlayerData(steamID, playerData)
+    end,
+
+    -- Store reward history
+    StoreRewardHistory = function(player, rewards, bossName)
+        local steamID = player:SteamID()
+
+        if not ASC.Boss.Core.RewardHistory[steamID] then
+            ASC.Boss.Core.RewardHistory[steamID] = {}
+        end
+
+        table.insert(ASC.Boss.Core.RewardHistory[steamID], {
+            bossName = bossName,
+            rewards = rewards,
+            timestamp = os.time(),
+            date = os.date("%Y-%m-%d %H:%M:%S")
+        })
+
+        -- Keep only last 50 entries
+        while #ASC.Boss.Core.RewardHistory[steamID] > 50 do
+            table.remove(ASC.Boss.Core.RewardHistory[steamID], 1)
+        end
+    end,
+
+    -- Notify player of rewards received
+    NotifyPlayerRewards = function(player, rewards)
+        player:ChatPrint("[Boss System] 🎉 Rewards Received:")
+
+        for rewardType, amount in pairs(rewards) do
+            local rewardConfig = ASC.Boss.Config.RewardTypes[rewardType]
+            if rewardConfig and amount > 0 then
+                player:ChatPrint("• " .. rewardConfig.name .. ": " .. amount)
+            end
+        end
+
+        -- Czech translation if available
+        if ASC.Czech and ASC.Czech.IsPlayerCzech and ASC.Czech.IsPlayerCzech(player) then
+            player:ChatPrint("[Boss System] 🎉 Obdržené odměny:")
+            for rewardType, amount in pairs(rewards) do
+                local rewardConfig = ASC.Boss.Config.RewardTypes[rewardType]
+                if rewardConfig and amount > 0 then
+                    local czechName = ASC.Czech.TranslateRewardType(rewardType) or rewardConfig.name
+                    player:ChatPrint("• " .. czechName .. ": " .. amount)
+                end
+            end
+        end
+    end,
+
+    -- Broadcast reward distribution to all players
+    BroadcastRewardDistribution = function(bossType, participants, bonusMultiplier)
+        local bossConfig = ASC.Boss.Config.BossTypes[bossType]
+        if not bossConfig then return end
+
+        local participantNames = {}
+        for _, player in ipairs(participants) do
+            if IsValid(player) then
+                table.insert(participantNames, player:Name())
+            end
+        end
+
+        local message = "[Boss System] 🏆 Boss " .. bossConfig.name .. " defeated!"
+        local participantsText = "Participants: " .. table.concat(participantNames, ", ")
+
+        if bonusMultiplier > 1.0 then
+            message = message .. " (Bonus: " .. math.floor(bonusMultiplier * 100) .. "%)"
+        end
+
+        for _, player in ipairs(player.GetAll()) do
+            player:ChatPrint(message)
+            player:ChatPrint(participantsText)
+
+            -- Czech translation if available
+            if ASC.Czech and ASC.Czech.IsPlayerCzech and ASC.Czech.IsPlayerCzech(player) then
+                player:ChatPrint("[Boss System] 🏆 Boss " .. bossConfig.name .. " poražen!")
+                player:ChatPrint("Účastníci: " .. table.concat(participantNames, ", "))
+            end
+        end
+    end,
+
+    -- Save player data to file
+    SavePlayerData = function(steamID, playerData)
+        local fileName = "asc_boss_data/" .. string.gsub(steamID, ":", "_") .. ".txt"
+        local data = util.TableToJSON(playerData)
+
+        if not file.Exists("asc_boss_data", "DATA") then
+            file.CreateDir("asc_boss_data")
+        end
+
+        file.Write(fileName, data)
+    end,
+
+    -- Load player data from file
+    LoadPlayerData = function(steamID)
+        local fileName = "asc_boss_data/" .. string.gsub(steamID, ":", "_") .. ".txt"
+
+        if file.Exists(fileName, "DATA") then
+            local data = file.Read(fileName, "DATA")
+            local playerData = util.JSONToTable(data)
+
+            if playerData then
+                ASC.Boss.Core.PlayerData[steamID] = playerData
+                return playerData
+            end
+        end
+
+        return nil
+    end,
+
+    -- Get player statistics
+    GetPlayerStats = function(player)
+        if not IsValid(player) then return nil end
+
+        local steamID = player:SteamID()
+        local playerData = ASC.Boss.Core.PlayerData[steamID]
+
+        if not playerData then
+            playerData = ASC.Boss.Core.LoadPlayerData(steamID)
+        end
+
+        if not playerData then
+            return {
+                credits = 0,
+                experience = 0,
+                materials = 0,
+                technology = 0,
+                bossesDefeated = 0,
+                totalRewards = 0
+            }
+        end
+
+        return playerData
     end,
     
     -- Cast vote

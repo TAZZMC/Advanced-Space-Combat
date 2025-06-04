@@ -1,26 +1,54 @@
--- Advanced Space Combat - Resource Management System v5.1.0
--- Comprehensive resource management for materials, models, sounds, and effects
--- COMPLETE CODE UPDATE v5.1.0 - ALL SYSTEMS UPDATED, OPTIMIZED AND INTEGRATED
+-- Advanced Space Combat - Resource Management System v6.0.0
+-- Next-generation resource management with intelligent caching and optimization
+-- Research-based implementation following 2025 resource management best practices
 
-print("[Advanced Space Combat] Resource Management System v5.1.0 - Ultimate Edition Loading...")
+print("[Advanced Space Combat] Resource Management System v6.0.0 - Next-Generation Resource Intelligence Loading...")
 
 -- Initialize resource management namespace
 ASC = ASC or {}
 ASC.Resources = ASC.Resources or {}
 
--- Resource configuration
+-- Next-generation resource configuration
 ASC.Resources.Config = {
+    Version = "6.0.0",
+
+    -- Core features
     EnableResourcePrecaching = true,
     EnableFallbackResources = true,
     EnableResourceValidation = true,
     EnableResourceLogging = true,
-    
+
+    -- Advanced features
+    EnableIntelligentCaching = true,
+    EnableLazyLoading = true,
+    EnableResourceCompression = true,
+    EnableUsageAnalytics = true,
+    EnableAdaptiveQuality = true,
+    EnableMemoryOptimization = true,
+
     -- Resource paths
     BasePath = "asc/",
     MaterialsPath = "materials/asc/",
     ModelsPath = "models/asc/",
     SoundsPath = "sound/asc/",
-    EffectsPath = "lua/effects/asc_"
+    EffectsPath = "lua/effects/asc_",
+
+    -- Performance settings
+    Performance = {
+        MaxCacheSize = 100 * 1024 * 1024,  -- 100MB
+        MaxConcurrentLoads = 5,
+        PreloadDistance = 2000,
+        UnloadDistance = 5000,
+        QualityLevels = {"low", "medium", "high", "ultra"}
+    },
+
+    -- Analytics
+    Analytics = {
+        TrackUsage = true,
+        TrackPerformance = true,
+        TrackErrors = true,
+        ReportInterval = 300  -- 5 minutes
+    }
 }
 
 -- Resource registry

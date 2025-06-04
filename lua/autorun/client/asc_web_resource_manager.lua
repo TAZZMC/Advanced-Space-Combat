@@ -55,17 +55,24 @@ ASC.WebResources.State = {
 -- Initialize web resource manager
 function ASC.WebResources.Initialize()
     print("[Advanced Space Combat] Initializing web resource manager...")
-    
-    -- Create cache directory
-    ASC.WebResources.CreateCacheDirectory()
-    
-    -- Load cached resources
-    ASC.WebResources.LoadCachedResources()
-    
-    -- Generate fallback resources
-    ASC.WebResources.GenerateFallbackResources()
-    
-    print("[Advanced Space Combat] Web resource manager initialized")
+
+    local success, err = pcall(function()
+        -- Create cache directory
+        ASC.WebResources.CreateCacheDirectory()
+
+        -- Load cached resources
+        ASC.WebResources.LoadCachedResources()
+
+        -- Generate fallback resources
+        ASC.WebResources.GenerateFallbackResources()
+    end)
+
+    if success then
+        print("[Advanced Space Combat] Web resource manager initialized successfully")
+    else
+        print("[Advanced Space Combat] Web resource manager initialization failed: " .. tostring(err))
+        print("[Advanced Space Combat] Using minimal fallback mode")
+    end
 end
 
 -- Create cache directory
@@ -97,18 +104,27 @@ function ASC.WebResources.GenerateFallbackResources()
     if not ASC.WebResources.Config.FallbackGeneration.EnableProceduralTextures then
         return
     end
-    
+
     print("[ASC Web Resources] Generating fallback resources...")
-    
-    -- Generate space background
-    ASC.WebResources.GenerateSpaceBackground()
-    
-    -- Generate UI elements
-    ASC.WebResources.GenerateUIElements()
-    
-    -- Generate particle textures
-    ASC.WebResources.GenerateParticleTextures()
-    
+
+    -- Generate each resource type with error handling
+    local generators = {
+        {"Space Background", ASC.WebResources.GenerateSpaceBackground},
+        {"UI Elements", ASC.WebResources.GenerateUIElements},
+        {"Particle Textures", ASC.WebResources.GenerateParticleTextures}
+    }
+
+    for _, generator in ipairs(generators) do
+        local name, func = generator[1], generator[2]
+        local success, err = pcall(func)
+
+        if success then
+            print("[ASC Web Resources] Generated " .. name .. " successfully")
+        else
+            print("[ASC Web Resources] Failed to generate " .. name .. ": " .. tostring(err))
+        end
+    end
+
     print("[ASC Web Resources] Fallback resource generation complete")
 end
 
@@ -166,10 +182,23 @@ function ASC.WebResources.GenerateUIElements()
     local centerX, centerY = 128, 128
     local maxRadius = 128
     
-    for radius = maxRadius, 1, -1 do
+    for radius = maxRadius, 1, -2 do
         local alpha = math.max(0, 255 - (radius * 2))
         surface.SetDrawColor(100, 150, 255, alpha)
-        surface.DrawOutlinedCircle(centerX, centerY, radius, 2)
+
+        -- Create circle using polygon approximation since DrawOutlinedCircle doesn't exist
+        local points = {}
+        local segments = 16 -- Fewer segments for performance
+        for i = 0, segments do
+            local angle = (i / segments) * math.pi * 2
+            local x = centerX + math.cos(angle) * radius
+            local y = centerY + math.sin(angle) * radius
+            table.insert(points, {x = x, y = y})
+        end
+
+        if #points > 2 then
+            surface.DrawPoly(points)
+        end
     end
     
     render.PopRenderTarget()
@@ -256,11 +285,50 @@ function ASC.WebResources.SaveCache()
     end
 end
 
+-- Console commands for debugging
+if CLIENT then
+    concommand.Add("asc_web_resources_debug", function()
+        print("[ASC Web Resources] Debug Information:")
+        print("Config exists: " .. tostring(ASC.WebResources.Config ~= nil))
+        print("State exists: " .. tostring(ASC.WebResources.State ~= nil))
+
+        if ASC.WebResources.State then
+            print("Cached resources: " .. table.Count(ASC.WebResources.State.CachedResources))
+            print("Generated fallbacks: " .. table.Count(ASC.WebResources.State.GeneratedFallbacks))
+
+            print("Available fallbacks:")
+            for name, resource in pairs(ASC.WebResources.State.GeneratedFallbacks) do
+                print("  - " .. name .. ": " .. tostring(resource))
+            end
+        end
+    end, nil, "Show web resource debug information")
+
+    concommand.Add("asc_web_resources_regenerate", function()
+        print("[ASC Web Resources] Regenerating fallback resources...")
+
+        local success, err = pcall(function()
+            ASC.WebResources.GenerateFallbackResources()
+        end)
+
+        if success then
+            print("[ASC Web Resources] Regeneration completed successfully")
+        else
+            print("[ASC Web Resources] Regeneration failed: " .. tostring(err))
+        end
+    end, nil, "Regenerate web resource fallbacks")
+end
+
 -- Initialize on client
 if CLIENT then
     hook.Add("InitPostEntity", "ASC_WebResources_Init", function()
         timer.Simple(2, function()
-            ASC.WebResources.Initialize()
+            local success, err = pcall(function()
+                ASC.WebResources.Initialize()
+            end)
+
+            if not success then
+                print("[Advanced Space Combat] Web Resource Manager initialization failed: " .. tostring(err))
+            end
         end)
     end)
 end

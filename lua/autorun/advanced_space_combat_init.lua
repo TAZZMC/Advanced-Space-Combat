@@ -371,6 +371,11 @@ include("autorun/asc_cap_entity_integration.lua")
 include("autorun/asc_cap_effects_system.lua")
 include("autorun/asc_cap_weapons_integration.lua")
 include("autorun/asc_cap_console_commands.lua")
+
+-- Load missing feature systems
+include("autorun/asc_point_defense_system.lua")
+include("autorun/asc_countermeasures_system.lua")
+include("autorun/asc_czech_auto_detection.lua")
 if SERVER then
     AddCSLuaFile("autorun/asc_debug_system.lua")
     AddCSLuaFile("autorun/asc_error_recovery.lua")

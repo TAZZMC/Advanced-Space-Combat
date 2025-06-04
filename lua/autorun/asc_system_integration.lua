@@ -54,35 +54,65 @@ ASC.SystemIntegration.State = {
 -- Initialize system integration
 function ASC.SystemIntegration.Initialize()
     print("[Advanced Space Combat] Initializing system integration...")
-    
-    -- Set up monitoring
-    ASC.SystemIntegration.SetupMonitoring()
-    
-    -- Set up auto-optimization
-    ASC.SystemIntegration.SetupAutoOptimization()
-    
-    -- Verify all systems
-    ASC.SystemIntegration.VerifyAllSystems()
-    
-    -- Set up console commands
-    ASC.SystemIntegration.SetupConsoleCommands()
-    
-    ASC.SystemIntegration.State.SystemUptime = CurTime()
-    
-    print("[Advanced Space Combat] System integration initialized")
+
+    local success, err = pcall(function()
+        -- Set up monitoring
+        ASC.SystemIntegration.SetupMonitoring()
+
+        -- Set up auto-optimization
+        ASC.SystemIntegration.SetupAutoOptimization()
+
+        -- Verify all systems
+        ASC.SystemIntegration.VerifyAllSystems()
+
+        -- Set up console commands
+        ASC.SystemIntegration.SetupConsoleCommands()
+
+        ASC.SystemIntegration.State.SystemUptime = CurTime()
+    end)
+
+    if success then
+        print("[Advanced Space Combat] System integration initialized successfully")
+    else
+        print("[Advanced Space Combat] System integration initialization failed: " .. tostring(err))
+        print("[Advanced Space Combat] Some monitoring features may be disabled")
+    end
 end
 
 -- Set up monitoring
 function ASC.SystemIntegration.SetupMonitoring()
+    -- Validate configuration
+    local monitoringInterval = ASC.SystemIntegration.Config.MonitoringInterval or 5
+    local performanceLogInterval = ASC.SystemIntegration.Config.PerformanceLogInterval or 60
+
+    -- Ensure values are numbers
+    if type(monitoringInterval) ~= "number" then
+        monitoringInterval = 5
+        print("[Advanced Space Combat] Warning: Invalid MonitoringInterval, using default 5")
+    end
+
+    if type(performanceLogInterval) ~= "number" then
+        performanceLogInterval = 60
+        print("[Advanced Space Combat] Warning: Invalid PerformanceLogInterval, using default 60")
+    end
+
     -- Regular system monitoring
-    timer.Create("ASC_SystemMonitoring", ASC.SystemIntegration.Config.MonitoringInterval, 0, function()
-        ASC.SystemIntegration.MonitorSystems()
+    timer.Create("ASC_SystemMonitoring", monitoringInterval, 0, function()
+        local success, err = pcall(ASC.SystemIntegration.MonitorSystems)
+        if not success then
+            print("[Advanced Space Combat] System monitoring error: " .. tostring(err))
+        end
     end)
-    
+
     -- Performance logging
-    timer.Create("ASC_PerformanceLogging", ASC.SystemIntegration.Config.PerformanceLogInterval, 0, function()
-        ASC.SystemIntegration.LogPerformance()
+    timer.Create("ASC_PerformanceLogging", performanceLogInterval, 0, function()
+        local success, err = pcall(ASC.SystemIntegration.LogPerformance)
+        if not success then
+            print("[Advanced Space Combat] Performance logging error: " .. tostring(err))
+        end
     end)
+
+    print("[Advanced Space Combat] System monitoring timers created successfully")
 end
 
 -- Set up auto-optimization
@@ -111,6 +141,57 @@ function ASC.SystemIntegration.MonitorSystems()
     
     -- Check for alerts
     ASC.SystemIntegration.CheckAlerts()
+end
+
+-- Log performance metrics
+function ASC.SystemIntegration.LogPerformance()
+    local state = ASC.SystemIntegration.State
+    local currentTime = CurTime()
+
+    -- Only log if enough time has passed
+    if currentTime - state.LastPerformanceLog < ASC.SystemIntegration.Config.PerformanceLogInterval then
+        return
+    end
+
+    state.LastPerformanceLog = currentTime
+
+    -- Collect performance data
+    local performanceData = {
+        timestamp = currentTime,
+        systemHealth = state.SystemHealth,
+        memoryUsage = 0,
+        fps = 0,
+        entityCount = #ents.GetAll(),
+        networkLoad = 0
+    }
+
+    -- Get memory usage
+    if ASC.Performance and ASC.Performance.State then
+        performanceData.memoryUsage = ASC.Performance.State.MemoryUsage or 0
+        performanceData.fps = ASC.Performance.State.AverageFPS or 0
+    end
+
+    -- Get network load
+    if ASC.NetworkOptimization and ASC.NetworkOptimization.State then
+        performanceData.networkLoad = ASC.NetworkOptimization.State.NetworkLoad or 0
+    end
+
+    -- Log performance summary
+    print("[Advanced Space Combat] Performance Log:")
+    print("  System Health: " .. performanceData.systemHealth)
+    print("  Memory Usage: " .. performanceData.memoryUsage .. " MB")
+    print("  FPS: " .. math.floor(performanceData.fps))
+    print("  Entity Count: " .. performanceData.entityCount)
+    print("  Network Load: " .. math.floor(performanceData.networkLoad * 100) .. "%")
+
+    -- Store in analytics if available
+    if ASC.Analytics and ASC.Analytics.TrackPerformance then
+        ASC.Analytics.TrackPerformance("system_health", performanceData.systemHealth == "Good" and 1 or 0)
+        ASC.Analytics.TrackPerformance("memory_usage", performanceData.memoryUsage)
+        ASC.Analytics.TrackPerformance("fps", performanceData.fps)
+        ASC.Analytics.TrackPerformance("entity_count", performanceData.entityCount)
+        ASC.Analytics.TrackPerformance("network_load", performanceData.networkLoad)
+    end
 end
 
 -- Check performance system
@@ -474,6 +555,40 @@ function ASC.SystemIntegration.SetupConsoleCommands()
             print(msg)
         end
     end, nil, "Force system optimization (Admin only)")
+
+    concommand.Add("asc_system_debug", function(ply, cmd, args)
+        if IsValid(ply) and not ply:IsAdmin() then
+            ply:ChatPrint("[Advanced Space Combat] Admin only command")
+            return
+        end
+
+        local function printMsg(msg)
+            if IsValid(ply) then
+                ply:ChatPrint(msg)
+            else
+                print(msg)
+            end
+        end
+
+        printMsg("[Advanced Space Combat] System Integration Debug:")
+        printMsg("Config exists: " .. tostring(ASC.SystemIntegration.Config ~= nil))
+        printMsg("State exists: " .. tostring(ASC.SystemIntegration.State ~= nil))
+
+        if ASC.SystemIntegration.Config then
+            printMsg("MonitoringInterval: " .. tostring(ASC.SystemIntegration.Config.MonitoringInterval))
+            printMsg("PerformanceLogInterval: " .. tostring(ASC.SystemIntegration.Config.PerformanceLogInterval))
+            printMsg("EnableAutoOptimization: " .. tostring(ASC.SystemIntegration.Config.EnableAutoOptimization))
+        end
+
+        printMsg("Timer exists (Monitoring): " .. tostring(timer.Exists("ASC_SystemMonitoring")))
+        printMsg("Timer exists (Performance): " .. tostring(timer.Exists("ASC_PerformanceLogging")))
+        printMsg("Timer exists (AutoOptimization): " .. tostring(timer.Exists("ASC_AutoOptimization")))
+
+        -- Check function existence
+        printMsg("LogPerformance function exists: " .. tostring(ASC.SystemIntegration.LogPerformance ~= nil))
+        printMsg("MonitorSystems function exists: " .. tostring(ASC.SystemIntegration.MonitorSystems ~= nil))
+
+    end, nil, "Show system integration debug information (Admin only)")
 end
 
 -- Initialize on load
