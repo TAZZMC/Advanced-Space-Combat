@@ -471,14 +471,29 @@ function HYPERDRIVE.TacticalAI.GetAllAIStatus()
     return status
 end
 
--- Think function for tactical AI
-timer.Create("HyperdriveTacticalAIThink", 0.1, 0, function()
-    for coreId, ai in pairs(HYPERDRIVE.TacticalAI.AIInstances) do
-        if IsValid(ai.shipCore) then
-            ai:Update()
-        else
-            HYPERDRIVE.TacticalAI.AIInstances[coreId] = nil
-        end
+-- Register with master scheduler instead of timer
+timer.Simple(2, function()
+    if ASC and ASC.MasterScheduler then
+        ASC.MasterScheduler.RegisterTask("HyperdriveTacticalAI", "Medium", function()
+            for coreId, ai in pairs(HYPERDRIVE.TacticalAI.AIInstances) do
+                if IsValid(ai.shipCore) then
+                    ai:Update()
+                else
+                    HYPERDRIVE.TacticalAI.AIInstances[coreId] = nil
+                end
+            end
+        end, 0.5) -- 2 FPS update rate
+    else
+        -- Fallback timer if master scheduler not available
+        timer.Create("HyperdriveTacticalAIThink", 0.5, 0, function()
+            for coreId, ai in pairs(HYPERDRIVE.TacticalAI.AIInstances) do
+                if IsValid(ai.shipCore) then
+                    ai:Update()
+                else
+                    HYPERDRIVE.TacticalAI.AIInstances[coreId] = nil
+                end
+            end
+        end)
     end
 end)
 
