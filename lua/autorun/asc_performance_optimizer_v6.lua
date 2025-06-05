@@ -81,39 +81,49 @@ ASC.Performance.State = {
 ASC.Performance.EntityCulling = {
     CullDistance = 5000,
     CullAngle = 90,
-    UpdateRate = 0.5,
+    UpdateRate = 2.0, -- Reduced frequency from 0.5 to 2.0 seconds
     LastUpdate = 0,
     CulledEntities = {},
-    
+    LastCullCount = 0,
+    TotalCulled = 0,
+
     -- Update entity visibility
     Update = function()
         if not ASC.Performance.Config.Techniques.EntityCulling then return end
-        
+
         local currentTime = CurTime()
         if currentTime - ASC.Performance.EntityCulling.LastUpdate < ASC.Performance.EntityCulling.UpdateRate then
             return
         end
-        
+
         local ply = LocalPlayer()
         if not IsValid(ply) then return end
-        
+
         local playerPos = ply:GetPos()
         local playerAng = ply:EyeAngles()
         local cullDistance = ASC.Performance.EntityCulling.CullDistance
         local cullAngle = ASC.Performance.EntityCulling.CullAngle
-        
+
         local culledCount = 0
-        
-        for _, ent in ipairs(ents.GetAll()) do
-            if IsValid(ent) and ent ~= ply then
+        local unculledCount = 0
+
+        -- Only process a subset of entities each frame for better performance
+        local allEntities = ents.GetAll()
+        local startIndex = (ASC.Performance.EntityCulling.LastUpdate * 100) % #allEntities + 1
+        local endIndex = math.min(startIndex + 50, #allEntities) -- Process max 50 entities per update
+
+        for i = startIndex, endIndex do
+            local ent = allEntities[i]
+            if IsValid(ent) and ent ~= ply and not ent:IsPlayer() then
                 local entPos = ent:GetPos()
                 local distance = playerPos:Distance(entPos)
-                
+                local entIndex = ent:EntIndex()
+
                 -- Distance culling
                 if distance > cullDistance then
-                    if not ASC.Performance.EntityCulling.CulledEntities[ent:EntIndex()] then
+                    if not ASC.Performance.EntityCulling.CulledEntities[entIndex] then
                         ent:SetNoDraw(true)
-                        ASC.Performance.EntityCulling.CulledEntities[ent:EntIndex()] = true
+                        ASC.Performance.EntityCulling.CulledEntities[entIndex] = true
                         culledCount = culledCount + 1
                     end
                 else
@@ -122,28 +132,32 @@ ASC.Performance.EntityCulling = {
                     local forward = playerAng:Forward()
                     local dot = forward:Dot(toEntity)
                     local angle = math.deg(math.acos(math.Clamp(dot, -1, 1)))
-                    
+
                     if angle > cullAngle then
-                        if not ASC.Performance.EntityCulling.CulledEntities[ent:EntIndex()] then
+                        if not ASC.Performance.EntityCulling.CulledEntities[entIndex] then
                             ent:SetNoDraw(true)
-                            ASC.Performance.EntityCulling.CulledEntities[ent:EntIndex()] = true
+                            ASC.Performance.EntityCulling.CulledEntities[entIndex] = true
                             culledCount = culledCount + 1
                         end
                     else
                         -- Entity is visible, un-cull if needed
-                        if ASC.Performance.EntityCulling.CulledEntities[ent:EntIndex()] then
+                        if ASC.Performance.EntityCulling.CulledEntities[entIndex] then
                             ent:SetNoDraw(false)
-                            ASC.Performance.EntityCulling.CulledEntities[ent:EntIndex()] = nil
+                            ASC.Performance.EntityCulling.CulledEntities[entIndex] = nil
+                            unculledCount = unculledCount + 1
                         end
                     end
                 end
             end
         end
-        
+
         ASC.Performance.EntityCulling.LastUpdate = currentTime
-        
-        if culledCount > 0 then
-            print("[ASC Performance] Culled " .. culledCount .. " entities for optimization")
+        ASC.Performance.EntityCulling.LastCullCount = culledCount
+        ASC.Performance.EntityCulling.TotalCulled = ASC.Performance.EntityCulling.TotalCulled + culledCount
+
+        -- Only print if significant changes occurred (reduce spam)
+        if culledCount > 10 or unculledCount > 10 then
+            print("[ASC Performance] Culled " .. culledCount .. " entities, restored " .. unculledCount .. " entities")
         end
     end
 }

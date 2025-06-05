@@ -51,47 +51,6 @@ end
 function ENT:Draw()
     self:DrawModel()
 
-    -- Apply dynamic material based on state
-    local state = self:GetState()
-    local color = self:GetStateColor()
-
-    -- Set material based on state
-    if state == 4 or state == 3 then -- EMERGENCY or CRITICAL
-        self:SetMaterial("hyperdrive/ship_core_glow")
-    else
-        self:SetMaterial("hyperdrive/ship_core_base")
-    end
-
-    -- Set color based on state
-    self:SetColor(Color(color.r, color.g, color.b, 255))
-
-    -- Pulse effect for critical states
-    if state == 4 or state == 3 then -- EMERGENCY or CRITICAL
-        self.pulseTime = self.pulseTime + FrameTime() * 3
-        self.glowIntensity = math.abs(math.sin(self.pulseTime)) * 0.8 + 0.2
-    else
-        self.glowIntensity = 0.5
-    end
-
-    -- Draw enhanced glow effect
-    local pos = self:GetPos()
-    local size = 32 * self.glowIntensity
-
-    -- Create ship core glow effect periodically
-    if CurTime() - self.lastEffectTime > 2 then
-        self.lastEffectTime = CurTime()
-
-        local effectData = EffectData()
-        effectData:SetOrigin(pos)
-        effectData:SetEntity(self)
-        effectData:SetScale(1)
-        effectData:SetMagnitude(state)
-        util.Effect("ship_core_glow", effectData)
-    end
-
-    render.SetMaterial(Material("sprites/light_glow02_add"))
-    render.DrawSprite(pos, size, size, color)
-
     -- Draw status text above core
     self:DrawStatusText()
 
@@ -257,28 +216,346 @@ function shipCoreUI:AddNotification(text, type)
         table.remove(self.notifications, 1)
     end
 
-    -- Play notification sound using sound system
-    if HYPERDRIVE.Sounds and HYPERDRIVE.Sounds.UI then
-        if type == "error" then
-            HYPERDRIVE.Sounds.UI.PlayError()
-        elseif type == "warning" then
-            HYPERDRIVE.Sounds.UI.PlayWarning()
-        elseif type == "success" then
-            HYPERDRIVE.Sounds.UI.PlaySuccess()
+    -- Notification sounds removed per user request
+end
+
+-- UI Drawing Function
+function shipCoreUI:Draw()
+    if not self.visible or not IsValid(self.entity) then return end
+
+    -- Update fade animation
+    local timeDiff = CurTime() - self.animationTime
+    if timeDiff < 0.3 then
+        local progress = timeDiff / 0.3
+        self.fadeAlpha = Lerp(progress, 0, self.targetAlpha)
+    else
+        self.fadeAlpha = self.targetAlpha
+    end
+
+    if self.fadeAlpha <= 0 then return end
+
+    local scrW, scrH = ScrW(), ScrH()
+    local panelX = (scrW - self.panelWidth) / 2
+    local panelY = (scrH - self.panelHeight) / 2
+
+    -- Main panel background
+    surface.SetDrawColor(self.theme.primary.r, self.theme.primary.g, self.theme.primary.b, self.fadeAlpha * 0.9)
+    surface.DrawRect(panelX, panelY, self.panelWidth, self.panelHeight)
+
+    -- Panel border
+    surface.SetDrawColor(self.theme.accent.r, self.theme.accent.g, self.theme.accent.b, self.fadeAlpha)
+    surface.DrawOutlinedRect(panelX, panelY, self.panelWidth, self.panelHeight, 2)
+
+    -- Title bar
+    surface.SetDrawColor(self.theme.secondary.r, self.theme.secondary.g, self.theme.secondary.b, self.fadeAlpha)
+    surface.DrawRect(panelX, panelY, self.panelWidth, 60)
+
+    -- Title text
+    draw.SimpleText("ASC Ship Core Interface v2.2.0", "DermaLarge", panelX + 20, panelY + 20, Color(self.theme.text.r, self.theme.text.g, self.theme.text.b, self.fadeAlpha), TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+
+    -- Close button
+    local closeX = panelX + self.panelWidth - 40
+    local closeY = panelY + 10
+    surface.SetDrawColor(self.theme.error.r, self.theme.error.g, self.theme.error.b, self.fadeAlpha * 0.8)
+    surface.DrawRect(closeX, closeY, 30, 30)
+    draw.SimpleText("X", "DermaDefault", closeX + 15, closeY + 15, Color(255, 255, 255, self.fadeAlpha), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+
+    -- Check for close button click
+    local mx, my = gui.MousePos()
+    if input.IsMouseDown(MOUSE_LEFT) and mx >= closeX and mx <= closeX + 30 and my >= closeY and my <= closeY + 30 then
+        self:Close()
+        return
+    end
+
+    -- Tab buttons
+    local tabs = {"Overview", "Resources", "Systems", "Model"}
+    local tabWidth = self.panelWidth / #tabs
+    local tabY = panelY + 60
+
+    for i, tab in ipairs(tabs) do
+        local tabX = panelX + (i - 1) * tabWidth
+        local isActive = string.lower(tab) == self.currentTab
+
+        -- Tab background
+        if isActive then
+            surface.SetDrawColor(self.theme.accent.r, self.theme.accent.g, self.theme.accent.b, self.fadeAlpha)
         else
-            HYPERDRIVE.Sounds.UI.PlayNotification()
+            surface.SetDrawColor(self.theme.secondary.r, self.theme.secondary.g, self.theme.secondary.b, self.fadeAlpha * 0.7)
+        end
+        surface.DrawRect(tabX, tabY, tabWidth, 40)
+
+        -- Tab text
+        local textColor = isActive and self.theme.text or self.theme.textSecondary
+        draw.SimpleText(tab, "DermaDefault", tabX + tabWidth / 2, tabY + 20, Color(textColor.r, textColor.g, textColor.b, self.fadeAlpha), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+
+        -- Check for tab click
+        if input.IsMouseDown(MOUSE_LEFT) and mx >= tabX and mx <= tabX + tabWidth and my >= tabY and my <= tabY + 40 then
+            self.currentTab = string.lower(tab)
+        end
+    end
+
+    -- Content area
+    local contentY = tabY + 40
+    local contentHeight = self.panelHeight - 100 - 40
+
+    -- Draw content based on current tab
+    if self.currentTab == "overview" then
+        self:DrawOverviewTab(panelX + 20, contentY + 20, self.panelWidth - 40, contentHeight - 40)
+    elseif self.currentTab == "resources" then
+        self:DrawResourcesTab(panelX + 20, contentY + 20, self.panelWidth - 40, contentHeight - 40)
+    elseif self.currentTab == "systems" then
+        self:DrawSystemsTab(panelX + 20, contentY + 20, self.panelWidth - 40, contentHeight - 40)
+    elseif self.currentTab == "model" then
+        self:DrawModelTab(panelX + 20, contentY + 20, self.panelWidth - 40, contentHeight - 40)
+    end
+
+    -- Draw notifications
+    self:DrawNotifications()
+end
+
+function shipCoreUI:DrawOverviewTab(x, y, w, h)
+    local data = self.data
+    if not data then return end
+
+    local lineHeight = 20
+    local currentY = y
+    local columnWidth = w / 2
+
+    -- Left Column - Ship Core Status
+    draw.SimpleText("Ship Core Status:", "DermaDefaultBold", x, currentY, Color(self.theme.text.r, self.theme.text.g, self.theme.text.b, self.fadeAlpha))
+    currentY = currentY + lineHeight
+
+    draw.SimpleText("State: " .. (data.coreStateName or "Unknown"), "DermaDefault", x + 10, currentY, Color(self.theme.textSecondary.r, self.theme.textSecondary.g, self.theme.textSecondary.b, self.fadeAlpha))
+    currentY = currentY + lineHeight
+
+    draw.SimpleText("Ship: " .. (data.shipName or "Unnamed Ship"), "DermaDefault", x + 10, currentY, Color(self.theme.textSecondary.r, self.theme.textSecondary.g, self.theme.textSecondary.b, self.fadeAlpha))
+    currentY = currentY + lineHeight
+
+    draw.SimpleText("Type: " .. (data.shipType or "Unknown"), "DermaDefault", x + 10, currentY, Color(self.theme.textSecondary.r, self.theme.textSecondary.g, self.theme.textSecondary.b, self.fadeAlpha))
+    currentY = currentY + lineHeight * 1.5
+
+    -- Power Management
+    if data.powerManagement then
+        local pm = data.powerManagement
+        draw.SimpleText("Power Management:", "DermaDefaultBold", x, currentY, Color(self.theme.text.r, self.theme.text.g, self.theme.text.b, self.fadeAlpha))
+        currentY = currentY + lineHeight
+
+        local powerPercent = (pm.availablePower / pm.totalPower) * 100
+        local powerColor = powerPercent > 75 and self.theme.success or (powerPercent > 25 and self.theme.warning or self.theme.error)
+        draw.SimpleText("Power: " .. math.floor(pm.availablePower) .. "/" .. pm.totalPower .. " (" .. math.floor(powerPercent) .. "%)", "DermaDefault", x + 10, currentY, Color(powerColor.r, powerColor.g, powerColor.b, self.fadeAlpha))
+        currentY = currentY + lineHeight
+
+        local efficiencyColor = pm.powerEfficiency > 0.8 and self.theme.success or (pm.powerEfficiency > 0.5 and self.theme.warning or self.theme.error)
+        draw.SimpleText("Efficiency: " .. math.floor(pm.powerEfficiency * 100) .. "%", "DermaDefault", x + 10, currentY, Color(efficiencyColor.r, efficiencyColor.g, efficiencyColor.b, self.fadeAlpha))
+        currentY = currentY + lineHeight
+
+        if pm.emergencyMode then
+            draw.SimpleText("EMERGENCY MODE ACTIVE", "DermaDefault", x + 10, currentY, Color(self.theme.error.r, self.theme.error.g, self.theme.error.b, self.fadeAlpha))
+            currentY = currentY + lineHeight
+        end
+    end
+
+    -- Right Column - System Status
+    local rightX = x + columnWidth
+    local rightY = y
+
+    draw.SimpleText("System Status:", "DermaDefaultBold", rightX, rightY, Color(self.theme.text.r, self.theme.text.g, self.theme.text.b, self.fadeAlpha))
+    rightY = rightY + lineHeight
+
+    local hullColor = data.hullIntegrity and (data.hullIntegrity > 75 and self.theme.success or (data.hullIntegrity > 25 and self.theme.warning or self.theme.error)) or self.theme.textMuted
+    draw.SimpleText("Hull: " .. (data.hullIntegrity or 0) .. "%", "DermaDefault", rightX + 10, rightY, Color(hullColor.r, hullColor.g, hullColor.b, self.fadeAlpha))
+    rightY = rightY + lineHeight
+
+    local shieldColor = data.shieldStrength and (data.shieldStrength > 50 and self.theme.success or (data.shieldStrength > 0 and self.theme.warning or self.theme.error)) or self.theme.textMuted
+    draw.SimpleText("Shields: " .. (data.shieldStrength or 0) .. "%", "DermaDefault", rightX + 10, rightY, Color(shieldColor.r, shieldColor.g, shieldColor.b, self.fadeAlpha))
+    rightY = rightY + lineHeight * 1.5
+
+    -- Thermal Management
+    if data.thermalManagement then
+        local tm = data.thermalManagement
+        draw.SimpleText("Thermal Status:", "DermaDefaultBold", rightX, rightY, Color(self.theme.text.r, self.theme.text.g, self.theme.text.b, self.fadeAlpha))
+        rightY = rightY + lineHeight
+
+        local tempColor = tm.coreTemperature < tm.maxTemperature and self.theme.success or self.theme.error
+        draw.SimpleText("Core Temp: " .. math.floor(tm.coreTemperature) .. "°C", "DermaDefault", rightX + 10, rightY, Color(tempColor.r, tempColor.g, tempColor.b, self.fadeAlpha))
+        rightY = rightY + lineHeight
+
+        if tm.overheating then
+            draw.SimpleText("OVERHEATING!", "DermaDefault", rightX + 10, rightY, Color(self.theme.error.r, self.theme.error.g, self.theme.error.b, self.fadeAlpha))
+            rightY = rightY + lineHeight
+        end
+    end
+
+    -- Crew Efficiency
+    if data.crewEfficiency then
+        local ce = data.crewEfficiency
+        draw.SimpleText("Crew Status:", "DermaDefaultBold", rightX, rightY, Color(self.theme.text.r, self.theme.text.g, self.theme.text.b, self.fadeAlpha))
+        rightY = rightY + lineHeight
+
+        draw.SimpleText("Crew: " .. ce.totalCrew .. " aboard", "DermaDefault", rightX + 10, rightY, Color(self.theme.textSecondary.r, self.theme.textSecondary.g, self.theme.textSecondary.b, self.fadeAlpha))
+        rightY = rightY + lineHeight
+
+        local effColor = ce.overallEfficiency > 0.8 and self.theme.success or (ce.overallEfficiency > 0.5 and self.theme.warning or self.theme.error)
+        draw.SimpleText("Efficiency: " .. math.floor(ce.overallEfficiency * 100) .. "%", "DermaDefault", rightX + 10, rightY, Color(effColor.r, effColor.g, effColor.b, self.fadeAlpha))
+    end
+end
+
+function shipCoreUI:DrawResourcesTab(x, y, w, h)
+    local data = self.data
+    if not data then return end
+
+    local lineHeight = 25
+    local currentY = y
+    local barHeight = 15
+    local barWidth = w - 100
+
+    draw.SimpleText("Resource Management", "DermaDefaultBold", x, currentY, Color(self.theme.text.r, self.theme.text.g, self.theme.text.b, self.fadeAlpha))
+    currentY = currentY + lineHeight * 1.5
+
+    if data.resources then
+        -- Sort resources by priority
+        local sortedResources = {}
+        for resourceType, resource in pairs(data.resources) do
+            table.insert(sortedResources, {type = resourceType, data = resource})
+        end
+        table.sort(sortedResources, function(a, b) return a.data.priority < b.data.priority end)
+
+        for _, resourceInfo in ipairs(sortedResources) do
+            local resourceType = resourceInfo.type
+            local resource = resourceInfo.data
+
+            -- Resource name
+            local displayName = string.upper(string.sub(resourceType, 1, 1)) .. string.sub(resourceType, 2)
+            draw.SimpleText(displayName .. ":", "DermaDefault", x, currentY, Color(self.theme.text.r, self.theme.text.g, self.theme.text.b, self.fadeAlpha))
+
+            -- Resource bar background
+            surface.SetDrawColor(50, 50, 50, self.fadeAlpha)
+            surface.DrawRect(x + 80, currentY, barWidth, barHeight)
+
+            -- Resource bar fill
+            local fillWidth = (resource.percentage / 100) * barWidth
+            local barColor = resource.percentage > 75 and self.theme.success or (resource.percentage > 25 and self.theme.warning or self.theme.error)
+            if resource.critical and resource.percentage < 25 then
+                barColor = self.theme.error
+            end
+
+            surface.SetDrawColor(barColor.r, barColor.g, barColor.b, self.fadeAlpha)
+            surface.DrawRect(x + 80, currentY, fillWidth, barHeight)
+
+            -- Resource text
+            local resourceText = math.floor(resource.amount) .. "/" .. resource.capacity .. " (" .. math.floor(resource.percentage) .. "%)"
+            draw.SimpleText(resourceText, "DermaDefault", x + 80 + barWidth + 10, currentY + 2, Color(self.theme.textSecondary.r, self.theme.textSecondary.g, self.theme.textSecondary.b, self.fadeAlpha))
+
+            -- Regeneration rate
+            if resource.regenRate > 0 then
+                draw.SimpleText("+" .. resource.regenRate .. "/s", "DermaDefault", x + 80 + barWidth + 150, currentY + 2, Color(self.theme.success.r, self.theme.success.g, self.theme.success.b, self.fadeAlpha))
+            end
+
+            currentY = currentY + lineHeight
         end
     else
-        -- Fallback to default sounds
-        if type == "error" then
-            surface.PlaySound("buttons/button11.wav")
-        elseif type == "warning" then
-            surface.PlaySound("buttons/button8.wav")
-        else
-            surface.PlaySound("buttons/button17.wav")
+        draw.SimpleText("No resource data available", "DermaDefault", x, currentY, Color(self.theme.textMuted.r, self.theme.textMuted.g, self.theme.textMuted.b, self.fadeAlpha))
+    end
+end
+
+function shipCoreUI:DrawSystemsTab(x, y, w, h)
+    local data = self.data
+    if not data then return end
+
+    local lineHeight = 25
+    local currentY = y
+    local columnWidth = w / 2
+
+    draw.SimpleText("System Configuration", "DermaDefaultBold", x, currentY, Color(self.theme.text.r, self.theme.text.g, self.theme.text.b, self.fadeAlpha))
+    currentY = currentY + lineHeight * 1.5
+
+    -- Left Column - Power Distribution
+    if data.powerManagement and data.powerManagement.powerDistribution then
+        draw.SimpleText("Power Distribution:", "DermaDefaultBold", x, currentY, Color(self.theme.text.r, self.theme.text.g, self.theme.text.b, self.fadeAlpha))
+        local powerY = currentY + lineHeight
+
+        for system, powerData in pairs(data.powerManagement.powerDistribution) do
+            if powerData.active then
+                local displayName = string.upper(string.sub(system, 1, 1)) .. string.sub(system, 2)
+                local powerPercent = (powerData.allocated / data.powerManagement.totalPower) * 100
+
+                draw.SimpleText(displayName .. ": " .. powerData.allocated .. "W (" .. math.floor(powerPercent) .. "%)", "DermaDefault", x + 10, powerY, Color(self.theme.textSecondary.r, self.theme.textSecondary.g, self.theme.textSecondary.b, self.fadeAlpha))
+                powerY = powerY + lineHeight * 0.8
+            end
+        end
+    end
+
+    -- Right Column - Subsystem Health
+    local rightX = x + columnWidth
+    local rightY = currentY
+
+    if data.subsystems then
+        draw.SimpleText("Subsystem Health:", "DermaDefaultBold", rightX, rightY, Color(self.theme.text.r, self.theme.text.g, self.theme.text.b, self.fadeAlpha))
+        rightY = rightY + lineHeight
+
+        for systemName, subsystem in pairs(data.subsystems) do
+            local displayName = string.upper(string.sub(systemName, 1, 1)) .. string.sub(systemName, 2)
+            local healthColor = subsystem.health > 75 and self.theme.success or (subsystem.health > 25 and self.theme.warning or self.theme.error)
+
+            local statusText = displayName .. ": " .. math.floor(subsystem.health) .. "%"
+            if subsystem.critical and subsystem.health < 50 then
+                statusText = statusText .. " [CRITICAL]"
+            end
+
+            draw.SimpleText(statusText, "DermaDefault", rightX + 10, rightY, Color(healthColor.r, healthColor.g, healthColor.b, self.fadeAlpha))
+            rightY = rightY + lineHeight * 0.8
+        end
+
+        if data.autoRepair then
+            rightY = rightY + lineHeight * 0.5
+            draw.SimpleText("Auto-Repair: ACTIVE", "DermaDefault", rightX + 10, rightY, Color(self.theme.success.r, self.theme.success.g, self.theme.success.b, self.fadeAlpha))
         end
     end
 end
+
+function shipCoreUI:DrawModelTab(x, y, w, h)
+    local data = self.data
+    if not data or not data.modelInfo then return end
+
+    draw.SimpleText("Model Selection", "DermaDefaultBold", x, y, Color(self.theme.text.r, self.theme.text.g, self.theme.text.b, self.fadeAlpha))
+
+    local modelInfo = data.modelInfo
+    draw.SimpleText("Current Model: " .. (modelInfo.currentModelName or "Unknown"), "DermaDefault", x, y + 30, Color(self.theme.textSecondary.r, self.theme.textSecondary.g, self.theme.textSecondary.b, self.fadeAlpha))
+    draw.SimpleText("Total Models: " .. (modelInfo.totalModels or 0), "DermaDefault", x, y + 55, Color(self.theme.textSecondary.r, self.theme.textSecondary.g, self.theme.textSecondary.b, self.fadeAlpha))
+end
+
+function shipCoreUI:DrawNotifications()
+    if not self.notifications or #self.notifications == 0 then return end
+
+    local x = ScrW() - 320
+    local y = 100
+
+    for i, notification in ipairs(self.notifications) do
+        local age = CurTime() - notification.time
+        local alpha = math.max(0, 255 - (age * 50))
+
+        if alpha > 0 then
+            local color = self.theme.text
+            if notification.type == "error" then
+                color = self.theme.error
+            elseif notification.type == "warning" then
+                color = self.theme.warning
+            elseif notification.type == "success" then
+                color = self.theme.success
+            end
+
+            surface.SetDrawColor(0, 0, 0, alpha * 0.8)
+            surface.DrawRect(x, y + (i - 1) * 30, 300, 25)
+
+            draw.SimpleText(notification.text, "DermaDefault", x + 10, y + (i - 1) * 30 + 12, Color(color.r, color.g, color.b, alpha), TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+        end
+    end
+end
+
+-- HUD Paint hook for UI rendering
+hook.Add("HUDPaint", "ASC_ShipCore_UI", function()
+    shipCoreUI:Draw()
+end)
 
 -- Model selection functionality
 function ENT:DrawModelInfo()
@@ -306,6 +583,25 @@ function ENT:DrawModelInfo()
         draw.SimpleText("F1: Menu | F2: Next | F3: Previous", "DermaDefault", 0, 20, Color(150, 150, 150), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
     cam.End3D2D()
 end
+
+-- Network message handlers for UI system
+net.Receive("asc_ship_core_open_ui", function()
+    local core = net.ReadEntity()
+    local data = net.ReadTable()
+
+    if IsValid(core) then
+        shipCoreUI:Open(core, data)
+    end
+end)
+
+net.Receive("asc_ship_core_close_ui", function()
+    shipCoreUI:Close()
+end)
+
+net.Receive("asc_ship_core_update_ui", function()
+    local data = net.ReadTable()
+    shipCoreUI:Update(data)
+end)
 
 -- Network message handlers for model selection
 net.Receive("asc_ship_core_model_selection", function()

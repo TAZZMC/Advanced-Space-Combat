@@ -44,7 +44,9 @@ end
 util.AddNetworkString("asc_ship_core_open_ui")
 util.AddNetworkString("asc_ship_core_update_ui")
 util.AddNetworkString("asc_ship_core_command")
+util.AddNetworkString("asc_ship_core_open_ui")
 util.AddNetworkString("asc_ship_core_close_ui")
+util.AddNetworkString("asc_ship_core_update_ui")
 util.AddNetworkString("asc_ship_core_name_dialog")
 util.AddNetworkString("asc_ship_core_model_selection")
 util.AddNetworkString("asc_ship_core_model_change")
@@ -74,6 +76,26 @@ function ENT:Initialize()
     if IsValid(phys) then
         phys:Wake()
         phys:SetMass(50)
+        phys:EnableMotion(true) -- Ensure physics object can be moved/welded
+    end
+
+    -- Enable welding and constraints
+    self:SetNWBool("CanBeWelded", true)
+    self:SetNWBool("AllowConstraints", true)
+
+    -- Auto-weld system removed for performance and simplicity
+
+    -- Set up for tool interactions
+    self.CanTool = function(self, ply, trace, mode)
+        -- Allow welding and other constraint tools
+        if mode == "weld" or mode == "rope" or mode == "axis" or mode == "ballsocket" or mode == "slider" or mode == "hydraulic" then
+            return true
+        end
+        -- Allow other ASC tools
+        if string.find(mode, "asc_") then
+            return true
+        end
+        return false
     end
 
     -- Initialize ship core data
@@ -83,20 +105,17 @@ function ENT:Initialize()
     self.activeUIs = {} -- Track active UI sessions
     self.shipNameFile = "hyperdrive/ship_names_" .. self:EntIndex() .. ".txt"
 
-    -- Initialize ambient sound system with improved sounds
-    self.ambientSound = nil
-    self.ambientSoundMuted = false
-    self.ambientSoundVolume = 0.15  -- Even quieter by default
-    self.ambientSoundPath = "ambient/atmosphere/ambience_base.wav" -- Better default sound
+    -- Ambient sound system removed per user request
 
-    -- Use CAP technology-specific ambient sounds if available
-    self:SelectTechnologyAmbientSound()
+    -- Track spawn time for initialization delay
+    self.SpawnTime = CurTime()
+    self.InitializationComplete = false
 
     -- Load ship name from file
     self:LoadShipName()
 
-    -- Initialize systems
-    timer.Simple(1, function()
+    -- Initialize systems with longer delay to prevent spawn lag
+    timer.Simple(3, function()
         if IsValid(self) then
             self:InitializeSystems()
         end
@@ -119,22 +138,22 @@ function ENT:Initialize()
     self.FleetRole = ""
     self.RealTimeMonitoring = true
     self.LastRealTimeUpdate = 0
-    self.RealTimeUpdateRate = 0.05 -- 20 FPS for real-time updates
+    self.RealTimeUpdateRate = 2.0 -- Reduced: 0.5 FPS for real-time updates (was 20 FPS)
     self.PerformanceMetrics = {}
     self.SystemAlerts = {}
     self.AlertCooldowns = {} -- Track cooldowns for different alert types
     self.AlertHistory = {} -- Track alert history to prevent spam
     self.AdminAccess = false
 
-    -- Smart update system with adaptive intervals
+    -- Optimized update system with reduced frequencies to prevent spawn lag
     self.LastEntityScan = 0
-    self.EntityScanRate = 0.1 -- Base: 10 FPS for entity scanning
+    self.EntityScanRate = 2.0 -- Reduced: 0.5 FPS for entity scanning (was 10 FPS)
     self.LastResourceUpdate = 0
-    self.ResourceUpdateRate = 0.2 -- Base: 5 FPS for resource calculations
+    self.ResourceUpdateRate = 1.0 -- Reduced: 1 FPS for resource calculations (was 5 FPS)
     self.LastSystemCheck = 0
-    self.SystemCheckRate = 0.5 -- Base: 2 FPS for system health checks
+    self.SystemCheckRate = 3.0 -- Reduced: 0.33 FPS for system health checks (was 2 FPS)
     self.LastNetworkUpdate = 0
-    self.NetworkUpdateRate = 0.1 -- Base: 10 FPS for network synchronization
+    self.NetworkUpdateRate = 1.0 -- Reduced: 1 FPS for network synchronization (was 10 FPS)
 
     -- Smart update tracking
     self.UpdatePriorities = {
@@ -143,6 +162,13 @@ function ENT:Initialize()
         system_check = 3,    -- Low priority
         network_sync = 1     -- High priority
     }
+
+    -- Performance optimization settings
+    self.PerformanceMode = false
+    self.LastPerformanceCheck = 0
+    self.PerformanceCheckInterval = 5.0 -- Check every 5 seconds
+    self.FrameTimeHistory = {}
+    self.MaxFrameHistory = 30
 
     -- Adaptive update rates based on activity
     self.AdaptiveRates = {
@@ -172,68 +198,26 @@ function ENT:Initialize()
     self.CachedSystemStatus = {}
     self.CachedPerformanceData = {}
 
-    -- Initialize v2.2.0 systems
-    self:InitializeFleetManagement()
-    self:InitializeRealTimeMonitoring()
-    self:InitializePerformanceAnalytics()
-    self:StartRealTimeUpdates()
+    -- Initialize v2.2.0 systems with delay to prevent spawn lag
+    timer.Simple(5, function()
+        if IsValid(self) then
+            self:InitializeFleetManagement()
+            self:InitializeRealTimeMonitoring()
+            self:InitializePerformanceAnalytics()
+            self:StartRealTimeUpdates()
+        end
+    end)
 
     print("[ASC Ship Core] Enhanced ASC Ship Core v5.1.0 with Stargate hyperspace integration and advanced features initialized at " .. tostring(self:GetPos()))
 end
 
--- Ambient Sound System Functions
-function ENT:StartAmbientSound()
-    if self.ambientSoundMuted then return end
-
-    -- Stop existing sound if any
-    self:StopAmbientSound()
-
-    -- Create ambient sound with improved settings
-    self.ambientSound = CreateSound(self, self.ambientSoundPath)
-    if self.ambientSound then
-        self.ambientSound:SetSoundLevel(40) -- Even quieter sound level
-        self.ambientSound:PlayEx(self.ambientSoundVolume, 90) -- Lower volume and pitch for less annoyance
-        print("[ASC Ship Core] Ambient sound started: " .. self.ambientSoundPath .. " (Volume: " .. self.ambientSoundVolume .. ", Level: 40)")
-    end
-end
-
-function ENT:StopAmbientSound()
-    if self.ambientSound then
-        self.ambientSound:Stop()
-        self.ambientSound = nil
-        print("[ASC Ship Core] Ambient sound stopped")
-    end
-end
-
-function ENT:SetAmbientSoundMuted(muted)
-    self.ambientSoundMuted = muted
-
-    if muted then
-        self:StopAmbientSound()
-    else
-        self:StartAmbientSound()
-    end
-
-    -- Update network variable for UI
-    self:SetNWBool("AmbientSoundMuted", muted)
-
-    -- Update wire outputs
-    if WireLib then
-        self:UpdateWireOutputs()
-    end
-end
-
-function ENT:IsAmbientSoundMuted()
-    return self.ambientSoundMuted
-end
+-- Ambient Sound System Functions - REMOVED per user request
 
 function ENT:OnRemove()
-    -- Clean up ambient sound
-    self:StopAmbientSound()
-
-    -- Clean up resource system
-    if HYPERDRIVE.SB3Resources then
-        HYPERDRIVE.SB3Resources.RemoveCoreStorage(self)
+    -- Clean up resource system (SB3Resources cleanup is handled automatically by hook)
+    if HYPERDRIVE.SB3Resources and HYPERDRIVE.SB3Resources.CoreStorage then
+        local coreId = self:EntIndex()
+        HYPERDRIVE.SB3Resources.CoreStorage[coreId] = nil
     end
 
     -- Clean up basic resource timer
@@ -248,6 +232,47 @@ function ENT:OnRemove()
             ply:SetNWBool("HasLifeSupport", false)
             ply:SetNWEntity("LifeSupportCore", NULL)
         end
+    end
+
+    -- Clean up ship core from ship system
+    if HYPERDRIVE.ShipCore and HYPERDRIVE.ShipCore.Ships then
+        local coreId = self:EntIndex()
+        HYPERDRIVE.ShipCore.Ships[coreId] = nil
+    end
+
+    -- Clean up optimization system resources
+    if ASC and ASC.ShipCore and ASC.ShipCore.Optimization then
+        local coreId = self:EntIndex()
+
+        -- Clean up incremental detection queue
+        if ASC.ShipCore.Optimization.IncrementalDetection.queues[coreId] then
+            ASC.ShipCore.Optimization.IncrementalDetection.queues[coreId] = nil
+        end
+
+        -- Clean up relationship mapping
+        ASC.ShipCore.Optimization.RelationshipMap.dirtyEntities[coreId] = nil
+        ASC.ShipCore.Optimization.RelationshipMap.constraints[coreId] = nil
+        ASC.ShipCore.Optimization.RelationshipMap.parents[coreId] = nil
+        ASC.ShipCore.Optimization.RelationshipMap.children[coreId] = nil
+
+        -- Clean up constraint cache
+        local cache = ASC.ShipCore.Optimization.ConstraintCache
+        cache.cache[coreId] = nil
+        cache.timestamps[coreId] = nil
+        cache.accessCount[coreId] = nil
+
+        -- Remove from spatial grid
+        local grid = ASC.ShipCore.Optimization.SpatialGrid
+        local cellKey = grid.entityToCell[coreId]
+        if cellKey and grid.cells[cellKey] then
+            for i, ent in ipairs(grid.cells[cellKey]) do
+                if ent == self then
+                    table.remove(grid.cells[cellKey], i)
+                    break
+                end
+            end
+        end
+        grid.entityToCell[coreId] = nil
     end
 
     -- Clean up other resources
@@ -327,9 +352,9 @@ function ENT:InitializeSystems()
         end
     end
 
-    -- Initialize built-in shield system (no generators needed)
+    -- Initialize built-in shield system (no generators needed) - delayed to prevent spawn lag
     if ASC and ASC.Shields and ASC.Shields.Core and ASC.Shields.Core.Initialize then
-        timer.Simple(2, function()
+        timer.Simple(8, function()
             if IsValid(self) then
                 local success, message = ASC.Shields.Core.Initialize(self, "ADVANCED")
                 if success then
@@ -356,9 +381,9 @@ function ENT:InitializeSystems()
         end
     end
 
-    -- Initialize flight system
+    -- Initialize flight system - delayed to prevent spawn lag
     if ASC and ASC.Flight and ASC.Flight.Core and ASC.Flight.Core.Initialize then
-        timer.Simple(3, function()
+        timer.Simple(10, function()
             if IsValid(self) then
                 local success, message = ASC.Flight.Core.Initialize(self, "STANDARD")
                 if success then
@@ -377,32 +402,7 @@ function ENT:InitializeSystems()
     -- v2.2.1 Initialize new systems
     self:InitializeV221Systems()
 
-    -- Create activation effect
-    timer.Simple(1, function()
-        if IsValid(self) then
-            local effectData = EffectData()
-            effectData:SetOrigin(self:GetPos())
-            effectData:SetEntity(self)
-            effectData:SetScale(1)
-            effectData:SetMagnitude(1)
-            util.Effect("ship_core_activation", effectData)
-
-            -- Play activation sound
-            if HYPERDRIVE.Sounds then
-                local playFunc = SafeAccess(HYPERDRIVE.Sounds, "PlayEffect")
-                if playFunc then
-                    SafeCall(playFunc, "power_up", self, {
-                        volume = 0.8,
-                        pitch = 100,
-                        soundLevel = 75
-                    })
-                end
-            end
-
-            -- Start ambient sound
-            self:StartAmbientSound()
-        end
-    end)
+    -- Activation effects removed per user request
 end
 
 -- v2.2.1 Initialize new systems
@@ -421,26 +421,28 @@ function ENT:InitializeV221Systems()
         end
     end
 
-    -- Initialize weapon systems
-    if HYPERDRIVE.Weapons and self.ship then
-        -- Find nearby weapons and link them
-        local nearbyWeapons = ents.FindInSphere(self:GetPos(), 2000)
-        local weaponCount = 0
+    -- Initialize weapon systems with delay to prevent spawn lag
+    timer.Simple(15, function()
+        if IsValid(self) and HYPERDRIVE.Weapons and self.ship then
+            -- Find nearby weapons and link them
+            local nearbyWeapons = ents.FindInSphere(self:GetPos(), 2000)
+            local weaponCount = 0
 
-        for _, ent in ipairs(nearbyWeapons) do
-            if IsValid(ent) and string.find(ent:GetClass(), "hyperdrive_") and ent.weapon then
-                ent.shipCore = self
-                weaponCount = weaponCount + 1
+            for _, ent in ipairs(nearbyWeapons) do
+                if IsValid(ent) and string.find(ent:GetClass(), "hyperdrive_") and ent.weapon then
+                    ent.shipCore = self
+                    weaponCount = weaponCount + 1
+                end
+            end
+
+            if weaponCount > 0 then
+                self.weaponSystemsInitialized = true
+                self:SetNWBool("WeaponSystemsActive", true)
+                self:SetNWInt("WeaponCount", weaponCount)
+                print("[ASC Ship Core] Weapon systems initialized - " .. weaponCount .. " weapons linked")
             end
         end
-
-        if weaponCount > 0 then
-            self.weaponSystemsInitialized = true
-            self:SetNWBool("WeaponSystemsActive", true)
-            self:SetNWInt("WeaponCount", weaponCount)
-            print("[ASC Ship Core] Weapon systems initialized - " .. weaponCount .. " weapons linked")
-        end
-    end
+    end)
 
     -- Initialize ammunition system
     if HYPERDRIVE.Ammunition and self.ship then
@@ -466,6 +468,15 @@ function ENT:InitializeV221Systems()
     self.dockingSystemInitialized = true
     self:SetNWBool("DockingSystemActive", true)
 
+    -- Initialize welding detection system with delay to prevent spawn lag
+    timer.Simple(12, function()
+        if IsValid(self) then
+            self:InitializeWeldingDetection()
+        end
+    end)
+
+    -- Auto-weld system removed for performance and simplicity
+
     print("[ASC Ship Core] v2.2.1 systems initialization complete")
 end
 
@@ -486,16 +497,20 @@ function ENT:InitializeCAPIntegration()
     self.Config.CAPEffectsEnabled = true
     self.Config.CAPShieldAutoActivation = true
 
-    -- Initialize CAP status network variables
-    self:SetNWBool("CAPIntegrationActive", false)
-    self:SetNWBool("CAPShieldsDetected", false)
-    self:SetNWBool("CAPEnergyDetected", false)
-    self:SetNWBool("CAPResourcesDetected", false)
-    self:SetNWString("CAPStatus", "Detecting...")
-    self:SetNWFloat("CAPEnergyLevel", 0)
-    self:SetNWInt("CAPShieldCount", 0)
-    self:SetNWInt("CAPEntityCount", 0)
-    self:SetNWString("CAPVersion", "Unknown")
+    -- Initialize CAP status network variables with delay to prevent spawn lag
+    timer.Simple(7, function()
+        if IsValid(self) then
+            self:SetNWBool("CAPIntegrationActive", false)
+            self:SetNWBool("CAPShieldsDetected", false)
+            self:SetNWBool("CAPEnergyDetected", false)
+            self:SetNWBool("CAPResourcesDetected", false)
+            self:SetNWString("CAPStatus", "Detecting...")
+            self:SetNWFloat("CAPEnergyLevel", 0)
+            self:SetNWInt("CAPShieldCount", 0)
+            self:SetNWInt("CAPEntityCount", 0)
+            self:SetNWString("CAPVersion", "Unknown")
+        end
+    end)
 
     if not self.Config.EnableCAPIntegration then
         self:SetNWString("CAPStatus", "CAP Integration Disabled")
@@ -535,32 +550,70 @@ end
 function ENT:Think()
     local currentTime = CurTime()
 
-    -- Real-time entity scanning (10 FPS)
-    if currentTime - self.LastEntityScan > self.EntityScanRate then
-        self:RealTimeEntityScan()
-        self.LastEntityScan = currentTime
+    -- Skip all updates for configurable time after spawn to prevent lag
+    local spawnDelay = GetConVar("asc_spawn_delay"):GetFloat()
+    if not self.InitializationComplete and currentTime - (self.SpawnTime or 0) < spawnDelay then
+        self:NextThink(currentTime + 0.5)
+        return true
     end
 
-    -- Real-time resource calculations (5 FPS)
-    if currentTime - self.LastResourceUpdate > self.ResourceUpdateRate then
+    if not self.InitializationComplete then
+        self.InitializationComplete = true
+        print("[ASC Ship Core] Initialization complete, starting normal operations")
+    end
+
+    -- Check for performance mode from ConVar and optimization system
+    local performanceMode = GetConVar("asc_performance_mode"):GetBool()
+
+    -- Also check if optimization system suggests performance mode
+    if ASC and ASC.ShipCore and ASC.ShipCore.Optimization then
+        local fps = 1 / FrameTime()
+        if fps < 30 and not performanceMode then
+            performanceMode = true
+            print("[ASC Ship Core] Auto-enabling performance mode due to low FPS: " .. math.floor(fps))
+        end
+    end
+
+    if performanceMode and not self.PerformanceMode then
+        self:EnablePerformanceMode()
+    elseif not performanceMode and self.PerformanceMode then
+        self:DisablePerformanceMode()
+    end
+
+    -- Batch processing to limit updates per think cycle (reduced for performance)
+    local updateCount = 0
+    local maxUpdatesPerThink = self.PerformanceMode and 1 or 1 -- Reduced from 2 to 1
+
+    -- Real-time entity scanning (optimized with spatial partitioning)
+    if updateCount < maxUpdatesPerThink and currentTime - self.LastEntityScan > self.EntityScanRate then
+        self:OptimizedEntityScan()
+        self.LastEntityScan = currentTime
+        updateCount = updateCount + 1
+    end
+
+    -- Real-time resource calculations (reduced frequency)
+    if updateCount < maxUpdatesPerThink and currentTime - self.LastResourceUpdate > self.ResourceUpdateRate then
         self:RealTimeResourceUpdate()
         self.LastResourceUpdate = currentTime
+        updateCount = updateCount + 1
     end
 
-    -- Real-time system health checks (2 FPS)
-    if currentTime - self.LastSystemCheck > self.SystemCheckRate then
+    -- Real-time system health checks (reduced frequency)
+    if updateCount < maxUpdatesPerThink and currentTime - self.LastSystemCheck > self.SystemCheckRate then
         self:RealTimeSystemCheck()
         self.LastSystemCheck = currentTime
+        updateCount = updateCount + 1
     end
 
-    -- Real-time network synchronization (10 FPS)
-    if currentTime - self.LastNetworkUpdate > self.NetworkUpdateRate then
+    -- Real-time network synchronization (reduced frequency)
+    if updateCount < maxUpdatesPerThink and currentTime - self.LastNetworkUpdate > self.NetworkUpdateRate then
         self:RealTimeNetworkSync()
         self.LastNetworkUpdate = currentTime
+        updateCount = updateCount + 1
     end
 
-    -- Real-time monitoring updates (20 FPS)
-    if currentTime - self.LastRealTimeUpdate > self.RealTimeUpdateRate then
+    -- Real-time monitoring updates - only if no other updates ran
+    if updateCount == 0 and currentTime - self.LastRealTimeUpdate > self.RealTimeUpdateRate then
         self:UpdateRealTimeData()
         self.LastRealTimeUpdate = currentTime
     end
@@ -572,8 +625,9 @@ function ENT:Think()
         self:UpdateUI()
     end
 
-    -- Continue real-time updates with high frequency
-    self:NextThink(currentTime + 0.01) -- 100 FPS think rate for smooth real-time updates
+    -- Adaptive think rate based on performance (increased for better performance)
+    local thinkRate = self:GetAdaptiveThinkRate()
+    self:NextThink(currentTime + math.max(thinkRate, 0.1)) -- Minimum 0.1 second think rate
     return true
 end
 
@@ -581,10 +635,13 @@ function ENT:UpdateSystems()
     -- Update ship detection
     self:UpdateShipDetection()
 
+    -- Update enhanced power management system
+    self:UpdatePowerManagement()
+
     -- Update hull damage system
     self:UpdateHullSystem()
 
-    -- Update shield system
+    -- Update shield system with power dependency
     self:UpdateShieldSystem()
 
     -- Update resource system (Spacebuild 3 integration)
@@ -595,6 +652,9 @@ function ENT:UpdateSystems()
 
     -- v2.2.1 Update new systems
     self:UpdateV221Systems()
+
+    -- Update crew efficiency if players are aboard
+    self:UpdateCrewEfficiency()
 
     -- Update core state
     self:UpdateCoreState()
@@ -730,11 +790,11 @@ function ENT:UpdateShipDetection()
         return
     end
 
-    -- Get or create ship for this core
+    -- Get or create ship for this core (optimized)
     local ship = HYPERDRIVE.ShipCore.GetShip(self)
     if not ship then
-        -- Create ship with this core as the center
-        ship = HYPERDRIVE.ShipCore.CreateShip(self)
+        -- Create ship with this core as the center using optimized detection
+        ship = self:CreateOptimizedShip()
     end
 
     if ship then
@@ -866,9 +926,8 @@ function ENT:HandleUICommand(ply, command, data)
         end
 
     elseif command == "mute_ambient" then
-        local muted = data.muted or false
-        self:SetAmbientSoundMuted(muted)
-        ply:ChatPrint("[ASC Ship Core] Ambient sound " .. (muted and "muted" or "unmuted"))
+        -- Ambient sound system removed per user request
+        ply:ChatPrint("[ASC Ship Core] Ambient sound system has been removed")
 
     elseif command == "next_model" then
         self:NextModel()
@@ -894,7 +953,8 @@ function ENT:HandleUICommand(ply, command, data)
         net.Start("asc_ship_core_model_selection")
         net.WriteEntity(self)
         net.WriteTable(info)
-        net.Send(ply)
+
+    -- Auto-weld commands removed
 
     elseif command == "close_ui" then
         self:CloseUI(ply)
@@ -997,9 +1057,71 @@ function ENT:GetUIData()
         hullSystemActive = self:GetHullSystemActive(),
         shieldSystemActive = self:GetShieldSystemActive(),
         statusMessage = self:GetStatusMessage(),
-        ambientSoundMuted = self:IsAmbientSoundMuted(),
+        -- ambientSoundMuted removed per user request
         modelInfo = self:GetModelInfo()
     }
+
+    -- Add enhanced power management data
+    if self.PowerManagement then
+        data.powerManagement = {
+            totalPower = self.PowerManagement.totalPower,
+            availablePower = self.PowerManagement.availablePower,
+            powerDistribution = self.PowerManagement.powerDistribution,
+            emergencyMode = self.PowerManagement.emergencyMode,
+            powerEfficiency = self.PowerManagement.powerEfficiency,
+            heatGeneration = self.PowerManagement.heatGeneration
+        }
+    end
+
+    -- Add thermal management data
+    if self.ThermalManagement then
+        data.thermalManagement = {
+            coreTemperature = self.ThermalManagement.coreTemperature,
+            maxTemperature = self.ThermalManagement.maxTemperature,
+            overheating = self.ThermalManagement.overheating,
+            coolingRate = self.ThermalManagement.coolingRate,
+            thermalEfficiency = self.ThermalManagement.thermalEfficiency
+        }
+    end
+
+    -- Add subsystem data
+    if self.SubsystemManagement then
+        data.subsystems = {}
+        for name, subsystem in pairs(self.SubsystemManagement.subsystems) do
+            data.subsystems[name] = {
+                health = subsystem.health,
+                efficiency = subsystem.efficiency,
+                priority = subsystem.priority,
+                critical = subsystem.critical
+            }
+        end
+        data.autoRepair = self.SubsystemManagement.autoRepair
+        data.repairRate = self.SubsystemManagement.repairRate
+    end
+
+    -- Add crew efficiency data
+    if self.CrewEfficiency then
+        data.crewEfficiency = {
+            totalCrew = self.CrewEfficiency.totalCrew,
+            overallEfficiency = self.CrewEfficiency.overallEfficiency,
+            systemBonuses = self.CrewEfficiency.systemBonuses
+        }
+    end
+
+    -- Add enhanced resource data
+    if self.BasicResourceStorage then
+        data.resources = {}
+        for resourceType, resource in pairs(self.BasicResourceStorage) do
+            data.resources[resourceType] = {
+                amount = resource.amount,
+                capacity = resource.capacity,
+                percentage = (resource.amount / resource.capacity) * 100,
+                regenRate = resource.regenRate,
+                critical = resource.critical,
+                priority = resource.priority
+            }
+        end
+    end
 
     -- Add ship data if available
     if self.ship then
@@ -1050,9 +1172,9 @@ if WireLib then
                 end
             end
 
-        -- System controls
+        -- System controls (ambient sound removed per user request)
         elseif iname == "Mute" then
-            self:SetAmbientSoundMuted(value > 0)
+            -- Ambient sound system removed
         elseif iname == "RepairHull" and value > 0 then
             if HYPERDRIVE.HullDamage and HYPERDRIVE.HullDamage.RepairHull then
                 HYPERDRIVE.HullDamage.RepairHull(self, 25)
@@ -1093,7 +1215,7 @@ if WireLib then
         -- Ship information outputs
         self:TriggerOutput("ShipCenter", self:GetShipCenter())
         self:TriggerOutput("FrontDirection", self:GetFrontDirection())
-        self:TriggerOutput("AmbientSoundMuted", self:IsAmbientSoundMuted() and 1 or 0)
+        -- AmbientSoundMuted output removed per user request
 
         if self.ship then
             self:TriggerOutput("EntityCount", #self.ship:GetEntities())
@@ -1196,15 +1318,61 @@ function ENT:InitializeBasicResourceSystem()
     self:SetNWBool("ResourceSystemActive", true)
     self:SetNWBool("AutoProvisionEnabled", false)
     self:SetNWBool("WeldDetectionEnabled", false)
+    -- Auto-weld system removed
 
-    -- Initialize basic resource storage
+    -- Initialize enhanced power management system
+    self.PowerManagement = {
+        totalPower = 1000,
+        availablePower = 1000,
+        powerDistribution = {
+            weapons = { allocated = 200, priority = 1, efficiency = 1.0, active = true },
+            shields = { allocated = 250, priority = 2, efficiency = 1.0, active = true },
+            engines = { allocated = 150, priority = 3, efficiency = 1.0, active = true },
+            lifesupport = { allocated = 100, priority = 4, efficiency = 1.0, active = true },
+            sensors = { allocated = 50, priority = 5, efficiency = 1.0, active = true },
+            communications = { allocated = 50, priority = 6, efficiency = 1.0, active = true },
+            auxiliary = { allocated = 200, priority = 7, efficiency = 1.0, active = true }
+        },
+        emergencyMode = false,
+        powerEfficiency = 1.0,
+        heatGeneration = 0,
+        coolingCapacity = 100
+    }
+
+    -- Initialize thermal management system
+    self.ThermalManagement = {
+        coreTemperature = 20, -- Celsius
+        maxTemperature = 100,
+        criticalTemperature = 150,
+        coolingRate = 5,
+        heatSources = {},
+        thermalEfficiency = 1.0,
+        overheating = false
+    }
+
+    -- Initialize subsystem management
+    self.SubsystemManagement = {
+        subsystems = {
+            reactor = { health = 100, efficiency = 1.0, priority = 1, critical = true },
+            powerGrid = { health = 100, efficiency = 1.0, priority = 2, critical = true },
+            lifesupport = { health = 100, efficiency = 1.0, priority = 3, critical = true },
+            navigation = { health = 100, efficiency = 1.0, priority = 4, critical = false },
+            communications = { health = 100, efficiency = 1.0, priority = 5, critical = false },
+            sensors = { health = 100, efficiency = 1.0, priority = 6, critical = false }
+        },
+        autoRepair = true,
+        repairRate = 1.0,
+        maintenanceSchedule = {}
+    }
+
+    -- Initialize basic resource storage with enhanced mechanics
     self.BasicResourceStorage = {
-        energy = { amount = 1000, capacity = 1000, regenRate = 10 },
-        oxygen = { amount = 500, capacity = 500, regenRate = 5 },
-        coolant = { amount = 200, capacity = 200, regenRate = 2 },
-        fuel = { amount = 300, capacity = 300, regenRate = 0 }, -- Fuel doesn't regenerate
-        water = { amount = 150, capacity = 150, regenRate = 1 },
-        nitrogen = { amount = 100, capacity = 100, regenRate = 1 }
+        energy = { amount = 1000, capacity = 1000, regenRate = 10, priority = 1, critical = true },
+        oxygen = { amount = 500, capacity = 500, regenRate = 5, priority = 2, critical = true },
+        coolant = { amount = 200, capacity = 200, regenRate = 2, priority = 3, critical = true },
+        fuel = { amount = 300, capacity = 300, regenRate = 0, priority = 4, critical = false }, -- Fuel doesn't regenerate
+        water = { amount = 150, capacity = 150, regenRate = 1, priority = 5, critical = false },
+        nitrogen = { amount = 100, capacity = 100, regenRate = 1, priority = 6, critical = false }
     }
 
     -- Set initial network variables
@@ -1215,6 +1383,69 @@ function ENT:InitializeBasicResourceSystem()
 
     self:SetNWString("LastResourceActivity", "Enhanced basic system initialized")
     print("[ASC Ship Core] Enhanced basic resource system initialized")
+end
+
+-- Ensure PowerManagement is initialized (safety function)
+function ENT:EnsurePowerManagementInitialized()
+    if not self.PowerManagement then
+        print("[ASC Ship Core] PowerManagement not initialized, creating default...")
+        self.PowerManagement = {
+            totalPower = 1000,
+            availablePower = 1000,
+            powerDistribution = {
+                weapons = { allocated = 200, priority = 1, efficiency = 1.0, active = true },
+                shields = { allocated = 250, priority = 2, efficiency = 1.0, active = true },
+                engines = { allocated = 150, priority = 3, efficiency = 1.0, active = true },
+                lifesupport = { allocated = 100, priority = 4, efficiency = 1.0, active = true },
+                sensors = { allocated = 50, priority = 5, efficiency = 1.0, active = true },
+                communications = { allocated = 50, priority = 6, efficiency = 1.0, active = true },
+                auxiliary = { allocated = 200, priority = 7, efficiency = 1.0, active = true }
+            },
+            emergencyMode = false,
+            powerEfficiency = 1.0,
+            heatGeneration = 0,
+            coolingCapacity = 100
+        }
+    end
+    return self.PowerManagement
+end
+
+-- Ensure ThermalManagement is initialized (safety function)
+function ENT:EnsureThermalManagementInitialized()
+    if not self.ThermalManagement then
+        print("[ASC Ship Core] ThermalManagement not initialized, creating default...")
+        self.ThermalManagement = {
+            coreTemperature = 20, -- Celsius
+            maxTemperature = 100,
+            criticalTemperature = 150,
+            coolingRate = 5,
+            heatSources = {},
+            thermalEfficiency = 1.0,
+            overheating = false
+        }
+    end
+    return self.ThermalManagement
+end
+
+-- Ensure SubsystemManagement is initialized (safety function)
+function ENT:EnsureSubsystemManagementInitialized()
+    if not self.SubsystemManagement then
+        print("[ASC Ship Core] SubsystemManagement not initialized, creating default...")
+        self.SubsystemManagement = {
+            subsystems = {
+                reactor = { health = 100, efficiency = 1.0, priority = 1, critical = true },
+                powerGrid = { health = 100, efficiency = 1.0, priority = 2, critical = true },
+                lifesupport = { health = 100, efficiency = 1.0, priority = 3, critical = true },
+                navigation = { health = 100, efficiency = 1.0, priority = 4, critical = false },
+                communications = { health = 100, efficiency = 1.0, priority = 5, critical = false },
+                sensors = { health = 100, efficiency = 1.0, priority = 6, critical = false }
+            },
+            autoRepair = true,
+            repairRate = 1.0,
+            maintenanceSchedule = {}
+        }
+    end
+    return self.SubsystemManagement
 end
 
 function ENT:UpdateBasicResourceNetworkVars()
@@ -1557,6 +1788,143 @@ function ENT:Recalculate()
     print("[ASC Ship Core] Systems recalculated")
 end
 
+-- Handle when entities are welded to this ship core
+function ENT:OnEntityWelded(entity)
+    if not IsValid(entity) then return end
+
+    print("[ASC Ship Core] Entity welded to ship: " .. entity:GetClass())
+
+    -- Add to ship detection
+    if self.ship then
+        table.insert(self.ship.entities, entity)
+    end
+
+    -- Auto-link if it's an ASC component
+    local class = entity:GetClass()
+    if string.find(class, "asc_") or string.find(class, "hyperdrive_") then
+        self:AddComponent(entity)
+        if entity.SetShipCore then
+            entity:SetShipCore(self)
+        end
+        print("[ASC Ship Core] Auto-linked component: " .. class)
+    end
+
+    -- Provide resources if resource system is active
+    if self:GetNWBool("ResourceSystemActive", false) and self:GetNWBool("AutoProvisionEnabled", false) then
+        timer.Simple(0.5, function()
+            if IsValid(self) and IsValid(entity) then
+                self:ProvideResourcesTo(entity)
+            end
+        end)
+    end
+
+    -- Update ship detection
+    timer.Simple(1, function()
+        if IsValid(self) then
+            self:UpdateShipDetection()
+        end
+    end)
+end
+
+-- Provide resources to a newly welded entity
+function ENT:ProvideResourcesTo(entity)
+    if not IsValid(entity) then return end
+
+    -- Check if entity has resource capacity
+    local hasResources = false
+    local resourceTypes = {"energy", "oxygen", "coolant", "fuel", "water", "nitrogen"}
+
+    for _, resourceType in ipairs(resourceTypes) do
+        local capacityMethod = "Get" .. string.upper(string.sub(resourceType, 1, 1)) .. string.sub(resourceType, 2) .. "Capacity"
+        local setMethod = "Set" .. string.upper(string.sub(resourceType, 1, 1)) .. string.sub(resourceType, 2)
+
+        if entity[capacityMethod] and entity[setMethod] then
+            local capacity = entity[capacityMethod](entity)
+            if capacity and capacity > 0 then
+                local amount = math.min(capacity * 0.5, 100) -- Provide 50% or 100 units, whichever is smaller
+                entity[setMethod](entity, amount)
+                hasResources = true
+                print("[ASC Ship Core] Provided " .. amount .. " " .. resourceType .. " to " .. entity:GetClass())
+            end
+        end
+    end
+
+    if hasResources then
+        self:SetNWString("LastResourceActivity", "Provided resources to " .. entity:GetClass())
+    end
+end
+
+-- Initialize welding detection system
+function ENT:InitializeWeldingDetection()
+    -- Set up constraint detection hook for this specific ship core
+    local hookName = "ASC_ShipCore_WeldDetection_" .. self:EntIndex()
+
+    hook.Add("OnEntityCreated", hookName, function(ent)
+        if not IsValid(ent) or not IsValid(self) then
+            hook.Remove("OnEntityCreated", hookName)
+            return
+        end
+
+        -- Check if this is a constraint
+        if ent:GetClass() == "phys_constraint" or string.find(ent:GetClass(), "constraint") then
+            timer.Simple(0.1, function()
+                if IsValid(ent) and IsValid(self) then
+                    self:CheckConstraintForWelding(ent)
+                end
+            end)
+        end
+    end)
+
+    print("[ASC Ship Core] Welding detection system initialized")
+end
+
+-- Check if a constraint involves this ship core
+function ENT:CheckConstraintForWelding(constraint)
+    if not IsValid(constraint) then return end
+
+    -- Get the entities involved in the constraint
+    local ent1 = constraint.Ent1
+    local ent2 = constraint.Ent2
+
+    if not IsValid(ent1) or not IsValid(ent2) then return end
+
+    -- Check if one of the entities is this ship core
+    if ent1 == self then
+        self:OnEntityWelded(ent2)
+    elseif ent2 == self then
+        self:OnEntityWelded(ent1)
+    end
+end
+
+-- Auto-weld system removed for performance and simplicity
+
+-- Auto-weld on spawn removed
+
+-- Auto-weld functions removed
+
+-- Auto-weld entity checking removed
+
+-- Auto-weld constraint checking removed
+
+-- Auto-weld configuration functions removed
+
+-- Override the Remove function to clean up hooks and timers
+local originalRemove = ENT.Remove or function() end
+function ENT:Remove()
+    -- Clean up welding detection hook
+    local hookName = "ASC_ShipCore_WeldDetection_" .. self:EntIndex()
+    hook.Remove("OnEntityCreated", hookName)
+
+    -- Auto-weld timer cleanup removed
+
+    -- Call original remove function
+    originalRemove(self)
+end
+
+-- Auto-weld system implementation removed
+
+-- All auto-weld functions removed for performance and simplicity
+
 -- Real-time update functions
 function ENT:RealTimeEntityScan()
     if not self.ship then return end
@@ -1734,32 +2102,480 @@ function ENT:GetModelInfo()
     return info
 end
 
--- CAP technology ambient sound selection
-function ENT:SelectTechnologyAmbientSound()
-    if not HYPERDRIVE.CAP or not HYPERDRIVE.CAP.Sounds then
-        return
+-- Optimized entity scanning using advanced optimization system
+function ENT:OptimizedEntityScan()
+    if not self.ship then return end
+
+    -- Use optimization system if available
+    if ASC and ASC.ShipCore and ASC.ShipCore.Optimization then
+        local entities = ASC.ShipCore.Optimization.FindEntitiesInRadius(self:GetPos(), 2000)
+
+        -- Queue entities for incremental processing
+        local coreId = self:EntIndex()
+        if not ASC.ShipCore.Optimization.IncrementalDetection.queues[coreId] then
+            ASC.ShipCore.Optimization.IncrementalDetection.queues[coreId] = {}
+        end
+
+        -- Add new entities to queue (avoid duplicates)
+        local queue = ASC.ShipCore.Optimization.IncrementalDetection.queues[coreId]
+        for _, entity in ipairs(entities) do
+            if IsValid(entity) and entity ~= self then
+                local found = false
+                for _, queuedEnt in ipairs(queue) do
+                    if queuedEnt == entity then
+                        found = true
+                        break
+                    end
+                end
+                if not found then
+                    table.insert(queue, entity)
+                end
+            end
+        end
+    else
+        -- Fallback to standard scanning
+        self:RealTimeEntityScan()
+    end
+end
+
+-- Create optimized ship using advanced detection algorithms
+function ENT:CreateOptimizedShip()
+    if not HYPERDRIVE.ShipCore then return nil end
+
+    -- Use optimization system for initial ship creation
+    if ASC and ASC.ShipCore and ASC.ShipCore.Optimization then
+        -- Create ship with optimized entity detection
+        local ship = HYPERDRIVE.ShipCore.CreateShip(self)
+
+        if ship then
+            -- Initialize incremental detection queue for this ship
+            local coreId = self:EntIndex()
+            ASC.ShipCore.Optimization.IncrementalDetection.queues[coreId] = {}
+
+            -- Mark this core's relationships as dirty for mapping
+            ASC.ShipCore.Optimization.RelationshipMap.dirtyEntities[coreId] = true
+
+            print("[ASC Ship Core] Ship created with optimization system - Core ID: " .. coreId)
+        end
+
+        return ship
+    else
+        -- Fallback to standard ship creation
+        return HYPERDRIVE.ShipCore.CreateShip(self)
+    end
+end
+
+-- Optimized constraint checking using cache
+function ENT:IsEntityConstrainedToShip(entity)
+    if not IsValid(entity) then return false end
+
+    -- Use optimization system if available
+    if ASC and ASC.ShipCore and ASC.ShipCore.Optimization then
+        return ASC.ShipCore.Optimization.IsEntityPartOfShip(self, entity)
+    else
+        -- Fallback to standard constraint checking
+        if not self.ship or not self.ship.entities then return false end
+
+        local constraints = constraint.GetAllConstrainedEntities(entity)
+        if not constraints then return false end
+
+        for constrainedEnt, _ in pairs(constraints) do
+            if IsValid(constrainedEnt) then
+                if constrainedEnt == self then return true end
+
+                for _, shipEnt in ipairs(self.ship.entities) do
+                    if constrainedEnt == shipEnt then return true end
+                end
+            end
+        end
+
+        return false
+    end
+end
+
+-- CAP technology ambient sound selection - REMOVED per user request
+
+-- Enhanced Power Management System
+function ENT:UpdatePowerManagement()
+    if not self.PowerManagement then return end
+
+    local pm = self.PowerManagement
+    local totalAllocated = 0
+
+    -- Calculate total power allocation with error handling
+    for system, data in pairs(pm.powerDistribution or {}) do
+        if data and data.active and data.allocated then
+            totalAllocated = totalAllocated + (data.allocated or 0)
+        end
     end
 
-    -- Try to detect nearby CAP technology
-    local nearbyEnts = ents.FindInSphere(self:GetPos(), 1000)
-    local detectedTech = nil
+    -- Ensure valid power values
+    pm.availablePower = pm.availablePower or pm.totalPower or 1000
+    pm.powerEfficiency = math.max(0.1, math.min(2.0, pm.powerEfficiency or 1.0))
 
-    for _, ent in ipairs(nearbyEnts) do
-        if IsValid(ent) and HYPERDRIVE.CAP.GetEntityCategory then
-            local category = HYPERDRIVE.CAP.GetEntityCategory(ent:GetClass())
-            if category then
-                detectedTech = category
-                break
+    -- Handle power shortage
+    if totalAllocated > pm.availablePower then
+        self:HandlePowerShortage()
+    end
+
+    -- Update heat generation based on power usage
+    pm.heatGeneration = totalAllocated * 0.1 * (2 - pm.powerEfficiency)
+
+    -- Update thermal management
+    self:UpdateThermalManagement()
+
+    -- Update subsystem efficiency based on power and heat
+    self:UpdateSubsystemEfficiency()
+end
+
+function ENT:HandlePowerShortage()
+    local pm = self.PowerManagement
+    local totalAllocated = 0
+
+    -- Calculate current allocation
+    for system, data in pairs(pm.powerDistribution) do
+        if data.active then
+            totalAllocated = totalAllocated + data.allocated
+        end
+    end
+
+    if totalAllocated <= pm.availablePower then return end
+
+    -- Sort systems by priority (lower number = higher priority)
+    local sortedSystems = {}
+    for system, data in pairs(pm.powerDistribution) do
+        if data.active then
+            table.insert(sortedSystems, {name = system, data = data})
+        end
+    end
+
+    table.sort(sortedSystems, function(a, b) return a.data.priority < b.data.priority end)
+
+    -- Reduce power to lower priority systems
+    local powerToReduce = totalAllocated - pm.availablePower
+
+    for i = #sortedSystems, 1, -1 do
+        local system = sortedSystems[i]
+        local reduction = math.min(powerToReduce, system.data.allocated * 0.5)
+        system.data.allocated = system.data.allocated - reduction
+        powerToReduce = powerToReduce - reduction
+
+        if powerToReduce <= 0 then break end
+    end
+
+    -- Enter emergency mode if still insufficient power
+    if powerToReduce > 0 then
+        pm.emergencyMode = true
+        self:SetStatusMessage("EMERGENCY: Insufficient power for critical systems!")
+    end
+end
+
+function ENT:UpdateThermalManagement()
+    if not self.ThermalManagement or not self.PowerManagement then return end
+
+    local tm = self.ThermalManagement
+    local pm = self.PowerManagement
+
+    -- Calculate heat generation with error handling
+    local heatGenerated = pm.heatGeneration or 0
+
+    -- Add heat from damaged subsystems
+    if self.SubsystemManagement and self.SubsystemManagement.subsystems then
+        for name, subsystem in pairs(self.SubsystemManagement.subsystems) do
+            if subsystem and subsystem.health and subsystem.health < 100 then
+                heatGenerated = heatGenerated + (100 - subsystem.health) * 0.2
             end
         end
     end
 
-    -- Select appropriate ambient sound based on detected technology
-    if detectedTech then
-        local techSounds = HYPERDRIVE.CAP.Sounds.GetTechnologySounds(detectedTech)
-        if techSounds and techSounds.ambient then
-            self.ambientSoundPath = techSounds.ambient
-            print("[ASC Ship Core] Selected " .. detectedTech .. " ambient sound: " .. self.ambientSoundPath)
+    -- Calculate cooling with safe values
+    local coolingEffective = (tm.coolingRate or 5) * (tm.thermalEfficiency or 1.0)
+
+    -- Update temperature with bounds checking
+    local tempChange = (heatGenerated - coolingEffective) * 0.1
+    tm.coreTemperature = math.max(20, (tm.coreTemperature or 20) + tempChange)
+
+    -- Ensure valid temperature values
+    tm.maxTemperature = tm.maxTemperature or 100
+    tm.criticalTemperature = tm.criticalTemperature or 150
+
+    -- Handle overheating
+    if tm.coreTemperature > tm.maxTemperature then
+        tm.overheating = true
+        pm.powerEfficiency = math.max(0.5, 1.0 - (tm.coreTemperature - tm.maxTemperature) / 100)
+
+        if tm.coreTemperature > tm.criticalTemperature then
+            self:HandleCriticalOverheating()
+        end
+    else
+        tm.overheating = false
+        pm.powerEfficiency = math.min(pm.powerEfficiency or 1.0, 1.0)
+    end
+end
+
+function ENT:HandleCriticalOverheating()
+    -- Emergency shutdown of non-critical systems
+    local pm = self.PowerManagement
+
+    for system, data in pairs(pm.powerDistribution) do
+        if system ~= "lifesupport" and system ~= "shields" then
+            data.allocated = data.allocated * 0.5
+        end
+    end
+
+    self:SetStatusMessage("CRITICAL: Core overheating! Emergency power reduction!")
+    self:SetState(4) -- Emergency state
+end
+
+function ENT:UpdateSubsystemEfficiency()
+    if not self.SubsystemManagement then return end
+
+    local sm = self.SubsystemManagement
+    local tm = self.ThermalManagement
+
+    for name, subsystem in pairs(sm.subsystems) do
+        -- Calculate efficiency based on health and temperature
+        local healthFactor = subsystem.health / 100
+        local tempFactor = math.max(0.5, 1.0 - math.max(0, tm.coreTemperature - 50) / 100)
+
+        subsystem.efficiency = healthFactor * tempFactor
+
+        -- Auto-repair if enabled
+        if sm.autoRepair and subsystem.health < 100 then
+            subsystem.health = math.min(100, subsystem.health + sm.repairRate * 0.1)
+        end
+    end
+end
+
+function ENT:SetPowerAllocation(system, amount)
+    if not self.PowerManagement or not self.PowerManagement.powerDistribution[system] then
+        return false
+    end
+
+    self.PowerManagement.powerDistribution[system].allocated = math.max(0, amount)
+    self:UpdatePowerManagement()
+    return true
+end
+
+function ENT:GetPowerAllocation(system)
+    if not self.PowerManagement or not self.PowerManagement.powerDistribution[system] then
+        return 0
+    end
+
+    return self.PowerManagement.powerDistribution[system].allocated
+end
+
+function ENT:SetSystemPriority(system, priority)
+    if not self.PowerManagement or not self.PowerManagement.powerDistribution[system] then
+        return false
+    end
+
+    self.PowerManagement.powerDistribution[system].priority = priority
+    return true
+end
+
+function ENT:GetSystemEfficiency(system)
+    if not self.SubsystemManagement or not self.SubsystemManagement.subsystems[system] then
+        return 1.0
+    end
+
+    return self.SubsystemManagement.subsystems[system].efficiency
+end
+
+function ENT:DamageSubsystem(system, damage)
+    if not self.SubsystemManagement or not self.SubsystemManagement.subsystems[system] then
+        return false
+    end
+
+    local subsystem = self.SubsystemManagement.subsystems[system]
+    subsystem.health = math.max(0, subsystem.health - damage)
+
+    if subsystem.health <= 0 and subsystem.critical then
+        self:HandleCriticalSystemFailure(system)
+    end
+
+    return true
+end
+
+function ENT:HandleCriticalSystemFailure(system)
+    if system == "reactor" then
+        self:SetState(4) -- Emergency
+        self:SetStatusMessage("CRITICAL: Reactor failure! Emergency protocols activated!")
+    elseif system == "powerGrid" then
+        if self.PowerManagement and self.PowerManagement.availablePower then
+            self.PowerManagement.availablePower = self.PowerManagement.availablePower * 0.5
+        end
+        self:SetStatusMessage("CRITICAL: Power grid failure! Power reduced!")
+    elseif system == "lifesupport" then
+        self:SetStatusMessage("CRITICAL: Life support failure! Seek immediate assistance!")
+    end
+end
+
+-- Crew Efficiency System (inspired by FTL and Star Citizen)
+function ENT:UpdateCrewEfficiency()
+    if not self.ship then return end
+
+    -- Initialize crew efficiency system if not exists
+    if not self.CrewEfficiency then
+        self.CrewEfficiency = {
+            totalCrew = 0,
+            skillLevels = {},
+            systemBonuses = {},
+            overallEfficiency = 1.0,
+            experienceGain = 0.1
+        }
+    end
+
+    local crew = self.CrewEfficiency
+    local playersOnShip = {}
+
+    -- Find players on ship
+    for _, ply in ipairs(player.GetAll()) do
+        if IsValid(ply) and self:IsPlayerOnShip(ply) then
+            table.insert(playersOnShip, ply)
+        end
+    end
+
+    crew.totalCrew = #playersOnShip
+
+    -- Calculate crew bonuses based on player skills and presence
+    if crew.totalCrew > 0 then
+        -- Engineering bonus (improves power efficiency)
+        local engineeringBonus = math.min(1.5, 1.0 + (crew.totalCrew * 0.1))
+        if self.PowerManagement and self.PowerManagement.powerEfficiency then
+            self.PowerManagement.powerEfficiency = self.PowerManagement.powerEfficiency * engineeringBonus
+        end
+
+        -- Repair bonus (improves subsystem repair rate)
+        local repairBonus = math.min(2.0, 1.0 + (crew.totalCrew * 0.15))
+        if self.SubsystemManagement and self.SubsystemManagement.repairRate then
+            self.SubsystemManagement.repairRate = self.SubsystemManagement.repairRate * repairBonus
+        end
+
+        -- Tactical bonus (improves system response time)
+        local tacticalBonus = math.min(1.3, 1.0 + (crew.totalCrew * 0.05))
+
+        -- Store bonuses for UI display
+        crew.systemBonuses = {
+            engineering = engineeringBonus,
+            repair = repairBonus,
+            tactical = tacticalBonus
+        }
+
+        crew.overallEfficiency = (engineeringBonus + repairBonus + tacticalBonus) / 3
+    else
+        -- No crew penalties
+        crew.systemBonuses = {
+            engineering = 0.8, -- Reduced efficiency without crew
+            repair = 0.5,      -- Slower repairs
+            tactical = 0.7     -- Slower response
+        }
+        crew.overallEfficiency = 0.67
+    end
+
+    -- Update network variables for UI
+    self:SetNWInt("CrewCount", crew.totalCrew)
+    self:SetNWFloat("CrewEfficiency", crew.overallEfficiency)
+end
+
+function ENT:IsPlayerOnShip(ply)
+    if not IsValid(ply) or not self.ship then return false end
+
+    local playerPos = ply:GetPos()
+    local shipCenter = self.ship:GetCenter()
+
+    -- Calculate ship radius from entities if GetRadius doesn't exist
+    local shipRadius = 1000 -- Default radius
+    if self.ship.GetRadius then
+        shipRadius = self.ship:GetRadius()
+    elseif self.ship.GetEntities then
+        -- Calculate radius from ship entities
+        local entities = self.ship:GetEntities()
+        if entities and #entities > 0 then
+            local maxDist = 0
+            for _, ent in ipairs(entities) do
+                if IsValid(ent) then
+                    local dist = shipCenter:Distance(ent:GetPos())
+                    if dist > maxDist then
+                        maxDist = dist
+                    end
+                end
+            end
+            shipRadius = math.max(500, maxDist + 200) -- Add buffer
+        end
+    end
+
+    -- Check if player is within ship bounds
+    if playerPos:Distance(shipCenter) > shipRadius then return false end
+
+    -- Check if player is on a ship entity
+    local standingOn = ply:GetGroundEntity()
+    if IsValid(standingOn) then
+        if self.ship.GetEntities then
+            for _, shipEnt in ipairs(self.ship:GetEntities()) do
+                if standingOn == shipEnt then
+                    return true
+                end
+            end
+        end
+    end
+
+    -- Alternative check: if player is close to ship core
+    if playerPos:Distance(self:GetPos()) < 500 then
+        return true
+    end
+
+    return false
+end
+
+-- Advanced Resource Management with Power Dependencies
+function ENT:UpdateBasicResourceRegeneration()
+    if not self.BasicResourceStorage then return end
+
+    local powerEfficiency = self.PowerManagement and self.PowerManagement.powerEfficiency or 1.0
+    local crewEfficiency = self.CrewEfficiency and self.CrewEfficiency.overallEfficiency or 1.0
+
+    for resourceType, resource in pairs(self.BasicResourceStorage) do
+        if resource.regenRate > 0 then
+            -- Apply power and crew efficiency to regeneration
+            local effectiveRegenRate = resource.regenRate * powerEfficiency * crewEfficiency
+
+            -- Reduce regeneration if systems are damaged
+            if self.SubsystemManagement then
+                local systemHealth = self.SubsystemManagement.subsystems.lifesupport and
+                                   self.SubsystemManagement.subsystems.lifesupport.health or 100
+                effectiveRegenRate = effectiveRegenRate * (systemHealth / 100)
+            end
+
+            resource.amount = math.min(resource.capacity, resource.amount + effectiveRegenRate)
+        end
+
+        -- Handle critical resource shortages
+        if resource.critical and resource.amount < resource.capacity * 0.1 then
+            self:HandleCriticalResourceShortage(resourceType)
+        end
+    end
+end
+
+function ENT:HandleCriticalResourceShortage(resourceType)
+    if resourceType == "energy" then
+        self:SetStatusMessage("CRITICAL: Energy reserves depleted!")
+        if self.PowerManagement and self.PowerManagement.availablePower then
+            self.PowerManagement.availablePower = self.PowerManagement.availablePower * 0.7
+        end
+    elseif resourceType == "oxygen" then
+        self:SetStatusMessage("CRITICAL: Oxygen shortage detected!")
+        -- Damage life support system
+        if self.SubsystemManagement and self.SubsystemManagement.subsystems and
+           self.SubsystemManagement.subsystems.lifesupport and
+           self.SubsystemManagement.subsystems.lifesupport.health then
+            self.SubsystemManagement.subsystems.lifesupport.health =
+                self.SubsystemManagement.subsystems.lifesupport.health - 5
+        end
+    elseif resourceType == "coolant" then
+        self:SetStatusMessage("CRITICAL: Coolant shortage! Overheating risk!")
+        if self.ThermalManagement and self.ThermalManagement.coolingRate then
+            self.ThermalManagement.coolingRate = self.ThermalManagement.coolingRate * 0.5
         end
     end
 end
@@ -1833,3 +2649,107 @@ concommand.Add("aria_ship_core_list_models", function(ply, cmd, args)
         ply:ChatPrint("[ASC Ship Core] Look at a ship core to list its models")
     end
 end, nil, "List available ship core models")
+
+-- Performance optimization functions
+function ENT:GetAdaptiveThinkRate()
+    -- Check performance every few seconds
+    local currentTime = CurTime()
+    if currentTime - self.LastPerformanceCheck > self.PerformanceCheckInterval then
+        self:CheckPerformance()
+        self.LastPerformanceCheck = currentTime
+    end
+
+    -- Adaptive think rates based on performance
+    if self.PerformanceMode then
+        return 0.1 -- 10 FPS in performance mode
+    else
+        local fps = self:GetCurrentFPS()
+        if fps < 30 then
+            return 0.05 -- 20 FPS for low performance
+        elseif fps < 45 then
+            return 0.033 -- 30 FPS for medium performance
+        else
+            return 0.02 -- 50 FPS for good performance
+        end
+    end
+end
+
+function ENT:CheckPerformance()
+    local frameTime = FrameTime()
+
+    -- Track frame time history
+    table.insert(self.FrameTimeHistory, frameTime)
+    if #self.FrameTimeHistory > self.MaxFrameHistory then
+        table.remove(self.FrameTimeHistory, 1)
+    end
+
+    -- Calculate average FPS
+    local avgFrameTime = 0
+    for _, ft in ipairs(self.FrameTimeHistory) do
+        avgFrameTime = avgFrameTime + ft
+    end
+    avgFrameTime = avgFrameTime / #self.FrameTimeHistory
+
+    local avgFPS = 1 / avgFrameTime
+
+    -- Enable performance mode if FPS is consistently low
+    if avgFPS < 25 and not self.PerformanceMode then
+        self:EnablePerformanceMode()
+    elseif avgFPS > 40 and self.PerformanceMode then
+        self:DisablePerformanceMode()
+    end
+end
+
+function ENT:GetCurrentFPS()
+    if #self.FrameTimeHistory > 0 then
+        local avgFrameTime = 0
+        for _, ft in ipairs(self.FrameTimeHistory) do
+            avgFrameTime = avgFrameTime + ft
+        end
+        avgFrameTime = avgFrameTime / #self.FrameTimeHistory
+        return 1 / avgFrameTime
+    end
+    return 60 -- Default assumption
+end
+
+function ENT:EnablePerformanceMode()
+    if self.PerformanceMode then return end
+
+    self.PerformanceMode = true
+
+    -- Reduce update frequencies even further for performance mode
+    self.EntityScanRate = 5.0 -- 0.2 FPS
+    self.ResourceUpdateRate = 3.0 -- 0.33 FPS
+    self.SystemCheckRate = 10.0 -- 0.1 FPS
+    self.NetworkUpdateRate = 2.0 -- 0.5 FPS
+
+    -- Auto-weld system removed
+
+    print("[ASC Ship Core] Performance mode enabled - reduced update rates")
+
+    -- Notify owner
+    local owner = self.CPPIGetOwner and self:CPPIGetOwner() or nil
+    if IsValid(owner) then
+        owner:ChatPrint("[ASC Ship Core] Performance mode enabled due to low FPS")
+    end
+end
+
+function ENT:DisablePerformanceMode()
+    if not self.PerformanceMode then return end
+
+    self.PerformanceMode = false
+
+    -- Restore optimized update frequencies (still reduced from original for better performance)
+    self.EntityScanRate = 2.0 -- 0.5 FPS
+    self.ResourceUpdateRate = 1.0 -- 1 FPS
+    self.SystemCheckRate = 3.0 -- 0.33 FPS
+    self.NetworkUpdateRate = 1.0 -- 1 FPS
+
+    print("[ASC Ship Core] Performance mode disabled - restored optimized update rates")
+
+    -- Notify owner
+    local owner = self.CPPIGetOwner and self:CPPIGetOwner() or nil
+    if IsValid(owner) then
+        owner:ChatPrint("[ASC Ship Core] Performance mode disabled - using optimized rates")
+    end
+end

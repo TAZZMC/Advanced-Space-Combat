@@ -326,8 +326,29 @@ function ASC.ComprehensiveTheme.IsFontAvailable(fontName)
         antialias = true
     })
 
-    -- This is a basic check - in practice, font availability detection is limited in GMod
-    return true -- Assume available for now, will fallback gracefully
+    -- Test if the font actually works by measuring text
+    surface.SetFont(testFontName)
+    local w, h = surface.GetTextSize("Test")
+
+    -- If width and height are 0, font likely failed to load
+    if w <= 0 or h <= 0 then
+        return false
+    end
+
+    -- Additional check: compare with a known fallback font
+    surface.CreateFont("ASC_FontTest_Fallback", {
+        font = "Arial",
+        size = 16,
+        weight = 400,
+        antialias = true
+    })
+
+    surface.SetFont("ASC_FontTest_Fallback")
+    local fallbackW, fallbackH = surface.GetTextSize("Test")
+
+    -- If dimensions are identical to Arial, it might be falling back
+    -- This is not perfect but better than no check
+    return not (w == fallbackW and h == fallbackH and fontName ~= "Arial")
 end
 
 -- Create configuration ConVars

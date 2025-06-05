@@ -434,17 +434,41 @@ end, "Show debug information", "Debug")
 ASC.Commands.Register("cleanup", function(ply, cmd, args)
     local entityType = args[1] or "all"
     local count = 0
-    
+
+    -- Define safe entity classes to clean up (exclude tools and weapons)
+    local safeCleanupClasses = {
+        "asc_ship_core",
+        "asc_hyperdrive_engine",
+        "asc_weapon_turret",
+        "asc_shield_generator",
+        "asc_docking_pad",
+        "asc_shuttle",
+        "ship_core",
+        "hyperdrive_master_engine",
+        "hyperdrive_engine"
+    }
+
     if entityType == "all" then
-        -- Clean up all ASC entities
+        -- Clean up only safe ASC entities (not tools or weapons)
         local ascEntities = {}
         for _, ent in ipairs(ents.GetAll()) do
             local class = ent:GetClass()
-            if string.find(class, "asc_") or string.find(class, "ship_core") or string.find(class, "hyperdrive_") then
+
+            -- Check if it's a safe entity to clean up
+            local isSafeToClean = false
+            for _, safeClass in ipairs(safeCleanupClasses) do
+                if class == safeClass or string.find(class, safeClass) then
+                    isSafeToClean = true
+                    break
+                end
+            end
+
+            -- Additional check: make sure it's not a player, weapon, or tool
+            if isSafeToClean and not ent:IsPlayer() and not ent:IsWeapon() and not string.find(class, "weapon_") then
                 table.insert(ascEntities, ent)
             end
         end
-        
+
         for _, ent in ipairs(ascEntities) do
             if IsValid(ent) then
                 ent:Remove()
@@ -452,23 +476,33 @@ ASC.Commands.Register("cleanup", function(ply, cmd, args)
             end
         end
     else
-        -- Clean up specific entity type
+        -- Clean up specific entity type (with safety checks)
+        if string.find(entityType, "weapon_") or string.find(entityType, "gmod_tool") then
+            local msg = "[Advanced Space Combat] Cannot clean up tools or weapons for safety"
+            if IsValid(ply) then
+                ply:ChatPrint(msg)
+            else
+                print(msg)
+            end
+            return
+        end
+
         local entities = ents.FindByClass(entityType)
         for _, ent in ipairs(entities) do
-            if IsValid(ent) then
+            if IsValid(ent) and not ent:IsPlayer() and not ent:IsWeapon() then
                 ent:Remove()
                 count = count + 1
             end
         end
     end
-    
+
     local msg = "[Advanced Space Combat] Cleaned up " .. count .. " entities"
     if IsValid(ply) then
         ply:ChatPrint(msg)
     else
         print(msg)
     end
-end, "Clean up ASC entities", "Admin", true)
+end, "Clean up ASC entities (safe mode)", "Admin", true)
 
 ASC.Commands.Register("reload", function(ply, cmd, args)
     -- Reload the addon
@@ -731,6 +765,586 @@ ASC.Commands.Register("performance", function(ply, cmd, args)
 
     ply:ChatPrint("For better performance, limit fleet size to 4-6 engines")
 end, "Show Enhanced Hyperspace performance information", "Debug")
+
+-- Tool Management Commands
+ASC.Commands.Register("fix_tools", function(ply, cmd, args)
+    if not IsValid(ply) then return end
+
+    ply:ChatPrint("[Advanced Space Combat] Attempting to fix missing tools...")
+
+    -- Client-side tool restoration
+    ply:ConCommand("asc_restore_tools")
+
+    -- Force spawnmenu refresh
+    timer.Simple(0.5, function()
+        if IsValid(ply) then
+            ply:ChatPrint("[Advanced Space Combat] Tool restoration complete. Check your Q menu.")
+            ply:ChatPrint("If tools are still missing, try: aria check_tools")
+        end
+    end)
+end, "Fix missing ASC tools", "Tools")
+
+ASC.Commands.Register("check_tools", function(ply, cmd, args)
+    if not IsValid(ply) then return end
+
+    ply:ChatPrint("[Advanced Space Combat] Checking tool status...")
+    ply:ConCommand("asc_check_tools")
+
+    timer.Simple(0.1, function()
+        if IsValid(ply) then
+            ply:ChatPrint("Check console for detailed tool status")
+            ply:ChatPrint("Use 'aria fix_tools' to restore missing tools")
+        end
+    end)
+end, "Check ASC tool status", "Tools")
+
+ASC.Commands.Register("reset_spawnmenu", function(ply, cmd, args)
+    if not IsValid(ply) then return end
+
+    ply:ChatPrint("[Advanced Space Combat] Resetting spawnmenu...")
+
+    -- Force spawnmenu refresh
+    ply:ConCommand("spawnmenu_reload")
+
+    timer.Simple(1, function()
+        if IsValid(ply) then
+            ply:ConCommand("asc_restore_tools")
+            ply:ChatPrint("[Advanced Space Combat] Spawnmenu reset complete")
+        end
+    end)
+end, "Reset and restore spawnmenu", "Tools")
+
+-- Graphics Problem Commands
+ASC.Commands.Register("fix_graphics", function(ply, cmd, args)
+    if not IsValid(ply) then return end
+
+    ply:ChatPrint("[Advanced Space Combat] Attempting to fix graphics problems...")
+
+    -- Run graphics diagnostics and fixes
+    ply:ConCommand("asc_graphics_fix")
+
+    timer.Simple(0.5, function()
+        if IsValid(ply) then
+            ply:ChatPrint("[Advanced Space Combat] Graphics fix complete. Check console for details.")
+            ply:ChatPrint("If problems persist, try: aria graphics_safe_mode")
+        end
+    end)
+end, "Fix graphics problems automatically", "Graphics")
+
+ASC.Commands.Register("graphics_safe_mode", function(ply, cmd, args)
+    if not IsValid(ply) then return end
+
+    ply:ChatPrint("[Advanced Space Combat] Toggling graphics safe mode...")
+    ply:ConCommand("asc_graphics_safe_mode")
+
+    timer.Simple(0.1, function()
+        if IsValid(ply) then
+            ply:ChatPrint("[Advanced Space Combat] Safe mode toggled. This reduces graphics quality for better performance.")
+        end
+    end)
+end, "Toggle graphics safe mode", "Graphics")
+
+ASC.Commands.Register("graphics_diagnostics", function(ply, cmd, args)
+    if not IsValid(ply) then return end
+
+    ply:ChatPrint("[Advanced Space Combat] Running graphics diagnostics...")
+    ply:ConCommand("asc_graphics_diagnostics")
+
+    timer.Simple(0.1, function()
+        if IsValid(ply) then
+            ply:ChatPrint("Check console for detailed graphics diagnostics")
+        end
+    end)
+end, "Run graphics diagnostics", "Graphics")
+
+ASC.Commands.Register("disable_effects", function(ply, cmd, args)
+    if not IsValid(ply) then return end
+
+    ply:ChatPrint("[Advanced Space Combat] Disabling visual effects...")
+
+    -- Disable various effect systems
+    ply:ConCommand("asc_effects_enabled 0")
+    ply:ConCommand("asc_theme_performance_mode 1")
+    ply:ConCommand("asc_vgui_theme_enabled 0")
+
+    timer.Simple(0.1, function()
+        if IsValid(ply) then
+            ply:ChatPrint("[Advanced Space Combat] Visual effects disabled for better performance")
+            ply:ChatPrint("Use 'aria enable_effects' to restore them")
+        end
+    end)
+end, "Disable visual effects for performance", "Graphics")
+
+ASC.Commands.Register("enable_effects", function(ply, cmd, args)
+    if not IsValid(ply) then return end
+
+    ply:ChatPrint("[Advanced Space Combat] Enabling visual effects...")
+
+    -- Enable effect systems
+    ply:ConCommand("asc_effects_enabled 1")
+    ply:ConCommand("asc_theme_performance_mode 0")
+    ply:ConCommand("asc_vgui_theme_enabled 1")
+
+    timer.Simple(0.1, function()
+        if IsValid(ply) then
+            ply:ChatPrint("[Advanced Space Combat] Visual effects enabled")
+        end
+    end)
+end, "Enable visual effects", "Graphics")
+
+ASC.Commands.Register("fix_fonts", function(ply, cmd, args)
+    if not IsValid(ply) then return end
+
+    ply:ChatPrint("[Advanced Space Combat] Fixing font issues...")
+
+    -- Reload fonts
+    if ASC.ComprehensiveTheme and ASC.ComprehensiveTheme.CreateFonts then
+        ASC.ComprehensiveTheme.CreateFonts()
+        ply:ChatPrint("[Advanced Space Combat] Fonts reloaded")
+    end
+
+    -- Reload theme system
+    ply:ConCommand("asc_theme_reload")
+
+    timer.Simple(0.5, function()
+        if IsValid(ply) then
+            ply:ChatPrint("[Advanced Space Combat] Font fix complete")
+        end
+    end)
+end, "Fix font loading issues", "Graphics")
+
+ASC.Commands.Register("fix_memory", function(ply, cmd, args)
+    if not IsValid(ply) then return end
+
+    ply:ChatPrint("[Advanced Space Combat] Fixing memory issues...")
+
+    -- Force memory cleanup
+    ply:ConCommand("asc_graphics_cleanup")
+
+    -- Force garbage collection
+    collectgarbage("collect")
+    collectgarbage("collect")
+
+    timer.Simple(0.5, function()
+        if IsValid(ply) then
+            local memoryUsage = math.floor(collectgarbage("count") / 1024)
+            ply:ChatPrint("[Advanced Space Combat] Memory cleanup complete. Current usage: " .. memoryUsage .. " MB")
+        end
+    end)
+end, "Fix memory growth issues", "Graphics")
+
+ASC.Commands.Register("fix_performance", function(ply, cmd, args)
+    if not IsValid(ply) then return end
+
+    ply:ChatPrint("[Advanced Space Combat] Fixing performance issues...")
+
+    -- Disable entity culling spam
+    if ASC.Performance and ASC.Performance.EntityCulling then
+        ASC.Performance.EntityCulling.UpdateRate = 5.0 -- Reduce frequency
+        ply:ChatPrint("[Advanced Space Combat] Reduced entity culling frequency")
+    end
+
+    -- Enable performance mode
+    ply:ConCommand("asc_theme_performance_mode 1")
+    ply:ConCommand("asc_graphics_safe_mode")
+
+    timer.Simple(0.5, function()
+        if IsValid(ply) then
+            ply:ChatPrint("[Advanced Space Combat] Performance optimization complete")
+        end
+    end)
+end, "Fix performance and culling issues", "Graphics")
+
+-- Ship Core and Welding Commands
+ASC.Commands.Register("test_welding", function(ply, cmd, args)
+    if not IsValid(ply) then return end
+
+    ply:ChatPrint("[Advanced Space Combat] Testing ship core welding capability...")
+
+    -- Find nearest ship core
+    local shipCore = nil
+    local minDist = math.huge
+
+    for _, ent in ipairs(ents.FindByClass("asc_ship_core")) do
+        if IsValid(ent) then
+            local dist = ply:GetPos():Distance(ent:GetPos())
+            if dist < minDist then
+                shipCore = ent
+                minDist = dist
+            end
+        end
+    end
+
+    if not shipCore then
+        ply:ChatPrint("[Advanced Space Combat] No ship core found nearby")
+        return
+    end
+
+    ply:ChatPrint("[Advanced Space Combat] Found ship core at distance: " .. math.floor(minDist))
+    ply:ChatPrint("Ship core welding enabled: " .. tostring(shipCore:GetNWBool("CanBeWelded", false)))
+    ply:ChatPrint("Constraint support: " .. tostring(shipCore:GetNWBool("AllowConstraints", false)))
+
+    -- Check physics object
+    local phys = shipCore:GetPhysicsObject()
+    if IsValid(phys) then
+        ply:ChatPrint("Physics object valid: YES")
+        ply:ChatPrint("Motion enabled: " .. tostring(phys:IsMotionEnabled()))
+        ply:ChatPrint("Mass: " .. phys:GetMass())
+    else
+        ply:ChatPrint("Physics object valid: NO - This is the problem!")
+    end
+
+end, "Test ship core welding capability", "Ship Core")
+
+ASC.Commands.Register("fix_welding", function(ply, cmd, args)
+    if not IsValid(ply) then return end
+
+    ply:ChatPrint("[Advanced Space Combat] Fixing ship core welding issues...")
+
+    -- Find all ship cores and fix their welding capability
+    local fixed = 0
+    for _, ent in ipairs(ents.FindByClass("asc_ship_core")) do
+        if IsValid(ent) then
+            -- Enable welding
+            ent:SetNWBool("CanBeWelded", true)
+            ent:SetNWBool("AllowConstraints", true)
+
+            -- Fix physics if needed
+            local phys = ent:GetPhysicsObject()
+            if IsValid(phys) then
+                phys:EnableMotion(true)
+                phys:Wake()
+            else
+                -- Reinitialize physics
+                ent:PhysicsInit(SOLID_VPHYSICS)
+                phys = ent:GetPhysicsObject()
+                if IsValid(phys) then
+                    phys:EnableMotion(true)
+                    phys:Wake()
+                    phys:SetMass(50)
+                end
+            end
+
+            -- Reinitialize welding detection
+            if ent.InitializeWeldingDetection then
+                ent:InitializeWeldingDetection()
+            end
+
+            fixed = fixed + 1
+        end
+    end
+
+    ply:ChatPrint("[Advanced Space Combat] Fixed welding for " .. fixed .. " ship cores")
+    ply:ChatPrint("You should now be able to weld entities to ship cores")
+
+end, "Fix ship core welding issues", "Ship Core")
+
+ASC.Commands.Register("ship_info", function(ply, cmd, args)
+    if not IsValid(ply) then return end
+
+    -- Find nearest ship core
+    local shipCore = nil
+    local minDist = math.huge
+
+    for _, ent in ipairs(ents.FindByClass("asc_ship_core")) do
+        if IsValid(ent) then
+            local dist = ply:GetPos():Distance(ent:GetPos())
+            if dist < minDist then
+                shipCore = ent
+                minDist = dist
+            end
+        end
+    end
+
+    if not shipCore then
+        ply:ChatPrint("[Advanced Space Combat] No ship core found nearby")
+        return
+    end
+
+    ply:ChatPrint("=== Ship Core Information ===")
+    ply:ChatPrint("Distance: " .. math.floor(minDist) .. " units")
+    ply:ChatPrint("Ship Name: " .. shipCore:GetNWString("ShipName", "Unnamed"))
+    ply:ChatPrint("Ship Detected: " .. tostring(shipCore:GetNWBool("ShipDetected", false)))
+    ply:ChatPrint("Ship Type: " .. shipCore:GetNWString("ShipType", "Unknown"))
+    ply:ChatPrint("Core Valid: " .. tostring(shipCore:GetNWBool("CoreValid", false)))
+    ply:ChatPrint("Can Be Welded: " .. tostring(shipCore:GetNWBool("CanBeWelded", false)))
+    ply:ChatPrint("Allow Constraints: " .. tostring(shipCore:GetNWBool("AllowConstraints", false)))
+
+    if shipCore.ship then
+        ply:ChatPrint("Ship Entities: " .. #shipCore.ship.entities)
+        ply:ChatPrint("Ship Players: " .. #shipCore.ship.players)
+    else
+        ply:ChatPrint("Ship Object: Not Available")
+    end
+
+end, "Show ship core information", "Ship Core")
+
+-- Auto-weld commands removed for performance and simplicity
+
+-- Performance Commands
+ASC.Commands.Register("performance_mode", function(ply, cmd, args)
+    if not IsValid(ply) then return end
+
+    -- Find nearest ship core
+    local shipCore = nil
+    local minDist = math.huge
+
+    for _, ent in ipairs(ents.FindByClass("asc_ship_core")) do
+        if IsValid(ent) then
+            local dist = ply:GetPos():Distance(ent:GetPos())
+            if dist < minDist then
+                shipCore = ent
+                minDist = dist
+            end
+        end
+    end
+
+    if not shipCore then
+        ply:ChatPrint("[Advanced Space Combat] No ship core found nearby")
+        return
+    end
+
+    -- Toggle performance mode
+    if shipCore.PerformanceMode then
+        shipCore:DisablePerformanceMode()
+        ply:ChatPrint("[Advanced Space Combat] Performance mode disabled")
+    else
+        shipCore:EnablePerformanceMode()
+        ply:ChatPrint("[Advanced Space Combat] Performance mode enabled")
+    end
+
+end, "Toggle performance mode for ship core", "Performance")
+
+ASC.Commands.Register("fix_lag", function(ply, cmd, args)
+    if not IsValid(ply) then return end
+
+    ply:ChatPrint("[Advanced Space Combat] Applying lag fixes...")
+
+    -- Find all ship cores and enable performance mode
+    local fixed = 0
+    for _, ent in ipairs(ents.FindByClass("asc_ship_core")) do
+        if IsValid(ent) then
+            if ent.EnablePerformanceMode then
+                ent:EnablePerformanceMode()
+                fixed = fixed + 1
+            end
+        end
+    end
+
+    -- Also run graphics fixes
+    ply:ConCommand("asc_graphics_safe_mode")
+    ply:ConCommand("asc_graphics_cleanup")
+
+    ply:ChatPrint("[Advanced Space Combat] Enabled performance mode on " .. fixed .. " ship cores")
+    ply:ChatPrint("[Advanced Space Combat] Applied graphics optimizations")
+
+end, "Apply comprehensive lag fixes", "Performance")
+
+ASC.Commands.Register("performance_status", function(ply, cmd, args)
+    if not IsValid(ply) then return end
+
+    -- Find nearest ship core
+    local shipCore = nil
+    local minDist = math.huge
+
+    for _, ent in ipairs(ents.FindByClass("asc_ship_core")) do
+        if IsValid(ent) then
+            local dist = ply:GetPos():Distance(ent:GetPos())
+            if dist < minDist then
+                shipCore = ent
+                minDist = dist
+            end
+        end
+    end
+
+    if not shipCore then
+        ply:ChatPrint("[Advanced Space Combat] No ship core found nearby")
+        return
+    end
+
+    -- Show performance status
+    ply:ChatPrint("=== Ship Core Performance Status ===")
+    ply:ChatPrint("Performance Mode: " .. (shipCore.PerformanceMode and "ENABLED" or "DISABLED"))
+
+    if shipCore.GetCurrentFPS then
+        ply:ChatPrint("Current FPS: " .. math.floor(shipCore:GetCurrentFPS()))
+    end
+
+    ply:ChatPrint("Entity Scan Rate: " .. (shipCore.EntityScanRate or 0.1) .. " seconds")
+    ply:ChatPrint("Resource Update Rate: " .. (shipCore.ResourceUpdateRate or 0.2) .. " seconds")
+    ply:ChatPrint("System Check Rate: " .. (shipCore.SystemCheckRate or 0.5) .. " seconds")
+    ply:ChatPrint("Network Update Rate: " .. (shipCore.NetworkUpdateRate or 0.1) .. " seconds")
+
+    local thinkRate = shipCore.GetAdaptiveThinkRate and shipCore:GetAdaptiveThinkRate() or 0.02
+    ply:ChatPrint("Think Rate: " .. thinkRate .. " seconds (" .. math.floor(1/thinkRate) .. " FPS)")
+
+end, "Show ship core performance status", "Performance")
+
+-- Auto-Weld System Commands
+ASC.Commands.Register("toggle_auto_weld", function(ply, cmd, args)
+    if not IsValid(ply) then return end
+
+    -- Find nearest ship core
+    local shipCore = nil
+    local minDist = math.huge
+
+    for _, ent in ipairs(ents.FindByClass("asc_ship_core")) do
+        if IsValid(ent) then
+            local dist = ply:GetPos():Distance(ent:GetPos())
+            if dist < minDist then
+                shipCore = ent
+                minDist = dist
+            end
+        end
+    end
+
+    if not shipCore then
+        ply:ChatPrint("[Advanced Space Combat] No ship core found nearby")
+        return
+    end
+
+    if minDist > 1000 then
+        ply:ChatPrint("[Advanced Space Combat] Ship core too far away (max 1000 units)")
+        return
+    end
+
+    local enabled = shipCore:ToggleAutoWeld()
+    ply:ChatPrint("[Advanced Space Combat] Auto-weld " .. (enabled and "ENABLED" or "DISABLED") .. " for ship core")
+
+    if enabled then
+        ply:ChatPrint("Range: " .. shipCore:GetNWFloat("AutoWeldRange", 500) .. " units")
+        ply:ChatPrint("Interval: " .. shipCore:GetNWFloat("AutoWeldInterval", 5.0) .. " seconds")
+        ply:ChatPrint("Use 'aria auto_weld_range <number>' to change range")
+        ply:ChatPrint("Use 'aria auto_weld_interval <number>' to change interval")
+    end
+
+end, "Toggle auto-weld system for nearest ship core", "Ship Core")
+
+ASC.Commands.Register("auto_weld_range", function(ply, cmd, args)
+    if not IsValid(ply) then return end
+
+    if #args < 1 then
+        ply:ChatPrint("[Advanced Space Combat] Usage: aria auto_weld_range <range>")
+        ply:ChatPrint("Range must be between 100 and 2000 units")
+        return
+    end
+
+    local range = tonumber(args[1])
+    if not range then
+        ply:ChatPrint("[Advanced Space Combat] Invalid range value")
+        return
+    end
+
+    -- Find nearest ship core
+    local shipCore = nil
+    local minDist = math.huge
+
+    for _, ent in ipairs(ents.FindByClass("asc_ship_core")) do
+        if IsValid(ent) then
+            local dist = ply:GetPos():Distance(ent:GetPos())
+            if dist < minDist then
+                shipCore = ent
+                minDist = dist
+            end
+        end
+    end
+
+    if not shipCore then
+        ply:ChatPrint("[Advanced Space Combat] No ship core found nearby")
+        return
+    end
+
+    if minDist > 1000 then
+        ply:ChatPrint("[Advanced Space Combat] Ship core too far away (max 1000 units)")
+        return
+    end
+
+    shipCore:SetAutoWeldRange(range)
+    ply:ChatPrint("[Advanced Space Combat] Auto-weld range set to: " .. shipCore:GetNWFloat("AutoWeldRange", 500) .. " units")
+
+end, "Set auto-weld range for nearest ship core", "Ship Core")
+
+ASC.Commands.Register("auto_weld_interval", function(ply, cmd, args)
+    if not IsValid(ply) then return end
+
+    if #args < 1 then
+        ply:ChatPrint("[Advanced Space Combat] Usage: aria auto_weld_interval <seconds>")
+        ply:ChatPrint("Interval must be between 1 and 30 seconds")
+        return
+    end
+
+    local interval = tonumber(args[1])
+    if not interval then
+        ply:ChatPrint("[Advanced Space Combat] Invalid interval value")
+        return
+    end
+
+    -- Find nearest ship core
+    local shipCore = nil
+    local minDist = math.huge
+
+    for _, ent in ipairs(ents.FindByClass("asc_ship_core")) do
+        if IsValid(ent) then
+            local dist = ply:GetPos():Distance(ent:GetPos())
+            if dist < minDist then
+                shipCore = ent
+                minDist = dist
+            end
+        end
+    end
+
+    if not shipCore then
+        ply:ChatPrint("[Advanced Space Combat] No ship core found nearby")
+        return
+    end
+
+    if minDist > 1000 then
+        ply:ChatPrint("[Advanced Space Combat] Ship core too far away (max 1000 units)")
+        return
+    end
+
+    shipCore:SetAutoWeldInterval(interval)
+    ply:ChatPrint("[Advanced Space Combat] Auto-weld interval set to: " .. shipCore:GetNWFloat("AutoWeldInterval", 5.0) .. " seconds")
+
+end, "Set auto-weld interval for nearest ship core", "Ship Core")
+
+ASC.Commands.Register("auto_weld_status", function(ply, cmd, args)
+    if not IsValid(ply) then return end
+
+    -- Find nearest ship core
+    local shipCore = nil
+    local minDist = math.huge
+
+    for _, ent in ipairs(ents.FindByClass("asc_ship_core")) do
+        if IsValid(ent) then
+            local dist = ply:GetPos():Distance(ent:GetPos())
+            if dist < minDist then
+                shipCore = ent
+                minDist = dist
+            end
+        end
+    end
+
+    if not shipCore then
+        ply:ChatPrint("[Advanced Space Combat] No ship core found nearby")
+        return
+    end
+
+    local status = shipCore:GetAutoWeldStatus()
+
+    ply:ChatPrint("=== Auto-Weld System Status ===")
+    ply:ChatPrint("Enabled: " .. (status.enabled and "YES" or "NO"))
+    ply:ChatPrint("Range: " .. status.range .. " units")
+    ply:ChatPrint("Interval: " .. status.interval .. " seconds")
+    ply:ChatPrint("Total Welded: " .. status.totalWelded)
+    ply:ChatPrint("Tracked Entities: " .. status.weldedEntities)
+    ply:ChatPrint("Last Activity: " .. status.lastActivity)
+
+    if not status.enabled then
+        ply:ChatPrint("Use 'aria toggle_auto_weld' to enable")
+    end
+
+end, "Show auto-weld system status", "Ship Core")
 
 -- Essential Hyperspace Commands Implementation
 ASC.Commands.Register("set_destination", function(ply, cmd, args)

@@ -1026,12 +1026,15 @@ ASC.AI.AdvancedAnalytics = {
 
 ASC.AI.NeuralNetwork = {
     -- Simple neural network for pattern recognition
-    Weights = {},
-    Biases = {},
+    Weights = nil, -- Will be initialized properly
+    Biases = nil,  -- Will be initialized properly
     LearningRate = 0.01,
+    Initialized = false,
 
     -- Initialize neural network
     Initialize = function()
+        if ASC.AI.NeuralNetwork.Initialized then return end
+
         -- Simple 3-layer network: input -> hidden -> output
         ASC.AI.NeuralNetwork.Weights = {
             input_hidden = {},
@@ -1061,6 +1064,9 @@ ASC.AI.NeuralNetwork = {
         for i = 1, 3 do -- 3 output classes
             ASC.AI.NeuralNetwork.Biases.output[i] = math.random() * 2 - 1
         end
+
+        ASC.AI.NeuralNetwork.Initialized = true
+        print("[ASC AI] Neural network weights and biases initialized successfully")
     end,
 
     -- Activation function (sigmoid)
@@ -1070,12 +1076,17 @@ ASC.AI.NeuralNetwork = {
 
     -- Forward pass
     Forward = function(inputs)
+        -- Initialize neural network if not done
+        if not ASC.AI.NeuralNetwork.Initialized or not ASC.AI.NeuralNetwork.Weights or not ASC.AI.NeuralNetwork.Weights.input_hidden then
+            ASC.AI.NeuralNetwork.Initialize()
+        end
+
         local hidden = {}
         local output = {}
 
         -- Input to hidden layer
         for j = 1, 5 do
-            local sum = ASC.AI.NeuralNetwork.Biases.hidden[j]
+            local sum = ASC.AI.NeuralNetwork.Biases.hidden[j] or 0
             for i = 1, #inputs do
                 if ASC.AI.NeuralNetwork.Weights.input_hidden[i] and ASC.AI.NeuralNetwork.Weights.input_hidden[i][j] then
                     sum = sum + inputs[i] * ASC.AI.NeuralNetwork.Weights.input_hidden[i][j]
@@ -1086,7 +1097,7 @@ ASC.AI.NeuralNetwork = {
 
         -- Hidden to output layer
         for j = 1, 3 do
-            local sum = ASC.AI.NeuralNetwork.Biases.output[j]
+            local sum = ASC.AI.NeuralNetwork.Biases.output[j] or 0
             for i = 1, #hidden do
                 if ASC.AI.NeuralNetwork.Weights.hidden_output[i] and ASC.AI.NeuralNetwork.Weights.hidden_output[i][j] then
                     sum = sum + hidden[i] * ASC.AI.NeuralNetwork.Weights.hidden_output[i][j]
@@ -1100,6 +1111,11 @@ ASC.AI.NeuralNetwork = {
 
     -- Predict response quality
     PredictQuality = function(query, context)
+        -- Initialize neural network if not done
+        if not ASC.AI.NeuralNetwork.Initialized or not ASC.AI.NeuralNetwork.Weights or not ASC.AI.NeuralNetwork.Weights.input_hidden then
+            ASC.AI.NeuralNetwork.Initialize()
+        end
+
         -- Extract features from query and context with safe defaults
         local features = {
             string.len(query) / 100, -- Query length (normalized)
@@ -4168,7 +4184,7 @@ function ASC.AI.ProcessQuery(player, query)
     local playerID = player:SteamID()
 
     -- Initialize neural network if not done
-    if not ASC.AI.NeuralNetwork.Weights.input_hidden then
+    if not ASC.AI.NeuralNetwork.Initialized or not ASC.AI.NeuralNetwork.Weights or not ASC.AI.NeuralNetwork.Weights.input_hidden then
         ASC.AI.NeuralNetwork.Initialize()
     end
 
@@ -6908,6 +6924,13 @@ ASC.AI.AddonIntegration = {
 -- Initialize AI system
 hook.Add("Initialize", "ASC_AI_Initialize", function()
     print("[Advanced Space Combat] ARIA-3 Advanced AI Assistant initialized")
+
+    -- Initialize neural network early to prevent errors
+    if ASC.AI.NeuralNetwork and ASC.AI.NeuralNetwork.Initialize then
+        ASC.AI.NeuralNetwork.Initialize()
+        print("[Advanced Space Combat] Neural network initialized successfully")
+    end
+
     local totalTopics = #ASC.AI.Knowledge.CoreSystems + #ASC.AI.Knowledge.StargateTech +
                        #ASC.AI.Knowledge.CombatSystems + #ASC.AI.Knowledge.Commands +
                        #ASC.AI.Knowledge.OrganizationHelp + #ASC.AI.Knowledge.ULXHelp +

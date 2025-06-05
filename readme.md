@@ -1939,13 +1939,10 @@ asc_version                 - Show addon version information
 
 #### Ship Core Commands
 ```
-asc_ship_core_volume <0.0-1.0>    - Adjust volume for all ship cores
-asc_ship_core_sound <path>        - Change sound for all ship cores
-asc_ship_core_mute               - Mute all ship cores
-asc_ship_core_randomize          - Randomize sounds with improved selection
 asc_show_front_indicators        - Show ship direction arrows
 asc_hide_front_indicators        - Hide ship direction arrows
 ```
+Note: Ship core sound effects have been removed per user request.
 
 #### Weapon System Commands
 ```

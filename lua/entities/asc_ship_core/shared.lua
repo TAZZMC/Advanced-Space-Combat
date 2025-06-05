@@ -144,12 +144,11 @@ if WireLib then
         {"ToggleLifeSupport", "NORMAL"},
         {"EmergencyResourceShutdown", "NORMAL"},
 
-        -- System control inputs
+        -- System control inputs (Mute removed per user request)
         {"RepairHull", "NORMAL"},
         {"ActivateShields", "NORMAL"},
         {"DeactivateShields", "NORMAL"},
-        {"Recalculate", "NORMAL"},
-        {"Mute", "NORMAL"}
+        {"Recalculate", "NORMAL"}
     }
 
     ENT.Outputs = {
@@ -208,7 +207,6 @@ if WireLib then
         {"PlayersSupported", "NORMAL"},
         {"ShipSizeMultiplier", "NORMAL"},
 
-        -- Ambient sound outputs
-        {"AmbientSoundMuted", "NORMAL"}
+        -- Ambient sound outputs removed per user request
     }
 end

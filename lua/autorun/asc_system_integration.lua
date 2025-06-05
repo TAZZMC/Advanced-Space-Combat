@@ -200,12 +200,17 @@ function ASC.SystemIntegration.CheckPerformanceSystem()
     
     if ASC.Performance and ASC.Performance.State then
         local perfState = ASC.Performance.State
-        
-        if perfState.MemoryUsage > ASC.SystemIntegration.Config.AlertThresholds.MemoryUsage then
+
+        -- Safe comparison with nil checks
+        local memoryUsage = perfState.MemoryUsage or 0
+        local averageFPS = perfState.AverageFPS or 60
+        local performanceLevel = perfState.PerformanceLevel or "Good"
+
+        if memoryUsage > ASC.SystemIntegration.Config.AlertThresholds.MemoryUsage then
             status = "Warning"
-        elseif perfState.AverageFPS < ASC.SystemIntegration.Config.AlertThresholds.FPS then
+        elseif averageFPS < ASC.SystemIntegration.Config.AlertThresholds.FPS then
             status = "Warning"
-        elseif perfState.PerformanceLevel == "Poor" then
+        elseif performanceLevel == "Poor" then
             status = "Critical"
         end
     else
@@ -344,21 +349,27 @@ function ASC.SystemIntegration.CheckAlerts()
     local alerts = {}
     
     -- Memory usage alert
-    if ASC.Performance and ASC.Performance.State.MemoryUsage > config.AlertThresholds.MemoryUsage then
-        table.insert(alerts, {
-            type = "MemoryUsage",
-            message = "High memory usage: " .. ASC.Performance.State.MemoryUsage .. " MB",
-            severity = "Warning"
-        })
+    if ASC.Performance and ASC.Performance.State then
+        local memoryUsage = ASC.Performance.State.MemoryUsage or 0
+        if memoryUsage > config.AlertThresholds.MemoryUsage then
+            table.insert(alerts, {
+                type = "MemoryUsage",
+                message = "High memory usage: " .. memoryUsage .. " MB",
+                severity = "Warning"
+            })
+        end
     end
-    
+
     -- FPS alert
-    if CLIENT and ASC.Performance and ASC.Performance.State.AverageFPS < config.AlertThresholds.FPS then
-        table.insert(alerts, {
-            type = "LowFPS",
-            message = "Low FPS: " .. math.floor(ASC.Performance.State.AverageFPS),
-            severity = "Warning"
-        })
+    if CLIENT and ASC.Performance and ASC.Performance.State then
+        local averageFPS = ASC.Performance.State.AverageFPS or 60
+        if averageFPS < config.AlertThresholds.FPS then
+            table.insert(alerts, {
+                type = "LowFPS",
+                message = "Low FPS: " .. math.floor(averageFPS),
+                severity = "Warning"
+            })
+        end
     end
     
     -- Entity count alert
@@ -413,10 +424,13 @@ function ASC.SystemIntegration.AutoOptimize()
     local optimized = false
     
     -- Memory optimization
-    if ASC.Performance and ASC.Performance.State.MemoryUsage > 300 then
-        if ASC.Performance.TriggerMemoryCleanup then
-            ASC.Performance.TriggerMemoryCleanup()
-            optimized = true
+    if ASC.Performance and ASC.Performance.State then
+        local memoryUsage = ASC.Performance.State.MemoryUsage or 0
+        if memoryUsage > 300 then
+            if ASC.Performance.TriggerMemoryCleanup then
+                ASC.Performance.TriggerMemoryCleanup()
+                optimized = true
+            end
         end
     end
     

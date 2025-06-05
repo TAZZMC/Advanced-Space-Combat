@@ -258,17 +258,24 @@ SafeCreateConVar("asc_sound_engines", "1.0", FCVAR_ARCHIVE, "Engine sound volume
 SafeCreateConVar("asc_sound_shields", "1.0", FCVAR_ARCHIVE, "Shield sound volume")
 SafeCreateConVar("asc_sound_ui", "0.6", FCVAR_ARCHIVE, "UI sound volume")
 
--- Phase 2 Enhanced ConVars - Ship Core Visual and Audio Settings
+-- Phase 2 Enhanced ConVars - Ship Core Settings (effects removed per user request)
 SafeCreateConVar("asc_show_front_indicators", "1", FCVAR_ARCHIVE, "Show ship front direction indicators")
 SafeCreateConVar("asc_auto_show_arrows", "1", FCVAR_ARCHIVE, "Automatically show front arrows on ship cores")
 SafeCreateConVar("asc_indicator_distance", "150", FCVAR_ARCHIVE, "Distance of front indicator from ship core")
-SafeCreateConVar("asc_enable_ship_sounds", "1", FCVAR_ARCHIVE, "Enable ship core ambient sounds")
-SafeCreateConVar("asc_ship_core_volume", "0.15", FCVAR_ARCHIVE, "Ship core ambient sound volume")
-SafeCreateConVar("asc_default_ship_sound", "ambient/atmosphere/ambience_base.wav", FCVAR_ARCHIVE, "Default ship core ambient sound")
 SafeCreateConVar("asc_enable_auto_linking", "1", FCVAR_ARCHIVE, "Enable automatic component linking")
 SafeCreateConVar("asc_enable_cap_integration", "1", FCVAR_ARCHIVE, "Enable CAP asset integration")
 SafeCreateConVar("asc_enable_ai_system", "1", FCVAR_ARCHIVE, "Enable ARIA-4 AI system")
 SafeCreateConVar("asc_default_ship_range", "2000", FCVAR_ARCHIVE, "Default ship detection range")
+SafeCreateConVar("asc_performance_mode", "0", FCVAR_ARCHIVE, "Enable performance mode (reduces update rates)")
+SafeCreateConVar("asc_spawn_delay", "5", FCVAR_ARCHIVE, "Delay before ship core starts full operations (seconds)")
+
+-- Advanced Optimization System ConVars
+SafeCreateConVar("asc_enable_spatial_partitioning", "1", FCVAR_ARCHIVE, "Enable spatial partitioning for entity detection")
+SafeCreateConVar("asc_enable_constraint_caching", "1", FCVAR_ARCHIVE, "Enable constraint relationship caching")
+SafeCreateConVar("asc_enable_incremental_detection", "1", FCVAR_ARCHIVE, "Enable incremental ship detection")
+SafeCreateConVar("asc_enable_adaptive_scheduling", "1", FCVAR_ARCHIVE, "Enable adaptive performance scheduling")
+SafeCreateConVar("asc_performance_threshold", "30", FCVAR_ARCHIVE, "FPS threshold for performance optimizations")
+SafeCreateConVar("asc_optimization_debug", "0", FCVAR_ARCHIVE, "Enable optimization system debug output")
 
 -- Backward compatibility aliases
 HYPERDRIVE.VERSION = ASC.VERSION

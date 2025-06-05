@@ -107,9 +107,14 @@ end
 
 -- Initialize hooks
 function ASC.MasterTheme.InitializeHooks()
-    -- Performance monitoring
+    -- Performance monitoring with error protection
     hook.Add("Think", "ASC_MasterTheme_Performance", function()
-        ASC.MasterTheme.MonitorPerformance()
+        local success, err = pcall(ASC.MasterTheme.MonitorPerformance)
+        if not success then
+            print("[ASC Master Theme] Performance monitoring error: " .. tostring(err))
+            -- Disable performance monitoring if it keeps failing
+            hook.Remove("Think", "ASC_MasterTheme_Performance")
+        end
     end)
     
     -- ConVar change monitoring

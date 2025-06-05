@@ -388,33 +388,54 @@ function ASC.SpawnMenu.PopulateToolMenus()
         })
 
         panel:AddControl("Header", {
-            Text = "Ship Core Audio Settings",
-            Description = "Configure ship core sound system"
+            Text = "Ship Core Settings",
+            Description = "Configure ship core system (audio effects removed per user request)"
         })
 
         panel:AddControl("CheckBox", {
-            Label = "Enable Ship Core Sounds",
-            Command = "asc_enable_ship_sounds"
+            Label = "Performance Mode",
+            Command = "asc_performance_mode"
         })
 
         panel:AddControl("Slider", {
-            Label = "Ship Core Volume",
-            Command = "asc_ship_core_volume",
+            Label = "Spawn Delay (seconds)",
+            Command = "asc_spawn_delay",
             Type = "Float",
-            Min = 0.0,
-            Max = 1.0
+            Min = 1.0,
+            Max = 15.0
         })
 
-        panel:AddControl("ComboBox", {
-            Label = "Default Ship Sound",
-            MenuButton = 1,
-            Folder = "asc_ship_sounds",
-            Options = {
-                ["ambient/atmosphere/ambience_base.wav"] = {asc_default_ship_sound = "ambient/atmosphere/ambience_base.wav"},
-                ["ambient/atmosphere/tone_quiet.wav"] = {asc_default_ship_sound = "ambient/atmosphere/tone_quiet.wav"},
-                ["ambient/water/water_flow_loop1.wav"] = {asc_default_ship_sound = "ambient/water/water_flow_loop1.wav"},
-                ["ambient/atmosphere/wind_quiet.wav"] = {asc_default_ship_sound = "ambient/atmosphere/wind_quiet.wav"}
-            }
+        panel:AddControl("Header", {
+            Text = "Advanced Optimization Settings",
+            Description = "Configure ship core optimization system for better performance"
+        })
+
+        panel:AddControl("CheckBox", {
+            Label = "Enable Spatial Partitioning",
+            Command = "asc_enable_spatial_partitioning"
+        })
+
+        panel:AddControl("CheckBox", {
+            Label = "Enable Constraint Caching",
+            Command = "asc_enable_constraint_caching"
+        })
+
+        panel:AddControl("CheckBox", {
+            Label = "Enable Incremental Detection",
+            Command = "asc_enable_incremental_detection"
+        })
+
+        panel:AddControl("CheckBox", {
+            Label = "Enable Adaptive Scheduling",
+            Command = "asc_enable_adaptive_scheduling"
+        })
+
+        panel:AddControl("Slider", {
+            Label = "Performance Threshold (FPS)",
+            Command = "asc_performance_threshold",
+            Type = "Float",
+            Min = 15.0,
+            Max = 60.0
         })
 
         panel:AddControl("Button", {
