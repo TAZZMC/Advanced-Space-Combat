@@ -1163,10 +1163,19 @@ function HYPERDRIVE.Hyperspace.Log(message, category)
     end
 end
 
--- Hook into think for updates
-hook.Add("Think", "HyperdriveHyperspaceThink", function()
-    if math.random() < 0.1 then -- 10% chance per frame to reduce performance impact
-        HYPERDRIVE.Hyperspace.Think()
+-- Register hyperspace updates with master scheduler
+timer.Simple(9, function()
+    if ASC and ASC.MasterScheduler then
+        ASC.MasterScheduler.RegisterTask("HyperdriveHyperspace", "Medium", function()
+            HYPERDRIVE.Hyperspace.Think()
+        end, 1.0) -- 1 FPS for hyperspace effects
+    else
+        -- Fallback hook if master scheduler not available
+        hook.Add("Think", "HyperdriveHyperspaceThink", function()
+            if math.random() < 0.1 then -- 10% chance per frame to reduce performance impact
+                HYPERDRIVE.Hyperspace.Think()
+            end
+        end)
     end
 end)
 

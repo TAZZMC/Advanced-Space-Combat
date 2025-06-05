@@ -70,29 +70,53 @@ function ASC.ThemeOptimization.Initialize()
     print("[Advanced Space Combat] Theme optimization initialized")
 end
 
--- Set up optimization hooks
+-- Set up optimization hooks with master scheduler
 function ASC.ThemeOptimization.SetupOptimizationHooks()
-    -- Monitor FPS and adjust quality
-    timer.Create("ASC_ThemeQualityMonitor", 1, 0, function()
-        ASC.ThemeOptimization.MonitorPerformance()
-    end)
-    
-    -- Clean up old materials and panels
-    timer.Create("ASC_ThemeCleanup", ASC.ThemeOptimization.Config.CleanupInterval, 0, function()
-        ASC.ThemeOptimization.CleanupResources()
+    timer.Simple(6, function()
+        if ASC and ASC.MasterScheduler then
+            -- Register with master scheduler
+            ASC.MasterScheduler.RegisterTask("ASC_ThemeQualityMonitor", "Low", function()
+                ASC.ThemeOptimization.MonitorPerformance()
+            end, 1.0)
+
+            ASC.MasterScheduler.RegisterTask("ASC_ThemeCleanup", "Low", function()
+                ASC.ThemeOptimization.CleanupResources()
+            end, ASC.ThemeOptimization.Config.CleanupInterval)
+        else
+            -- Fallback timers if master scheduler not available
+            timer.Create("ASC_ThemeQualityMonitor", 1, 0, function()
+                ASC.ThemeOptimization.MonitorPerformance()
+            end)
+
+            timer.Create("ASC_ThemeCleanup", ASC.ThemeOptimization.Config.CleanupInterval, 0, function()
+                ASC.ThemeOptimization.CleanupResources()
+            end)
+        end
     end)
 end
 
--- Set up cleanup timers
+-- Set up cleanup timers with master scheduler
 function ASC.ThemeOptimization.SetupCleanupTimers()
-    -- Material cleanup
-    timer.Create("ASC_MaterialCleanup", 300, 0, function()
-        ASC.ThemeOptimization.CleanupMaterials()
-    end)
-    
-    -- Panel cleanup
-    timer.Create("ASC_PanelCleanup", 120, 0, function()
-        ASC.ThemeOptimization.CleanupPanels()
+    timer.Simple(7, function()
+        if ASC and ASC.MasterScheduler then
+            -- Register with master scheduler
+            ASC.MasterScheduler.RegisterTask("ASC_MaterialCleanup", "Low", function()
+                ASC.ThemeOptimization.CleanupMaterials()
+            end, 300)
+
+            ASC.MasterScheduler.RegisterTask("ASC_PanelCleanup", "Low", function()
+                ASC.ThemeOptimization.CleanupPanels()
+            end, 120)
+        else
+            -- Fallback timers if master scheduler not available
+            timer.Create("ASC_MaterialCleanup", 300, 0, function()
+                ASC.ThemeOptimization.CleanupMaterials()
+            end)
+
+            timer.Create("ASC_PanelCleanup", 120, 0, function()
+                ASC.ThemeOptimization.CleanupPanels()
+            end)
+        end
     end)
 end
 

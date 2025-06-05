@@ -380,10 +380,19 @@ function HYPERDRIVE.Quantum.Think()
     end
 end
 
--- Hook quantum updates
-hook.Add("Think", "HyperdriveQuantumThink", function()
-    if math.random() < 0.01 then -- 1% chance per frame to reduce performance impact
-        HYPERDRIVE.Quantum.Think()
+-- Register quantum updates with master scheduler
+timer.Simple(8, function()
+    if ASC and ASC.MasterScheduler then
+        ASC.MasterScheduler.RegisterTask("HyperdriveQuantum", "Low", function()
+            HYPERDRIVE.Quantum.Think()
+        end, 5.0) -- Very low frequency for quantum effects
+    else
+        -- Fallback hook if master scheduler not available
+        hook.Add("Think", "HyperdriveQuantumThink", function()
+            if math.random() < 0.01 then -- 1% chance per frame to reduce performance impact
+                HYPERDRIVE.Quantum.Think()
+            end
+        end)
     end
 end)
 
