@@ -85,17 +85,36 @@ function ENT:Initialize()
 
     -- Auto-weld system removed for performance and simplicity
 
-    -- Set up for tool interactions
+    -- Set up for tool interactions - Allow most tools but block destructive ones
     self.CanTool = function(self, ply, trace, mode)
-        -- Allow welding and other constraint tools
-        if mode == "weld" or mode == "rope" or mode == "axis" or mode == "ballsocket" or mode == "slider" or mode == "hydraulic" then
-            return true
+        if not IsValid(ply) then
+            print("[ASC Ship Core] CanTool: Invalid player")
+            return false
         end
-        -- Allow other ASC tools
-        if string.find(mode, "asc_") then
-            return true
+
+        -- Check ownership first
+        local owner = self:CPPIGetOwner()
+        if IsValid(owner) and owner ~= ply and not ply:IsAdmin() then
+            print("[ASC Ship Core] CanTool: " .. ply:Name() .. " doesn't own this ship core (Owner: " .. owner:Name() .. ")")
+            return false -- Only owner or admin can use tools
         end
-        return false
+
+        -- Block destructive tools
+        local blockedTools = {
+            "remover", "duplicator", "material", "paint", "colour", "color",
+            "ignite", "nocollide_world", "thruster", "emitter"
+        }
+
+        for _, blocked in ipairs(blockedTools) do
+            if mode == blocked then
+                print("[ASC Ship Core] CanTool: Blocked destructive tool '" .. mode .. "' for " .. ply:Name())
+                return false
+            end
+        end
+
+        -- Allow all other tools (constraint tools, wire tools, etc.)
+        print("[ASC Ship Core] CanTool: Allowing tool '" .. mode .. "' for " .. ply:Name())
+        return true
     end
 
     -- Initialize ship core data
