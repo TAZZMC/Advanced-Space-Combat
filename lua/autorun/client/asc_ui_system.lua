@@ -10,9 +10,26 @@ ASC.UI = ASC.UI or {}
 
 -- UI Localization helper
 ASC.UI.GetText = function(key, fallback)
+    -- Try GMod localization first
+    if ASC.GMod and ASC.GMod.Localization then
+        local gmodKey = "asc." .. string.lower(key:gsub(" ", "_"))
+        local gmodText = ASC.GMod.Localization.GetText(gmodKey, nil)
+        if gmodText and gmodText ~= gmodKey then
+            return gmodText
+        end
+    end
+
+    -- Fall back to Czech system
     if ASC.Czech and ASC.Czech.GetText then
         return ASC.Czech.GetText(key, fallback)
     end
+
+    -- Use GMod's built-in language system
+    local phrase = language.GetPhrase("asc." .. string.lower(key:gsub(" ", "_")))
+    if phrase and phrase ~= ("asc." .. string.lower(key:gsub(" ", "_"))) then
+        return phrase
+    end
+
     return fallback or key
 end
 

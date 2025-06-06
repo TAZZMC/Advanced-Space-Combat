@@ -3578,34 +3578,264 @@ ASC.AI.Languages = {
             end
         end
 
-        -- Czech detection (enhanced)
+        -- Czech detection (comprehensive with diacritics and cultural context)
         local czechWords = {
-            -- Basic words
+            -- === ZÁKLADNÍ SLOVA ===
             "jak", "kde", "co", "proč", "když", "ale", "nebo", "že", "být", "mít",
-            "ahoj", "děkuji", "prosím", "ano", "ne", "dobře", "špatně",
-            -- Space combat related
-            "loď", "zbraň", "let", "štít", "energie", "hyperpohon", "jádro", "systém",
-            "stargate", "brána", "cestování", "vesmír", "boj", "útok", "obrana",
-            -- Commands in Czech
-            "pomoc", "nápověda", "status", "stav", "spawn", "vytvoř", "nastav",
-            "aktivuj", "deaktivuj", "zapni", "vypni", "skoč", "teleportuj",
-            -- Common Czech words
-            "jsem", "jsi", "je", "jsme", "jste", "jsou", "byl", "byla", "bylo",
-            "můžu", "můžeš", "může", "můžeme", "můžete", "mohou", "chci", "chceš",
-            "potřebuji", "potřebuješ", "potřebuje", "funguje", "nefunguje", "problém"
+            "ahoj", "děkuji", "prosím", "ano", "ne", "dobře", "špatně", "možná",
+
+            -- === ČASTÉ ČESKÉ VÝRAZY ===
+            "jsem", "jsi", "je", "jsme", "jste", "jsou", "byl", "byla", "bylo", "byli", "byly",
+            "můžu", "můžeš", "může", "můžeme", "můžete", "mohou", "mohl", "mohla", "mohlo",
+            "chci", "chceš", "chce", "chceme", "chcete", "chtějí", "chtěl", "chtěla",
+            "potřebuji", "potřebuješ", "potřebuje", "potřebujeme", "potřebujete", "potřebují",
+            "funguje", "nefunguje", "problém", "řešení", "pomoc", "nápověda",
+
+            -- === VESMÍRNÝ BOJ TERMINOLOGIE ===
+            "loď", "lodi", "lodí", "zbraň", "zbraně", "zbraní", "let", "letu", "létání",
+            "štít", "štíty", "štítů", "energie", "energii", "energií", "hyperpohon", "hyperpoháněč",
+            "jádro", "jádra", "jader", "systém", "systémy", "systémů", "stargate", "brána", "brány",
+            "cestování", "vesmír", "vesmíru", "boj", "boje", "bojů", "útok", "útoky", "útoků",
+            "obrana", "obrany", "navigace", "senzory", "palivo", "munice", "torpédo",
+
+            -- === PŘÍKAZY V ČEŠTINĚ ===
+            "pomoc", "nápověda", "status", "stav", "spawn", "vytvoř", "vytvořit", "nastav",
+            "nastavit", "aktivuj", "aktivovat", "zapni", "zapnout", "vypni", "vypnout",
+            "deaktivuj", "deaktivovat", "skoč", "skočit", "teleportuj", "teleportovat",
+            "vytočit", "vytáčet", "oprav", "opravit", "diagnostika", "řešení", "troubleshoot",
+
+            -- === STARGATE TECHNOLOGIE ===
+            "starověká", "asgardská", "goauldská", "wraith", "ori", "tauri", "technologie",
+            "dhd", "zpm", "naquadah", "trinium", "neutronium", "kontrolní", "křeslo",
+            "transportér", "prstencový", "sarkofág", "regenerace", "úl", "prior",
+
+            -- === FORMÁLNÍ/NEFORMÁLNÍ OSLOVENÍ ===
+            "vy", "vás", "vám", "váš", "vaše", "vaší", "ty", "tě", "ti", "tvůj", "tvoje", "tvé",
+            "prosím", "děkuji", "děkuju", "díky", "pardon", "promiňte", "omlouvám",
+
+            -- === ČASOVÉ VÝRAZY ===
+            "teď", "nyní", "dnes", "včera", "zítra", "brzy", "později", "rychle", "pomalu",
+            "okamžitě", "ihned", "za chvíli", "za moment", "za minutu", "za hodinu",
+
+            -- === EMOCIONÁLNÍ VÝRAZY ===
+            "skvělé", "výborné", "perfektní", "úžasné", "fantastické", "super", "fajn",
+            "špatné", "hrozné", "problematické", "složité", "jednoduché", "lehké", "těžké",
+
+            -- === ČESKÉ DIAKRITICKE ZNAKY (DETEKCE) ===
+            "á", "č", "ď", "é", "ě", "í", "ň", "ó", "ř", "š", "ť", "ú", "ů", "ý", "ž"
         }
+
         local czechCount = 0
+        local diacriticsCount = 0
+
+        -- Počítání českých slov
         for _, word in ipairs(czechWords) do
             if string.find(lowerQuery, word) then
                 czechCount = czechCount + 1
             end
         end
 
-        if czechCount > 1 then return "czech" end
+        -- Detekce českých diakritických znaků
+        local czechDiacritics = {"á", "č", "ď", "é", "ě", "í", "ň", "ó", "ř", "š", "ť", "ú", "ů", "ý", "ž"}
+        for _, char in ipairs(czechDiacritics) do
+            if string.find(lowerQuery, char) then
+                diacriticsCount = diacriticsCount + 1
+            end
+        end
+
+        -- Pokročilá detekce - kombinace slov a diakritiky
+        local czechConfidence = czechCount + (diacriticsCount * 0.5)
+
+        if czechConfidence >= 2 then return "czech" end
         if spanishCount > 1 then return "spanish" end
         if frenchCount > 1 then return "french" end
 
         return "english"
+    end,
+
+    -- === POKROČILÉ ČESKÉ FUNKCE ===
+
+    -- Validate Czech text encoding (UTF-8)
+    ValidateCzechEncoding = function(text)
+        if not text or text == "" then return true end
+
+        -- Check for proper UTF-8 encoding of Czech characters
+        local czechChars = {
+            ["á"] = true, ["Á"] = true,
+            ["č"] = true, ["Č"] = true,
+            ["ď"] = true, ["Ď"] = true,
+            ["é"] = true, ["É"] = true,
+            ["ě"] = true, ["Ě"] = true,
+            ["í"] = true, ["Í"] = true,
+            ["ň"] = true, ["Ň"] = true,
+            ["ó"] = true, ["Ó"] = true,
+            ["ř"] = true, ["Ř"] = true,
+            ["š"] = true, ["Š"] = true,
+            ["ť"] = true, ["Ť"] = true,
+            ["ú"] = true, ["Ú"] = true,
+            ["ů"] = true, ["Ů"] = true,
+            ["ý"] = true, ["Ý"] = true,
+            ["ž"] = true, ["Ž"] = true
+        }
+
+        -- Check each character
+        for i = 1, string.len(text) do
+            local char = string.sub(text, i, i)
+            local byte = string.byte(char)
+
+            -- Check for invalid encoding (common issue with Czech characters)
+            if byte > 127 and not czechChars[char] then
+                -- Might be encoding issue
+                return false
+            end
+        end
+
+        return true
+    end,
+
+    -- Detect Czech cultural context (formal vs informal)
+    DetectCzechFormality = function(text)
+        if not text or text == "" then return "neutral" end
+
+        local lowerText = string.lower(text)
+
+        -- Formal indicators (vykat)
+        local formalWords = {
+            "vy", "vás", "vám", "váš", "vaše", "vaší", "můžete", "jste", "budete",
+            "prosím vás", "děkuji vám", "omlouvám se", "dovolte", "ráčíte"
+        }
+
+        -- Informal indicators (tykat)
+        local informalWords = {
+            "ty", "tě", "ti", "tvůj", "tvoje", "tvé", "můžeš", "jsi", "budeš",
+            "díky", "děkuju", "ahoj", "čau", "nazdar", "sorry"
+        }
+
+        local formalCount = 0
+        local informalCount = 0
+
+        for _, word in ipairs(formalWords) do
+            if string.find(lowerText, word) then
+                formalCount = formalCount + 1
+            end
+        end
+
+        for _, word in ipairs(informalWords) do
+            if string.find(lowerText, word) then
+                informalCount = informalCount + 1
+            end
+        end
+
+        if formalCount > informalCount then
+            return "formal"
+        elseif informalCount > formalCount then
+            return "informal"
+        else
+            return "neutral"
+        end
+    end,
+
+    -- Generate Czech response with proper formality
+    GenerateCzechResponse = function(baseResponse, formality, playerName)
+        if not baseResponse or baseResponse == "" then return baseResponse end
+
+        local response = baseResponse
+
+        -- Apply formality adjustments
+        if formality == "formal" then
+            -- Use formal language
+            response = string.gsub(response, "ty", "vy")
+            response = string.gsub(response, "tě", "vás")
+            response = string.gsub(response, "ti", "vám")
+            response = string.gsub(response, "tvůj", "váš")
+            response = string.gsub(response, "tvoje", "vaše")
+            response = string.gsub(response, "můžeš", "můžete")
+            response = string.gsub(response, "jsi", "jste")
+            response = string.gsub(response, "díky", "děkuji")
+            response = string.gsub(response, "ahoj", "dobrý den")
+        elseif formality == "informal" then
+            -- Use informal language
+            response = string.gsub(response, "vy", "ty")
+            response = string.gsub(response, "vás", "tě")
+            response = string.gsub(response, "vám", "ti")
+            response = string.gsub(response, "váš", "tvůj")
+            response = string.gsub(response, "vaše", "tvoje")
+            response = string.gsub(response, "můžete", "můžeš")
+            response = string.gsub(response, "jste", "jsi")
+            response = string.gsub(response, "děkuji", "díky")
+            response = string.gsub(response, "dobrý den", "ahoj")
+        end
+
+        -- Add personalization if player name provided
+        if playerName and playerName ~= "" then
+            if formality == "formal" then
+                response = response .. " (pro " .. playerName .. ")"
+            else
+                response = response .. " (" .. playerName .. ")"
+            end
+        end
+
+        return response
+    end,
+
+    -- Enhanced Czech command translation with context
+    TranslateCzechCommandAdvanced = function(query, context)
+        local lowerQuery = string.lower(query)
+        context = context or {}
+
+        -- Rozšířené mapování českých příkazů
+        local czechCommands = {
+            -- === ZÁKLADNÍ PŘÍKAZY ===
+            ["pomoc"] = "help", ["nápověda"] = "help", ["help"] = "help",
+            ["stav"] = "status", ["status"] = "status", ["informace"] = "info",
+            ["vytvoř"] = "spawn", ["vytvořit"] = "spawn", ["spawn"] = "spawn",
+            ["nastav"] = "configure", ["nastavit"] = "configure", ["konfiguruj"] = "configure",
+            ["aktivuj"] = "activate", ["aktivovat"] = "activate", ["zapni"] = "enable",
+            ["vypni"] = "disable", ["vypnout"] = "disable", ["deaktivuj"] = "deactivate",
+
+            -- === POHYB A TRANSPORT ===
+            ["skoč"] = "jump", ["skočit"] = "jump", ["teleportuj"] = "teleport",
+            ["teleportovat"] = "teleport", ["přesunout"] = "move", ["letět"] = "fly",
+            ["cestovat"] = "travel", ["navigovat"] = "navigate",
+
+            -- === STARGATE PŘÍKAZY ===
+            ["vytočit"] = "dial", ["vytáčet"] = "dial", ["připojit"] = "connect",
+            ["odpojit"] = "disconnect", ["zavřít"] = "close", ["otevřít"] = "open",
+
+            -- === SYSTÉMY LODI ===
+            ["jádro lodi"] = "ship core", ["jádro"] = "core", ["loď"] = "ship",
+            ["zbraně"] = "weapons", ["zbraň"] = "weapon", ["střelba"] = "fire",
+            ["štíty"] = "shields", ["štít"] = "shield", ["obrana"] = "defense",
+            ["hyperpohon"] = "hyperdrive", ["hyperpoháněč"] = "hyperdrive",
+            ["energie"] = "energy", ["palivo"] = "fuel", ["munice"] = "ammunition",
+
+            -- === DIAGNOSTIKA ===
+            ["oprav"] = "fix", ["opravit"] = "repair", ["diagnostika"] = "diagnostic",
+            ["řešení"] = "troubleshoot", ["problém"] = "problem", ["chyba"] = "error",
+
+            -- === POKROČILÉ FUNKCE ===
+            ["letový systém"] = "flight system", ["taktická ai"] = "tactical ai",
+            ["formace"] = "formation", ["dokování"] = "docking", ["boss"] = "boss"
+        }
+
+        -- Aplikace překladů s kontextem
+        local translatedQuery = lowerQuery
+        for czech, english in pairs(czechCommands) do
+            translatedQuery = string.gsub(translatedQuery, czech, english)
+        end
+
+        -- Kontextové úpravy
+        if context.shipDetected then
+            translatedQuery = string.gsub(translatedQuery, "to", "ship")
+            translatedQuery = string.gsub(translatedQuery, "toto", "this ship")
+        end
+
+        if context.stargateDetected then
+            translatedQuery = string.gsub(translatedQuery, "brána", "stargate")
+            translatedQuery = string.gsub(translatedQuery, "portál", "stargate")
+        end
+
+        return translatedQuery
     end
 }
 
@@ -4307,16 +4537,52 @@ function ASC.AI.GenerateAdvancedResponse(player, query, analysis)
     local originalQuery = query
     local detectedLang = ASC.AI.Languages.DetectLanguage(query)
 
-    -- Handle Czech language input
+    -- Enhanced Czech language input handling
     if detectedLang == "czech" then
         playerLang = "cs"
-        -- Translate Czech commands to English for processing
-        local translatedQuery = ASC.AI.Languages.TranslateCzechCommand(query)
-        if translatedQuery ~= string.lower(query) then
+
+        -- Detect Czech cultural context (formal/informal)
+        local formality = "neutral"
+        if ASC.AI.Languages.DetectCzechFormality then
+            formality = ASC.AI.Languages.DetectCzechFormality(originalQuery)
+        end
+
+        -- Validate Czech encoding
+        local encodingValid = true
+        if ASC.AI.Languages.ValidateCzechEncoding then
+            encodingValid = ASC.AI.Languages.ValidateCzechEncoding(originalQuery)
+            if not encodingValid then
+                print("[ARIA-4] Warning: Czech encoding issues detected in query")
+            end
+        end
+
+        -- Enhanced Czech command translation with context
+        local context = {
+            formality = formality,
+            encodingValid = encodingValid,
+            shipDetected = analysis.entities and #analysis.entities > 0,
+            stargateDetected = false -- Could be enhanced with stargate detection
+        }
+
+        local translatedQuery = originalQuery
+        if ASC.AI.Languages.TranslateCzechCommandAdvanced then
+            translatedQuery = ASC.AI.Languages.TranslateCzechCommandAdvanced(originalQuery, context)
+        else
+            translatedQuery = ASC.AI.Languages.TranslateCzechCommand(originalQuery)
+        end
+
+        if translatedQuery ~= string.lower(originalQuery) then
             query = translatedQuery
             queryLower = string.lower(query)
-            print("[ARIA-4] Translated Czech query: " .. originalQuery .. " -> " .. query)
+            print("[ARIA-4] Enhanced Czech translation: " .. originalQuery .. " -> " .. query .. " (formality: " .. formality .. ")")
         end
+
+        -- Store Czech context for response generation
+        analysis.czechContext = {
+            formality = formality,
+            encodingValid = encodingValid,
+            originalQuery = originalQuery
+        }
     end
 
     if ASC.Multilingual and ASC.Multilingual.Core then
@@ -5520,12 +5786,26 @@ function ASC.AI.SendAdvancedResponse(player, response, analysis)
         end
     end
 
-    -- Translate response to Czech if needed
+    -- Enhanced Czech response translation with cultural context
     if playerLang == "cs" then
-        local czechResponse = ASC.AI.Languages.TranslateResponseToCzech(response)
+        local czechResponse = response
+
+        -- Use enhanced Czech response generation if available
+        if ASC.AI.Languages.GenerateCzechResponse and analysis and analysis.czechContext then
+            czechResponse = ASC.AI.Languages.GenerateCzechResponse(
+                response,
+                analysis.czechContext.formality,
+                player:Name()
+            )
+            print("[ARIA-4] Generated Czech response with " .. analysis.czechContext.formality .. " formality for " .. player:Name())
+        else
+            -- Fallback to basic translation
+            czechResponse = ASC.AI.Languages.TranslateResponseToCzech(response)
+        end
+
         if czechResponse and czechResponse ~= response then
             response = czechResponse
-            print("[ARIA-4] Translated response to Czech for " .. player:Name())
+            print("[ARIA-4] Applied Czech localization for " .. player:Name())
         end
     elseif ASC.Multilingual and ASC.Multilingual.Core and playerLang ~= "en" then
         -- Use multilingual system for other languages

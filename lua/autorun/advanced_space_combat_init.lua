@@ -359,6 +359,7 @@ include("autorun/asc_debug_system.lua")
 include("autorun/asc_error_recovery.lua")
 include("autorun/asc_multilingual_system.lua")
 include("autorun/asc_czech_localization.lua")
+include("autorun/asc_gmod_localization.lua")
 
 -- Load resource manifest early for loading screen integration
 include("autorun/asc_resource_manifest.lua")
@@ -397,11 +398,14 @@ include("autorun/asc_performance_monitor.lua")
 include("autorun/asc_point_defense_system.lua")
 include("autorun/asc_countermeasures_system.lua")
 include("autorun/asc_czech_auto_detection.lua")
+include("autorun/asc_localization_test.lua")
+include("autorun/asc_localization_integration.lua")
 if SERVER then
     AddCSLuaFile("autorun/asc_debug_system.lua")
     AddCSLuaFile("autorun/asc_error_recovery.lua")
     AddCSLuaFile("autorun/asc_multilingual_system.lua")
     AddCSLuaFile("autorun/asc_czech_localization.lua")
+    AddCSLuaFile("autorun/asc_gmod_localization.lua")
     AddCSLuaFile("autorun/asc_documentation_system.lua")
     AddCSLuaFile("autorun/asc_console_commands.lua")
     AddCSLuaFile("autorun/asc_stargate_technology.lua")
@@ -425,6 +429,10 @@ if SERVER then
     AddCSLuaFile("autorun/asc_cap_effects_system.lua")
     AddCSLuaFile("autorun/asc_cap_weapons_integration.lua")
     AddCSLuaFile("autorun/asc_cap_console_commands.lua")
+
+    -- Add localization system files
+    AddCSLuaFile("autorun/asc_localization_test.lua")
+    AddCSLuaFile("autorun/asc_localization_integration.lua")
 end
 
 -- Load client-side systems
@@ -450,6 +458,7 @@ print("[Advanced Space Combat] Last Updated: " .. ASC.LAST_UPDATED)
 print("[Advanced Space Combat] Documentation: Updated with emoji and modern formatting")
 print("[Advanced Space Combat] Resource Management: Intelligent handling of missing files")
 print("[Advanced Space Combat] Sound System: Professional Lua-based audio with fallbacks")
+print("[Advanced Space Combat] Localization: Comprehensive Czech language support with GMod integration")
 print("[Advanced Space Combat] Quality: Enterprise-grade architecture")
 print("================================================================================")
 print("[Advanced Space Combat] 🌌 READY FOR ULTIMATE SPACE ADVENTURES! 🚀")

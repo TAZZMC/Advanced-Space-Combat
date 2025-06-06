@@ -81,9 +81,26 @@ ASC.Commands.Register("help", function(ply, cmd, args)
 
     -- Get localized text function
     local function GetText(key, fallback)
+        -- Try GMod localization first
+        if ASC.GMod and ASC.GMod.Localization then
+            local gmodKey = "asc." .. string.lower(key:gsub(" ", "_"))
+            local gmodText = ASC.GMod.Localization.GetText(gmodKey, nil)
+            if gmodText and gmodText ~= gmodKey then
+                return gmodText
+            end
+        end
+
+        -- Fall back to Czech system
         if ASC.Czech and ASC.Czech.GetText then
             return ASC.Czech.GetText(key, fallback)
         end
+
+        -- Use GMod's built-in language system
+        local phrase = language.GetPhrase("asc." .. string.lower(key:gsub(" ", "_")))
+        if phrase and phrase ~= ("asc." .. string.lower(key:gsub(" ", "_"))) then
+            return phrase
+        end
+
         return fallback or key
     end
 
@@ -119,9 +136,26 @@ end, "Show help for commands", "General")
 ASC.Commands.Register("version", function(ply, cmd, args)
     -- Get localized text function
     local function GetText(key, fallback)
+        -- Try GMod localization first
+        if ASC.GMod and ASC.GMod.Localization then
+            local gmodKey = "asc." .. string.lower(key:gsub(" ", "_"))
+            local gmodText = ASC.GMod.Localization.GetText(gmodKey, nil)
+            if gmodText and gmodText ~= gmodKey then
+                return gmodText
+            end
+        end
+
+        -- Fall back to Czech system
         if ASC.Czech and ASC.Czech.GetText then
             return ASC.Czech.GetText(key, fallback)
         end
+
+        -- Use GMod's built-in language system
+        local phrase = language.GetPhrase("asc." .. string.lower(key:gsub(" ", "_")))
+        if phrase and phrase ~= ("asc." .. string.lower(key:gsub(" ", "_"))) then
+            return phrase
+        end
+
         return fallback or key
     end
 
