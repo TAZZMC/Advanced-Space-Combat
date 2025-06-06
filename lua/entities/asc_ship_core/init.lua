@@ -217,13 +217,13 @@ function ENT:Initialize()
     self.CachedSystemStatus = {}
     self.CachedPerformanceData = {}
 
-    -- Initialize v2.2.0 systems with delay to prevent spawn lag
+    -- Register with master scheduler instead of using timers
     timer.Simple(5, function()
         if IsValid(self) then
             self:InitializeFleetManagement()
             self:InitializeRealTimeMonitoring()
             self:InitializePerformanceAnalytics()
-            self:StartRealTimeUpdates()
+            self:RegisterWithMasterScheduler()
         end
     end)
 
@@ -233,6 +233,9 @@ end
 -- Ambient Sound System Functions - REMOVED per user request
 
 function ENT:OnRemove()
+    -- Unregister from master scheduler first
+    self:UnregisterFromMasterScheduler()
+
     -- Clean up resource system (SB3Resources cleanup is handled automatically by hook)
     if HYPERDRIVE.SB3Resources and HYPERDRIVE.SB3Resources.CoreStorage then
         local coreId = self:EntIndex()
@@ -566,13 +569,68 @@ function ENT:InitializeCAPIntegration()
     print("[ASC Ship Core] CAP integration initialized for core " .. self:EntIndex())
 end
 
+-- Register with master scheduler for optimized updates
+function ENT:RegisterWithMasterScheduler()
+    if not ASC or not ASC.MasterScheduler then return end
+
+    local coreId = self:EntIndex()
+
+    -- Register high priority tasks (critical systems)
+    ASC.MasterScheduler.RegisterTask("ShipCore_EntityScan_" .. coreId, "High", function()
+        if IsValid(self) then self:OptimizedEntityScan() end
+    end)
+
+    ASC.MasterScheduler.RegisterTask("ShipCore_NetworkSync_" .. coreId, "High", function()
+        if IsValid(self) then self:RealTimeNetworkSync() end
+    end)
+
+    -- Register medium priority tasks (normal operations)
+    ASC.MasterScheduler.RegisterTask("ShipCore_ResourceUpdate_" .. coreId, "Medium", function()
+        if IsValid(self) then self:RealTimeResourceUpdate() end
+    end)
+
+    ASC.MasterScheduler.RegisterTask("ShipCore_SystemUpdate_" .. coreId, "Medium", function()
+        if IsValid(self) then self:UpdateSystems() end
+    end)
+
+    -- Register low priority tasks (background operations)
+    ASC.MasterScheduler.RegisterTask("ShipCore_SystemCheck_" .. coreId, "Low", function()
+        if IsValid(self) then self:RealTimeSystemCheck() end
+    end)
+
+    ASC.MasterScheduler.RegisterTask("ShipCore_MonitoringUpdate_" .. coreId, "Low", function()
+        if IsValid(self) then self:UpdateRealTimeData() end
+    end)
+
+    print("[ASC Ship Core] Registered with master scheduler: " .. coreId)
+end
+
+-- Unregister from master scheduler on removal
+function ENT:UnregisterFromMasterScheduler()
+    if not ASC or not ASC.MasterScheduler then return end
+
+    local coreId = self:EntIndex()
+    local tasks = {
+        "ShipCore_EntityScan_" .. coreId,
+        "ShipCore_NetworkSync_" .. coreId,
+        "ShipCore_ResourceUpdate_" .. coreId,
+        "ShipCore_SystemUpdate_" .. coreId,
+        "ShipCore_SystemCheck_" .. coreId,
+        "ShipCore_MonitoringUpdate_" .. coreId
+    }
+
+    for _, taskName in ipairs(tasks) do
+        ASC.MasterScheduler.UnregisterTask(taskName)
+    end
+end
+
 function ENT:Think()
     local currentTime = CurTime()
 
     -- Skip all updates for configurable time after spawn to prevent lag
     local spawnDelay = GetConVar("asc_spawn_delay"):GetFloat()
     if not self.InitializationComplete and currentTime - (self.SpawnTime or 0) < spawnDelay then
-        self:NextThink(currentTime + 0.5)
+        self:NextThink(currentTime + 1.0) -- Increased think rate during initialization
         return true
     end
 
@@ -581,72 +639,25 @@ function ENT:Think()
         print("[ASC Ship Core] Initialization complete, starting normal operations")
     end
 
-    -- Check for performance mode from ConVar and optimization system
+    -- Minimal Think function - most work is now handled by master scheduler
+    -- Only handle critical immediate updates here
+
+    -- Check for performance mode changes
     local performanceMode = GetConVar("asc_performance_mode"):GetBool()
-
-    -- Also check if optimization system suggests performance mode
-    if ASC and ASC.ShipCore and ASC.ShipCore.Optimization then
-        local fps = 1 / FrameTime()
-        if fps < 30 and not performanceMode then
-            performanceMode = true
-            print("[ASC Ship Core] Auto-enabling performance mode due to low FPS: " .. math.floor(fps))
-        end
-    end
-
     if performanceMode and not self.PerformanceMode then
         self:EnablePerformanceMode()
     elseif not performanceMode and self.PerformanceMode then
         self:DisablePerformanceMode()
     end
 
-    -- Batch processing to limit updates per think cycle (reduced for performance)
-    local updateCount = 0
-    local maxUpdatesPerThink = self.PerformanceMode and 1 or 1 -- Reduced from 2 to 1
-
-    -- Real-time entity scanning (optimized with spatial partitioning)
-    if updateCount < maxUpdatesPerThink and currentTime - self.LastEntityScan > self.EntityScanRate then
-        self:OptimizedEntityScan()
-        self.LastEntityScan = currentTime
-        updateCount = updateCount + 1
-    end
-
-    -- Real-time resource calculations (reduced frequency)
-    if updateCount < maxUpdatesPerThink and currentTime - self.LastResourceUpdate > self.ResourceUpdateRate then
-        self:RealTimeResourceUpdate()
-        self.LastResourceUpdate = currentTime
-        updateCount = updateCount + 1
-    end
-
-    -- Real-time system health checks (reduced frequency)
-    if updateCount < maxUpdatesPerThink and currentTime - self.LastSystemCheck > self.SystemCheckRate then
-        self:RealTimeSystemCheck()
-        self.LastSystemCheck = currentTime
-        updateCount = updateCount + 1
-    end
-
-    -- Real-time network synchronization (reduced frequency)
-    if updateCount < maxUpdatesPerThink and currentTime - self.LastNetworkUpdate > self.NetworkUpdateRate then
-        self:RealTimeNetworkSync()
-        self.LastNetworkUpdate = currentTime
-        updateCount = updateCount + 1
-    end
-
-    -- Real-time monitoring updates - only if no other updates ran
-    if updateCount == 0 and currentTime - self.LastRealTimeUpdate > self.RealTimeUpdateRate then
-        self:UpdateRealTimeData()
-        self.LastRealTimeUpdate = currentTime
-    end
-
-    -- Legacy system updates (slower rate for compatibility)
-    if currentTime - self.lastUpdate > self.updateInterval then
-        self.lastUpdate = currentTime
-        self:UpdateSystems()
+    -- Update UI at reduced frequency
+    if currentTime - (self.lastUIUpdate or 0) > 1.0 then
         self:UpdateUI()
+        self.lastUIUpdate = currentTime
     end
 
-    -- Adaptive think rate based on performance (increased for better performance)
-    local thinkRate = self:GetAdaptiveThinkRate()
-    self:NextThink(currentTime + math.max(thinkRate, 0.1)) -- Minimum 0.1 second think rate
+    -- Much slower think rate since master scheduler handles most updates
+    self:NextThink(currentTime + 1.0) -- 1 FPS think rate
     return true
 end
 

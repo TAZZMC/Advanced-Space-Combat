@@ -356,10 +356,19 @@ function ASC.ECS.IntegrateEntity(gmodEntity)
     return entityID
 end
 
--- Start ECS update timer
+-- Register ECS with master scheduler
 if SERVER then
-    timer.Create("ASC_ECS_Update", ASC.ECS.Config.UpdateRate, 0, function()
-        ASC.ECS.Update()
+    timer.Simple(4, function()
+        if ASC and ASC.MasterScheduler then
+            ASC.MasterScheduler.RegisterTask("ASC_ECS", "Medium", function()
+                ASC.ECS.Update()
+            end, ASC.ECS.Config.UpdateRate)
+        else
+            -- Fallback timer if master scheduler not available
+            timer.Create("ASC_ECS_Update", ASC.ECS.Config.UpdateRate, 0, function()
+                ASC.ECS.Update()
+            end)
+        end
     end)
 end
 

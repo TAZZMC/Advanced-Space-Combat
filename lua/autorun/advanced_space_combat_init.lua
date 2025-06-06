@@ -198,15 +198,25 @@ ASC.Config = {
     DockingPrecision = 25,
     ServiceRange = 100,
     
-    -- Performance Settings
-    UpdateRate = 0.1,
-    NetworkRate = 0.2,
-    ThinkRate = 0.05,
-    MaxEntities = 1000,
-    MaxShips = 50,
-    MaxWeapons = 200,
-    MaxShuttles = 20,
-    MaxDockingPads = 30
+    -- Performance Settings (Optimized)
+    UpdateRate = 0.2, -- Reduced frequency for better performance
+    NetworkRate = 0.5, -- Reduced network updates
+    ThinkRate = 0.1, -- Reduced think frequency
+    MaxEntities = 500, -- Reduced for stability
+    MaxShips = 25, -- Reduced for performance
+    MaxWeapons = 100, -- Reduced for stability
+    MaxShuttles = 10, -- Reduced for performance
+    MaxDockingPads = 15, -- Reduced for performance
+
+    -- Master Scheduler Settings
+    MasterScheduler = {
+        Enabled = true,
+        HighPriorityRate = 0.1, -- 10 FPS for critical systems
+        MediumPriorityRate = 0.5, -- 2 FPS for normal systems
+        LowPriorityRate = 2.0, -- 0.5 FPS for background tasks
+        MaxUpdatesPerFrame = 5, -- Limit updates per frame
+        AdaptiveThrottling = true -- Enable performance-based throttling
+    }
 }
 
 -- Helper function for safe ConVar creation
@@ -378,6 +388,11 @@ include("autorun/asc_cap_effects_system.lua")
 include("autorun/asc_cap_weapons_integration.lua")
 include("autorun/asc_cap_console_commands.lua")
 
+-- Load optimization systems first
+include("autorun/asc_master_scheduler.lua")
+include("autorun/asc_memory_optimizer.lua")
+include("autorun/asc_performance_monitor.lua")
+
 -- Load missing feature systems
 include("autorun/asc_point_defense_system.lua")
 include("autorun/asc_countermeasures_system.lua")
@@ -439,4 +454,51 @@ print("[Advanced Space Combat] Quality: Enterprise-grade architecture")
 print("================================================================================")
 print("[Advanced Space Combat] 🌌 READY FOR ULTIMATE SPACE ADVENTURES! 🚀")
 print("[Advanced Space Combat] Type !ai help to get started with ARIA-4 assistant")
+print("[Advanced Space Combat] Use 'asc_optimization_status' to check optimization systems")
 print("================================================================================")
+
+-- Add optimization status command
+concommand.Add("asc_optimization_status", function(ply, cmd, args)
+    if IsValid(ply) and not ply:IsSuperAdmin() then return end
+
+    print("[Advanced Space Combat] Optimization Status:")
+
+    -- Master Scheduler Status
+    if ASC.MasterScheduler and ASC.MasterScheduler.Initialized then
+        local stats = ASC.MasterScheduler.GetStats()
+        print("  Master Scheduler: ACTIVE")
+        print("    Total Tasks: " .. stats.TotalTasks)
+        print("    Performance Level: " .. stats.Performance.PerformanceLevel)
+        print("    Current FPS: " .. math.floor(stats.Performance.CurrentFPS))
+        print("    Tasks Executed: " .. stats.Stats.TasksExecuted)
+    else
+        print("  Master Scheduler: INACTIVE")
+    end
+
+    -- Memory Optimizer Status
+    if ASC.MemoryOptimizer and ASC.MemoryOptimizer.Initialized then
+        local stats = ASC.MemoryOptimizer.GetStats()
+        print("  Memory Optimizer: ACTIVE")
+        print("    Current Memory: " .. string.format("%.2f", stats.CurrentMemoryMB) .. "MB")
+        print("    Peak Memory: " .. string.format("%.2f", stats.PeakMemoryMB) .. "MB")
+        print("    GC Count: " .. stats.GCCount)
+    else
+        print("  Memory Optimizer: INACTIVE")
+    end
+
+    -- Performance Monitor Status
+    if ASC.PerformanceMonitor and ASC.PerformanceMonitor.Initialized then
+        local stats = ASC.PerformanceMonitor.GetStats()
+        print("  Performance Monitor: ACTIVE")
+        print("    Performance Level: " .. stats.State.PerformanceLevel)
+        print("    Alerts Triggered: " .. stats.State.AlertsTriggered)
+        print("    Optimizations Applied: " .. stats.State.OptimizationsApplied)
+    else
+        print("  Performance Monitor: INACTIVE")
+    end
+
+    print("  Optimization Flags:")
+    for flag, enabled in pairs(ASC.OPTIMIZATIONS) do
+        print("    " .. flag .. ": " .. (enabled and "ENABLED" or "DISABLED"))
+    end
+end)

@@ -500,11 +500,22 @@ end
 -- Network receivers
 net.Receive("ASC_NetworkMessage", ASC.Networking.ReceiveMessage)
 
--- Initialize networking system
+-- Initialize networking system with master scheduler
 if CLIENT then
+    -- Client uses Think hook for immediate responsiveness
     hook.Add("Think", "ASC_Networking_Update", ASC.Networking.Update)
 else
-    timer.Create("ASC_Networking_Update", 0.01, 0, ASC.Networking.Update)  -- 100 FPS on server
+    -- Server uses master scheduler for better performance
+    timer.Simple(5, function()
+        if ASC and ASC.MasterScheduler then
+            ASC.MasterScheduler.RegisterTask("ASC_Networking", "High", function()
+                ASC.Networking.Update()
+            end, 0.05) -- 20 FPS for networking
+        else
+            -- Fallback timer if master scheduler not available
+            timer.Create("ASC_Networking_Update", 0.05, 0, ASC.Networking.Update)
+        end
+    end)
 end
 
 print("[Advanced Space Combat] Advanced Networking System v6.0.0 - High-Performance Communication Loaded Successfully!")

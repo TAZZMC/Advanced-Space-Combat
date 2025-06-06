@@ -872,10 +872,21 @@ ASC.TacticalAI.Core.GetTacticalStatus = ASC.TacticalAI.Integration.GetTacticalSt
 
 -- Initialize system
 if SERVER then
-    -- Update all tactical AI sessions
-    timer.Create("ASC_TacticalAI_Update", ASC.TacticalAI.Config.UpdateRate, 0, function()
-        for sessionID, session in pairs(ASC.TacticalAI.Core.ActiveSessions) do
-            ASC.TacticalAI.Core.Update(sessionID)
+    -- Register with master scheduler instead of timer
+    timer.Simple(3, function()
+        if ASC and ASC.MasterScheduler then
+            ASC.MasterScheduler.RegisterTask("ASC_TacticalAI", "Medium", function()
+                for sessionID, session in pairs(ASC.TacticalAI.Core.ActiveSessions) do
+                    ASC.TacticalAI.Core.Update(sessionID)
+                end
+            end, ASC.TacticalAI.Config.UpdateRate)
+        else
+            -- Fallback timer if master scheduler not available
+            timer.Create("ASC_TacticalAI_Update", ASC.TacticalAI.Config.UpdateRate, 0, function()
+                for sessionID, session in pairs(ASC.TacticalAI.Core.ActiveSessions) do
+                    ASC.TacticalAI.Core.Update(sessionID)
+                end
+            end)
         end
     end)
 
