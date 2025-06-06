@@ -752,7 +752,7 @@ function ENT:UpdateV221Systems()
     end
 end
 
--- Update CAP integration status
+-- Update CAP integration status - Enhanced v3.0
 function ENT:UpdateCAPStatus()
     if not self.CAPIntegrationActive then return end
 
@@ -764,6 +764,33 @@ function ENT:UpdateCAPStatus()
     if not self.ship then return end
 
     local capEntityCount = 0
+    local enhancedIntegration = ASC.CAP.Enhanced and ASC.CAP.Enhanced.Config.EnableEnhancedIntegration
+
+    -- Enhanced CAP entity detection
+    if enhancedIntegration then
+        local capEntities = ASC.CAP.Enhanced.DetectCAPEntities()
+        local shipEntities = {}
+
+        -- Filter CAP entities that belong to this ship
+        for _, entityData in ipairs(capEntities) do
+            if IsValid(entityData.entity) and self.ship.entities then
+                for _, shipEnt in ipairs(self.ship.entities) do
+                    if entityData.entity == shipEnt then
+                        table.insert(shipEntities, entityData)
+                        capEntityCount = capEntityCount + 1
+                        break
+                    end
+                end
+            end
+        end
+
+        self.CAPIntegration.enhancedEntities = shipEntities
+
+        -- Enhanced resource bridging
+        if ASC.CAP.Enhanced.ResourceBridge then
+            ASC.CAP.Enhanced.ResourceBridge.BridgeResources(self, shipEntities)
+        end
+    end
 
     -- Update CAP shield status
     if HYPERDRIVE.CAP.Shields then
@@ -771,7 +798,10 @@ function ENT:UpdateCAPStatus()
         self.CAPIntegration.shields = shields
         self:SetNWBool("CAPShieldsDetected", #shields > 0)
         self:SetNWInt("CAPShieldCount", #shields)
-        capEntityCount = capEntityCount + #shields
+
+        if not enhancedIntegration then
+            capEntityCount = capEntityCount + #shields
+        end
 
         if #shields > 0 then
             local shieldStatus = HYPERDRIVE.CAP.Shields.GetStatus(self, self.ship)
@@ -787,16 +817,20 @@ function ENT:UpdateCAPStatus()
         local energySources = HYPERDRIVE.CAP.Resources.FindEnergySources(self.ship)
         self.CAPIntegration.energySources = energySources
         self:SetNWBool("CAPEnergyDetected", #energySources > 0)
-        capEntityCount = capEntityCount + #energySources
+
+        if not enhancedIntegration then
+            capEntityCount = capEntityCount + #energySources
+        end
 
         if #energySources > 0 then
-            local totalEnergy = HYPERDRIVE.CAP.Resources.GetTotalEnergy(self.ship)
+            local totalEnergy = HYPERDRIVE.CAP.Resources.GetTotalEnergy and
+                               HYPERDRIVE.CAP.Resources.GetTotalEnergy(self.ship) or 0
             self:SetNWFloat("CAPEnergyLevel", totalEnergy)
         end
     end
 
-    -- Update CAP resource detection
-    if self.ship.entities then
+    -- Legacy CAP resource detection (if enhanced integration is disabled)
+    if not enhancedIntegration and self.ship.entities then
         for _, ent in ipairs(self.ship.entities) do
             if IsValid(ent) and HYPERDRIVE.CAP.GetEntityCategory then
                 local category = HYPERDRIVE.CAP.GetEntityCategory(ent:GetClass())
@@ -807,8 +841,19 @@ function ENT:UpdateCAPStatus()
         end
     end
 
+    -- Update network variables
     self:SetNWBool("CAPResourcesDetected", capEntityCount > 0)
     self:SetNWInt("CAPEntityCount", capEntityCount)
+
+    -- Enhanced integration status
+    if enhancedIntegration then
+        self:SetNWBool("CAPEnhancedIntegration", true)
+        local technology = ASC.CAP.Enhanced.GetBestAvailableTechnology(self:GetOwner())
+        self:SetNWString("CAPTechnology", technology or "Tau_ri")
+    else
+        self:SetNWBool("CAPEnhancedIntegration", false)
+        self:SetNWString("CAPTechnology", "Unknown")
+    end
 end
 
 function ENT:UpdateShipDetection()
@@ -983,6 +1028,94 @@ function ENT:HandleUICommand(ply, command, data)
         net.Start("asc_ship_core_model_selection")
         net.WriteEntity(self)
         net.WriteTable(info)
+
+    -- Enhanced CAP integration commands
+    elseif command == "cap_control_entity" then
+        if ASC.CAP.Communication then
+            local entityIndex = data.entity_index
+            local action = data.action
+            local parameters = data.parameters or {}
+
+            local entity = Entity(entityIndex)
+            if IsValid(entity) then
+                local success, result = ASC.CAP.Communication.ControlEntity(entity, action, parameters)
+                if success then
+                    ply:ChatPrint("[ASC Ship Core] CAP entity controlled: " .. (result or "Success"))
+                else
+                    ply:ChatPrint("[ASC Ship Core] CAP control failed: " .. (result or "Unknown error"))
+                end
+            else
+                ply:ChatPrint("[ASC Ship Core] Invalid CAP entity")
+            end
+        else
+            ply:ChatPrint("[ASC Ship Core] CAP communication system not available")
+        end
+
+    elseif command == "cap_batch_control" then
+        if ASC.CAP.Communication and self.CAPIntegration and self.CAPIntegration.enhancedEntities then
+            local action = data.action
+            local parameters = data.parameters or {}
+            local category = data.category -- Optional: filter by category
+
+            local entities = {}
+            for _, entityData in ipairs(self.CAPIntegration.enhancedEntities) do
+                if IsValid(entityData.entity) then
+                    if not category or entityData.category == category then
+                        table.insert(entities, entityData.entity)
+                    end
+                end
+            end
+
+            if #entities > 0 then
+                local success, results = ASC.CAP.Communication.BatchControl(entities, action, parameters)
+                if success then
+                    local successCount = 0
+                    for _, result in ipairs(results) do
+                        if result.success then successCount = successCount + 1 end
+                    end
+                    ply:ChatPrint(string.format("[ASC Ship Core] CAP batch control: %d/%d entities succeeded", successCount, #entities))
+                else
+                    ply:ChatPrint("[ASC Ship Core] CAP batch control failed")
+                end
+            else
+                ply:ChatPrint("[ASC Ship Core] No CAP entities found for batch control")
+            end
+        else
+            ply:ChatPrint("[ASC Ship Core] CAP batch control not available")
+        end
+
+    elseif command == "cap_activate_shields" then
+        if HYPERDRIVE.CAP.Shields then
+            local success, message = HYPERDRIVE.CAP.Shields.Activate(self, self.ship, "manual")
+            if success then
+                ply:ChatPrint("[ASC Ship Core] CAP shields activated: " .. (message or "Success"))
+            else
+                ply:ChatPrint("[ASC Ship Core] CAP shield activation failed: " .. (message or "Unknown error"))
+            end
+        else
+            ply:ChatPrint("[ASC Ship Core] CAP shield system not available")
+        end
+
+    elseif command == "cap_deactivate_shields" then
+        if HYPERDRIVE.CAP.Shields then
+            local success, message = HYPERDRIVE.CAP.Shields.Deactivate(self, self.ship, "manual")
+            if success then
+                ply:ChatPrint("[ASC Ship Core] CAP shields deactivated: " .. (message or "Success"))
+            else
+                ply:ChatPrint("[ASC Ship Core] CAP shield deactivation failed: " .. (message or "Unknown error"))
+            end
+        else
+            ply:ChatPrint("[ASC Ship Core] CAP shield system not available")
+        end
+
+    elseif command == "cap_force_detection" then
+        if ASC.CAP.Enhanced then
+            ASC.CAP.Enhanced.DetectCAPEntities(true) -- Force update
+            self:UpdateCAPStatus()
+            ply:ChatPrint("[ASC Ship Core] CAP entity detection forced")
+        else
+            ply:ChatPrint("[ASC Ship Core] Enhanced CAP integration not available")
+        end
 
     -- Auto-weld commands removed
 

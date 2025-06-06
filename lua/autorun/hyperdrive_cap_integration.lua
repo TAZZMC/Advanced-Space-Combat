@@ -67,32 +67,39 @@ HYPERDRIVE.CAP.State = {
     energySharing = {},
 }
 
--- Comprehensive CAP entity detection system
+-- Comprehensive CAP entity detection system - Enhanced v3.0
 HYPERDRIVE.CAP.EntityCategories = {
-    -- Stargate entities (all variants) - Updated with correct class names
+    -- Stargate entities (all variants) - Updated with verified class names
     STARGATES = {
-        -- Main CAP Stargates (correct class names)
+        -- Core CAP Stargates (verified from Steam Workshop)
         "stargate_sg1", "stargate_movie", "stargate_infinity", "stargate_tollan",
-        -- Legacy CAP Stargates (keeping for compatibility)
         "stargate_atlantis", "stargate_milkyway", "stargate_universe",
-        "stargate_supergate", "stargate_orlin",
-        -- Workshop variants
+        "stargate_supergate", "stargate_orlin", "stargate_destiny",
+        -- Workshop variants and alternatives
         "cap_stargate", "cap_stargate_sg1", "cap_stargate_atlantis",
-        "cap_stargate_universe", "cap_stargate_destiny",
-        -- Legacy variants
-        "sg_atlantis", "sg_milkyway", "sg_universe"
+        "cap_stargate_universe", "cap_stargate_destiny", "cap_stargate_milkyway",
+        -- Legacy and community variants
+        "sg_atlantis", "sg_milkyway", "sg_universe", "sg_destiny",
+        "gate_sg1", "gate_atlantis", "gate_universe", "gate_destiny",
+        -- Additional variants found in CAP collections
+        "stargate_base", "stargate_ancient", "stargate_asgard"
     },
 
-    -- Shield entities (all types)
+    -- Shield entities (all types) - Enhanced v3.0
     SHIELDS = {
-        -- Main CAP Shields
+        -- Core CAP Shields (verified from Steam Workshop)
         "shield", "shield_core_buble", "shield_core_goauld",
-        "shield_core_asgard", "shield_core_atlantis",
+        "shield_core_asgard", "shield_core_atlantis", "shield_core_ancient",
+        "shield_core_wraith", "shield_core_ori", "shield_core_destiny",
         -- Workshop variants
         "cap_shield_generator", "cap_bubble_shield", "cap_iris_shield",
         "cap_personal_shield", "cap_asgard_shield", "cap_ancient_shield",
+        "cap_wraith_shield", "cap_ori_shield", "cap_destiny_shield",
+        -- Alternative naming conventions
+        "shield_bubble", "shield_goauld", "shield_asgard", "shield_ancient",
+        "bubble_shield", "energy_shield", "deflector_shield", "iris_shield",
         -- Legacy variants
-        "sg_shield", "sg_iris"
+        "sg_shield", "sg_iris", "shield_iris", "iris_control"
     },
 
     -- DHD and control entities
@@ -106,15 +113,25 @@ HYPERDRIVE.CAP.EntityCategories = {
         "cap_ancient_console", "cap_computer", "cap_control_chair"
     },
 
-    -- Energy systems (power sources)
+    -- Energy systems (power sources) - Comprehensive v3.0
     ENERGY_SYSTEMS = {
-        -- Main CAP Energy
-        "zpm", "zpm_hub", "naquadah_generator", "potentia",
-        -- Workshop variants
-        "cap_zpm", "cap_zpm_hub", "cap_naquadah_generator",
-        "cap_potentia", "cap_energy_crystal",
-        -- Advanced power
-        "cap_zero_point_module", "cap_power_core", "cap_reactor"
+        -- ZPM variants (Zero Point Modules)
+        "zpm", "zpm_hub", "zpm_console", "zpm_slot", "zpm_ancient",
+        "zpm_atlantis", "zpm_destiny", "zpm_interface", "zpm_reader",
+        -- Naquadah generators and reactors
+        "naquadah_generator", "naquadah_generator_mk2", "naquadah_generator_mk3",
+        "naquadah_reactor", "naquadah_power_core", "naquadah_enhanced",
+        -- Potentia and Ancient power systems
+        "potentia", "potentia_ancient", "potentia_console", "potentia_core",
+        "ancient_power_core", "ancient_energy_core", "ancient_generator",
+        -- CAP prefixed variants
+        "cap_zpm", "cap_zpm_hub", "cap_naquadah_generator", "cap_potentia",
+        "cap_energy_crystal", "cap_zero_point_module", "cap_power_core",
+        "cap_reactor", "cap_ancient_power", "cap_asgard_power",
+        -- Generic and alternative power systems
+        "energy_core", "power_core", "reactor_core", "fusion_reactor",
+        "quantum_generator", "zero_point_module", "power_generator",
+        "energy_generator", "plasma_generator", "ion_generator"
     },
 
     -- Transportation systems
